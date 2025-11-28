@@ -1,6 +1,6 @@
 server:
   port: 8080
-  
+
 spring:
   application:
     name: bookspace # 애플리케이션 이름 추가 (관례)
@@ -8,7 +8,7 @@ spring:
   datasource:
     # RDS 관련 설정 (Env 변수 참조)
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # URL: DB_NAME과 DB_PORT 변수를 사용하여 URL을 구성합니다.
+    # URL: DB_NAME과 DB_PORT 변수를 사용하여 URL 구성
     url: jdbc:mysql://localhost:${DB_PORT}/${DB_NAME}?serverTimezone=UTC&characterEncoding=UTF-8
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
