@@ -1,0 +1,40 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.bookspace'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Web (REST API 및 내장 Tomcat 서버)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    
+    // Spring Boot DevTools (개발 시 자동 재시작)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    
+    // MyBatis 및 MySQL 추가
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // MyBatis
+    runtimeOnly 'com.mysql:mysql-connector-j'                                 // MySQL DB 드라이버
+   
+    
+	implementation 'org.springframework.boot:spring-boot-starter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

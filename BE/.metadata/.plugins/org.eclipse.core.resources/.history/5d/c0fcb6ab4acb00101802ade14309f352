@@ -1,0 +1,30 @@
+spring:
+  # 애플리케이션 이름 설정 (spring.application.name)
+  application:
+    name: bookspace
+
+  # 데이터베이스 설정 (spring.datasource.*)
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/bookspace?serverTimezone=UTC&characterEncoding=UTF-8
+    username: ssafy
+    password: ssafy
+    
+    # HikariCP 설정 추가 (성능 향상, 선택 사항)
+    # hikari:
+    #   maximum-pool-size: 10 # 최대 커넥션 수
+    #   connection-timeout: 30000 # 타임아웃 30초
+
+
+  # MyBatis 설정 (mybatis.*)
+  mybatis:
+  
+  # 매퍼 XML 파일 위치 (mybatis.mapper-locations)
+  mapper-locations: classpath:mappers/*.xml
+  
+  # 타입 별칭 패키지 (mybatis.type-aliases-package)
+  type-aliases-package: com.bookspace.mvc.model.dto
+  
+  # MyBatis 세부 설정 (mybatis.configuration.*)
+  configuration:
+    map-underscore-to-camel-case: true # DB의 snake_case를 Java의 camelCase로 자동 매핑
