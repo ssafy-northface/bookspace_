@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookspace.domain.post.dao.PostDao">
+
+    <!-- 1. 게시글 등록 -->
+    <insert id="insertPost" parameterType="com.bookspace.domain.post.vo.PostVo">
+        INSERT INTO post
+        (
+            user_id,
+            book_id,
+            post_title,
+            post_content
+        )
+        VALUES
+            (
+                #{userId},
+                #{bookId},
+                #{postTitle},
+                #{postContent}
+            )
+    </insert>
+
+
+    <!-- 2. 전체 게시물 조회-->
+    <select id="selectAllPosts" resultType="com.bookspace.domain.post.vo.PostVo">
+        SELECT
+            post_id,
+            user_id,
+            book_id,
+            post_title,
+            post_content,
+            post_date,
+            post_view_cnt,
+            post_last_modified
+        FROM post
+        ORDER BY post_date DESC
+    </select>
+
+
+    <!-- 3. 게시글 상세 조회 -->
+    <select id="selectPostById" parameterType="long" resultType="com.bookspace.domain.post.vo.PostVo">
+        SELECT
+            post_id,
+            user_id,
+            book_id,
+            post_title,
+            post_content,
+            post_date,
+            post_view_cnt,
+            post_last_modified
+        FROM post
+        WHERE post_id = #{postId}
+    </select>
+
+
+    <!-- 4. 게시글 수정 -->
+    <update id="updatePost" parameterType="com.bookspace.domain.post.vo.PostVo">
+        UPDATE post
+        SET
+            post_title = #{postTitle},
+            post_content = #{postContent},
+            post_last_modified = CURRENT_TIMESTAMP
+        WHERE post_id = #{postId}
+    </update>
+
+
+    <!-- 5. 게시글 삭제 -->
+    <delete id="deletePost" parameterType="long">
+        DELETE FROM post
+        WHERE post_id = #{postId}
+    </delete>
+
+
+    <!-- 6. 조회수 증가 -->
+    <update id="increaseViewCount" parameterType="long">
+        UPDATE post
+        SET post_view_cnt = post_view_cnt + 1
+        WHERE post_id = #{postId}
+    </update>
+
+</mapper>
