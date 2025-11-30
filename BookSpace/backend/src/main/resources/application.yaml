@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: bookspace # 애플리케이션 이름 추가 (관례)
+  config:
+    import: optional:file:.env[.properties]
 
   datasource:
     # RDS 관련 설정 (Env 변수 참조)
@@ -14,5 +16,5 @@ spring:
     password: ssafy
 
 mybatis:
-  mapper-locations: classpath:/mappers/**/*.xml
+  mapper-locations: classpath:mappers/*.xml
   type-aliases-package: com.bookspace.domain

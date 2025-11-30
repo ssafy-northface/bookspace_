@@ -19,7 +19,6 @@ public interface PostDao {
     // 3. 게시글 단건 조회
     PostVo selectPostById(@Param("postId") long postId);
 
-
     // 4. 게시글 수정
     int updatePost(PostVo postVo);
 
@@ -28,4 +27,13 @@ public interface PostDao {
 
     // 6. 조회수 증가
     int increaseViewCount(@Param("postId") long postId);
+
+    // 7. 게시글 조회 (by bookId)
+    List<PostVo> selectPostsByBookId(@Param("bookId") long bookId);
+
+    // 8. 게시글 조회 (by userId)
+    List<PostVo> selectPostsByUserId(@Param("userId") long userId);
+
+    // 9. 게시글 조회 (by keyword)
+    List<PostVo> selectPostsByKeyword(@Param("keyword") String keyword);
 }
