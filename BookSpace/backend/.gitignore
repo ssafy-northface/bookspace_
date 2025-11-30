@@ -1,6 +1,6 @@
 /.metadata/
 # 환경 변수 파일
-.env
+src/main/resources/.env
 
 # Created by https://www.toptal.com/developers/gitignore/api/maven,java,gradle,visualstudiocode,eclipse,windows,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=maven,java,gradle,visualstudiocode,eclipse,windows,macos

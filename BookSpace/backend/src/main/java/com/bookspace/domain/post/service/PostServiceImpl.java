@@ -52,8 +52,12 @@ public class PostServiceImpl implements PostService {
         vo.setPostTitle(dto.getPostTitle());
         vo.setPostContent(dto.getPostContent());
 
-        postDao.updatePost(vo);
-    }
+        int updatedRows = postDao.updatePost(vo);
+
+        if (updatedRows == 0) {
+            // 존재하지 않는 postId일 때
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }    }
 
     @Override
     public void deletePost(long postId) {
