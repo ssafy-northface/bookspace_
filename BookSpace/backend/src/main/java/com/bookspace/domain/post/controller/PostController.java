@@ -47,9 +47,7 @@ public class PostController {
         return ResponseEntity.ok("Post updated successfully");
     }
 
-    // ============================
     // 5. 게시글 삭제
-    // ============================
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable long postId) {
         postService.deletePost(postId);
