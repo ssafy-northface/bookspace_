@@ -24,4 +24,14 @@ public interface PostService {
 
     // 조회수 증가
     void increaseViewCount(long postId);
+
+    // 게시글 조회 (by bookId)
+    List<PostResponseDto> getPostsByBookId(long bookId);
+
+    // 게시글 조회 (by userId)
+    List<PostResponseDto> getPostsByUserId(long userId);
+
+    // 게시글 조회 (by keyword)
+    List<PostResponseDto> getPostsByKeyword(String keyword);
+
 }
