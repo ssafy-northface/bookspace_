@@ -17,7 +17,7 @@ public interface PostDao {
     List<PostVo> selectAllPosts();
 
     // 3. 게시글 단건 조회
-    PostVo selectPostById(long postId);
+    PostVo selectPostById(@Param("postId") long postId);
 
 
     // 4. 게시글 수정
