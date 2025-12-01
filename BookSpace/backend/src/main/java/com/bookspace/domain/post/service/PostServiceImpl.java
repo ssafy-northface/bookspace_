@@ -41,8 +41,15 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponseDto getPostById(long postId) {
+
+        PostVo postVo = postDao.selectPostById(postId);
+
+        if(postVo == null){
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }
+
         postDao.increaseViewCount(postId);
-        return convertToResponseDto(postDao.selectPostById(postId));
+        return convertToResponseDto(postVo);
     }
 
     @Override
@@ -51,21 +58,57 @@ public class PostServiceImpl implements PostService {
         vo.setPostId(postId);
         vo.setPostTitle(dto.getPostTitle());
         vo.setPostContent(dto.getPostContent());
+        int updatedRows = postDao.updatePost(vo);
+        if (updatedRows == 0) {
+            // 존재하지 않는 postId일 때
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }    }
 
-        postDao.updatePost(vo);
-    }
 
     @Override
     public void deletePost(long postId) {
-        postDao.deletePost(postId);
+        int deletedRows = postDao.deletePost(postId);
+        if (deletedRows == 0) {
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }
     }
+
 
     @Override
     public void increaseViewCount(long postId) {
         postDao.increaseViewCount(postId);
     }
-    // 어떻게 깔아!!!!!!!!!!!!!!!!1
-    //
+
+
+    @Override
+    public List<PostResponseDto> getPostsByBookId(long bookId) {
+        List<PostVo> postVoList = postDao.selectPostsByBookId(bookId);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<PostResponseDto> getPostsByUserId(long userId) {
+        List<PostVo> postVoList = postDao.selectPostsByUserId(userId);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<PostResponseDto> getPostsByKeyword(String keyword) {
+        List<PostVo> postVoList = postDao.selectPostsByKeyword(keyword);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+
+
+
+
+
 
     private PostResponseDto convertToResponseDto(PostVo post) {
         if (post == null) return null;

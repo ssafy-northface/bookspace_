@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
+
   application:
     name: bookspace # 애플리케이션 이름 추가 (관례)
 
@@ -9,10 +12,13 @@ spring:
     # RDS 관련 설정 (Env 변수 참조)
     driver-class-name: com.mysql.cj.jdbc.Driver
     # URL: DB_NAME과 DB_PORT 변수를 사용하여 URL 구성
-    url: jdbc:mysql://localhost:3306/bookspace?serverTimezone=UTC&characterEncoding=UTF-8
-    username: ssafy
-    password: ssafy
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
 mybatis:
-  mapper-locations: classpath:/mappers/**/*.xml
+  mapper-locations: classpath:mappers/*.xml
   type-aliases-package: com.bookspace.domain
+  configuration:
+    map-underscore-to-camel-case: true
+

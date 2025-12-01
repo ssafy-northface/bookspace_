@@ -47,12 +47,31 @@ public class PostController {
         return ResponseEntity.ok("Post updated successfully");
     }
 
-    // ============================
     // 5. 게시글 삭제
-    // ============================
     @DeleteMapping("/{postId}")
     public ResponseEntity<String> deletePost(@PathVariable long postId) {
         postService.deletePost(postId);
         return ResponseEntity.ok("Post deleted successfully");
     }
+
+    // 6. bookId로 조회
+    @GetMapping(params = "bookId")
+    // /posts?bookId=5 => 이렇게 쿼리파라미터로 들어감
+    public ResponseEntity<List<PostResponseDto>> getPostsByBookId(long bookId) {
+        return ResponseEntity.ok(postService.getPostsByBookId(bookId));
+    }
+
+    // 7. userId로 조회
+    @GetMapping(params = "userId")
+    public ResponseEntity<List<PostResponseDto>> getPostsByUserId(long userId) {
+        return ResponseEntity.ok(postService.getPostsByUserId(userId));
+    }
+
+    // 8. 키워드 검색 및 조회
+    @GetMapping("/search")
+    // /posts/search?keyword=강아
+    public ResponseEntity<List<PostResponseDto>> getPostsByKeyword(@RequestParam String keyword) {
+        return ResponseEntity.ok(postService.getPostsByKeyword(keyword));
+    }
+
 }

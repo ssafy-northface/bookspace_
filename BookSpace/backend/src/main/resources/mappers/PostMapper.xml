@@ -81,4 +81,57 @@
         WHERE post_id = #{postId}
     </update>
 
+    <!-- 7. 특정 책에 대한 게시글 조회 -->
+    <select id="selectPostsByBookId" parameterType="long" resultType="com.bookspace.domain.post.vo.PostVo">
+        SELECT
+            post_id,
+            user_id,
+            book_id,
+            post_title,
+            post_content,
+            post_date,
+            post_view_cnt,
+            post_last_modified
+        FROM post
+        WHERE book_id = #{bookId}
+        ORDER BY post_date DESC
+    </select>
+
+
+    <!-- 8. 특정 사용자에 대한 게시글 조회-->
+    <select id="selectPostsByUserId"
+            parameterType="long"
+            resultType="com.bookspace.domain.post.vo.PostVo">
+        SELECT
+            post_id,
+            user_id,
+            book_id,
+            post_title,
+            post_content,
+            post_date,
+            post_view_cnt,
+            post_last_modified
+        FROM post
+        WHERE user_id = #{userId}
+        ORDER BY post_date DESC
+    </select>
+
+    <!-- 8. 키워드로 게시글 조회 (제목 + 내용) -->
+    <select id="selectPostsByKeyword"
+            parameterType="string"
+            resultType="com.bookspace.domain.post.vo.PostVo">
+        SELECT
+            post_id,
+            user_id,
+            book_id,
+            post_title,
+            post_content,
+            post_date,
+            post_view_cnt,
+            post_last_modified
+        FROM post
+        WHERE post_title LIKE CONCAT('%', #{keyword}, '%')
+           OR post_content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY post_date DESC
+    </select>
 </mapper>
