@@ -67,7 +67,7 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostsByUserId(userId));
     }
 
-    // 8. 키워드 검색 & 조회
+    // 8. 키워드 검색 및 조회
     @GetMapping("/search")
     // /posts/search?keyword=강아
     public ResponseEntity<List<PostResponseDto>> getPostsByKeyword(@RequestParam String keyword) {
