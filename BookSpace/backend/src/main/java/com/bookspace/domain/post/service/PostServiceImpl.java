@@ -70,6 +70,30 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    @Override
+    public List<PostResponseDto> getPostsByBookId(long bookId) {
+        List<PostVo> postVoList = postDao.selectPostsByBookId(bookId);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<PostResponseDto> getPostsByUserId(long userId) {
+        List<PostVo> postVoList = postDao.selectPostsByUserId(userId);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+    @Override
+    public List<PostResponseDto> getPostsByKeyword(String keyword) {
+        List<PostVo> postVoList = postDao.selectPostsByKeyword(keyword);
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
 
 
 

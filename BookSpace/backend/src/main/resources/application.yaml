@@ -7,9 +7,6 @@ spring:
 
   application:
     name: bookspace # 애플리케이션 이름 추가 (관례)
-  config:
-    import: optional:file:.env[.properties]
-
 
   datasource:
     # RDS 관련 설정 (Env 변수 참조)
@@ -24,3 +21,4 @@ mybatis:
   type-aliases-package: com.bookspace.domain
   configuration:
     map-underscore-to-camel-case: true
+
