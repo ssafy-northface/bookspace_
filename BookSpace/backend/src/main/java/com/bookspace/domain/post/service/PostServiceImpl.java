@@ -41,8 +41,15 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostResponseDto getPostById(long postId) {
+
+        PostVo postVo = postDao.selectPostById(postId);
+
+        if(postVo == null){
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }
+
         postDao.increaseViewCount(postId);
-        return convertToResponseDto(postDao.selectPostById(postId));
+        return convertToResponseDto(postVo);
     }
 
     @Override
@@ -57,6 +64,7 @@ public class PostServiceImpl implements PostService {
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }    }
 
+
     @Override
     public void deletePost(long postId) {
         int deletedRows = postDao.deletePost(postId);
@@ -64,6 +72,7 @@ public class PostServiceImpl implements PostService {
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
     }
+
 
     @Override
     public void increaseViewCount(long postId) {
