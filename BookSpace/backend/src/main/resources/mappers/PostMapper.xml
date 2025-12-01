@@ -116,7 +116,7 @@
         ORDER BY post_date DESC
     </select>
 
-    <!-- 8. 키워드로 게시글 조회 (제목 + 내용) -->
+    <!-- 9. 키워드로 게시글 조회 (제목 + 내용) -->
     <select id="selectPostsByKeyword"
             parameterType="string"
             resultType="com.bookspace.domain.post.vo.PostVo">
@@ -133,5 +133,12 @@
         WHERE post_title LIKE CONCAT('%', #{keyword}, '%')
            OR post_content LIKE CONCAT('%', #{keyword}, '%')
         ORDER BY post_date DESC
+    </select>
+
+    <!-- 10. postId를 가진 게시글 존재 여부   -->
+    <select id="existsById" parameterType="long" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM post
+        WHERE post_id = #{postId}
     </select>
 </mapper>

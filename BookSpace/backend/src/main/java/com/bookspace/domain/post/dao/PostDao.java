@@ -36,4 +36,8 @@ public interface PostDao {
 
     // 9. 게시글 조회 (by keyword)
     List<PostVo> selectPostsByKeyword(@Param("keyword") String keyword);
+
+    //10. 게시글 존재 여부
+    boolean existsById(@Param("postId") long postId);
+
 }
