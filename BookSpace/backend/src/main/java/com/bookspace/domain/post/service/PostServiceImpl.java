@@ -124,7 +124,7 @@ public class PostServiceImpl implements PostService {
         dto.setPostDate(post.getPostDate());
         dto.setPostViewCnt(post.getPostViewCnt());
         dto.setPostLastModified(post.getPostLastModified());
-        dto.setLikeCount(post.getLikeCount());
+        dto.setLikeCount(post.getLikeCount()); //dto 수정
 
         return dto;
     }
