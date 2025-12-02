@@ -40,4 +40,13 @@
         ORDER BY comment_date DESC
     </select>
 
+    <!-- Update - commentId   -->
+    <update id="updateComment" parameterType="commentVo">
+        UPDATE comment
+        SET
+            comment_content = #{commentContent},
+            comment_last_modified = CURRENT_TIMESTAMP
+        WHERE comment_id = #{commentId}
+    </update>
+
 </mapper>

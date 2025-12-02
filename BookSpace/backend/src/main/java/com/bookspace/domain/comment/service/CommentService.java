@@ -18,4 +18,7 @@ public interface CommentService {
 
     // userId로 댓글 전체 조회
     List<CommentResponseDto> getCommentByUserId (long userId);
+
+    // [U[
+    void updateComment(long commentId, CommentRequestDto commentDto);
 }

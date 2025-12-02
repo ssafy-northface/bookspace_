@@ -62,4 +62,27 @@ public class CommentServiceImpl implements CommentService {
         }
         return comments;
     }
+
+    @Override
+    public void updateComment(long commentId, CommentRequestDto commentDto) {
+        // 1) 해당 comment가 존재하는지 확인
+        CommentResponseDto existing = commentDao.selectCommentById(commentId);
+        if (existing == null) {
+            throw new IllegalArgumentException("Comment not found: " + commentId);
+        }
+
+        // 2) 업데이트 값 전달
+        CommentVo commentVo = new CommentVo();
+        commentVo.setCommentId(commentId);
+        commentVo.setCommentContent(commentDto.getCommentContent());
+
+        int updated = commentDao.updateComment(commentVo);
+
+        if (updated != 1) {
+            throw new RuntimeException("Failed to update comment: "+commentId);
+        }
+
+
+
+    }
 }

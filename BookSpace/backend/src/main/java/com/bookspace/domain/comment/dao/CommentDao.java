@@ -21,4 +21,7 @@ public interface CommentDao {
     // 4. [R] 특정 userId의 모든 댓글 조회
     List<CommentResponseDto> selectCommentsByUserId(@Param("userId") long userId);
 
+    // 5. [U] - 댓글 수정
+    int updateComment(CommentVo commentVo);
+
 }
