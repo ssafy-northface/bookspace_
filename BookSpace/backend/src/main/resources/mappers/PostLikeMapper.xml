@@ -1,6 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bookspace.domain.postLike.dao.PostLikeDao">
+    <!--  좋아요 추가  -->
+    <insert id="insertLike" parameterType="postLikeVo">
+        INSERT INTO post_like (post_id, user_id)
+        VALUES (#{postId}, #{userId})
+    </insert>
 
-</beans>
+    <!--  중복 좋아요 체크  -->
+    <select id="existsLike" >
+    SELECT COUNT(*)
+    FROM post_like
+    WHERE post_id = #{postId}
+        AND user_id = #{userId}
+    </select>
+
+    <!--  좋아요 삭제  -->
+    <delete id="deleteLike">
+        DELETE FROM post_like
+            WHERE post_id = #{postId}
+                AND user_id = #{userId}
+    </delete>
+
+
+</mapper>
+

@@ -1,8 +1,9 @@
-package com.bookspace.domain.post_like.dto;
+package com.bookspace.domain.postLike.dto;
 
 import lombok.Data;
 
 @Data
 public class PostLikeRequestDto {
     private Long userId;
+    // postID(PathVariable)
 }
