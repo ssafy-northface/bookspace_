@@ -1,27 +1,42 @@
 package com.bookspace.global.exception;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice // 모든 REST 컨트롤러 전역 예외 처리
+import lombok.Builder;
+import lombok.Getter;
+
+@RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // 에러 응답 포맷
+    @Getter
+    @Builder
+    static class ErrorResponse {
+        private String code;
+        private String message;
+    }
 
     /** 404 - Not Found */
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleNotFound(IllegalArgumentException ex) {
-        return ex.getMessage();
+    public ErrorResponse handleNotFound(IllegalArgumentException ex) {
+        return ErrorResponse.builder()
+                .code("NOT_FOUND")
+                .message(ex.getMessage())
+                .build();
     }
-
 
     /** 400 - Bad Request */
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleBadRequest(BadRequestException ex) {
-        return ex.getMessage();
+    public ErrorResponse handleBadRequest(RuntimeException ex) {
+        return ErrorResponse.builder()
+                .code("BAD_REQUEST")
+                .message(ex.getMessage())
+                .build();
     }
+
 }
