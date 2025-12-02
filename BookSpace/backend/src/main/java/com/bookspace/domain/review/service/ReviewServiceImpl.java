@@ -23,7 +23,18 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     public void createReview(ReviewRequestDto dto) {
 
-//        // 존재하지 않는 bookId라면 404 오류 발생
+        // 예외 처리
+        // 1. rating 범위 유효성 검사 (0~5) => 400 BAD_REQUEST
+        if (dto.getReviewRating() < 0 || dto.getReviewRating() > 5) {
+            throw new RuntimeException("Rating must be between 0 and 5.");
+        }
+
+        // 2. 소수점 한 자리까지 허용
+        if (Math.round(dto.getReviewRating() * 10) != dto.getReviewRating() * 10) {
+            throw new RuntimeException("Rating must have at most one decimal place.");
+        }
+
+//        // 3. 존재하지 않는 bookId => 404 NOT_FOUND
 //        if (bookDao.selectBookById(dto.getBookId()) == null) {
 //            throw new IllegalArgumentException("Book not found with id: " + dto.getBookId());
 //        }
