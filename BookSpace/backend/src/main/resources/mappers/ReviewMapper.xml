@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookspace.domain.review.dao.ReviewDao">
+
+    <!--리뷰 등록 -->
+    <insert id="insertReview"
+            parameterType="com.bookspace.domain.review.vo.ReviewVo"
+            useGeneratedKeys="true"
+            keyProperty="reviewId">
+        INSERT INTO review (
+            book_id,
+            user_id,
+            review_rating,
+            review_content
+        )
+        VALUES (
+                   #{bookId},
+                   #{userId},
+                   #{reviewRating},
+                   #{reviewContent}
+               )
+    </insert>
+
+    <!-- 리뷰 단건 조회 -->
+    <select id="selectReviewById"
+            resultType="com.bookspace.domain.review.vo.ReviewVo">
+        SELECT
+            review_id,
+            book_id,
+            user_id,
+            review_rating,
+            review_content,
+            review_date,
+            review_last_modified
+        FROM review
+        WHERE review_id = #{reviewId}
+    </select>
+
+    <!-- 리뷰 수정 -->
+    <update id="updateReview"
+            parameterType="com.bookspace.domain.review.vo.ReviewVo">
+        UPDATE review
+        SET
+            review_rating = #{reviewRating},
+            review_content = #{reviewContent},
+            review_last_modified = NOW()
+        WHERE review_id = #{reviewId}
+    </update>
+
+    <!-- 리뷰 삭제 -->
+    <delete id="deleteReview">
+        DELETE FROM review
+        WHERE review_id = #{reviewId}
+    </delete>
+
+    <!-- 리뷰 조회 (by userId) -->
+    <select id="selectReviewsByUserId"
+            resultType="com.bookspace.domain.review.vo.ReviewVo">
+        SELECT
+            review_id,
+            book_id,
+            user_id,
+            review_rating,
+            review_content,
+            review_date,
+            review_last_modified
+        FROM review
+        WHERE user_id = #{userId}
+        ORDER BY review_date DESC
+    </select>
+
+    <!-- 리뷰 조회 (by bookId) -->
+    <select id="selectReviewsByBookId"
+            resultType="com.bookspace.domain.review.vo.ReviewVo">
+        SELECT
+        r.review_id,
+        r.book_id,
+        r.user_id,
+        r.review_rating,
+        r.review_content,
+        r.review_date,
+        r.review_last_modified,
+        u.user_nickname AS nickname/*화면에 표시할 닉네임 필요*/
+        FROM review r
+        JOIN user u ON r.user_id = u.user_id
+        WHERE r.book_id = #{bookId}
+
+        <choose>
+            <when test="sort == 'rating_asc'">
+                ORDER BY r.review_rating, r.review_date DESC
+            </when>
+            <when test="sort == 'rating_desc'">
+                ORDER BY r.review_rating DESC, r.review_date DESC
+            </when>
+            <otherwise>
+                ORDER BY r.review_date DESC  <!-- latest -->
+            </otherwise>
+        </choose>
+    </select>
+
+
+    <!-- 특정 책에 대한 평균 평점 조회 -->
+    <select id="selectAverageRating" resultType="double">
+        SELECT AVG(review_rating)
+        FROM review
+        WHERE book_id = #{bookId}
+    </select>
+
+    <!-- 리뷰 개수 (by bookId) -->
+    <select id="countReviews" resultType="int">
+        SELECT COUNT(*)
+        FROM review
+        WHERE book_id = #{bookId}
+    </select>
+
+</mapper>
