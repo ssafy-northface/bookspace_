@@ -1,7 +1,9 @@
 package com.bookspace.domain.post.dao;
 
 import java.util.List;
+import java.util.Map;
 
+import com.bookspace.domain.post.dto.PostResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -39,5 +41,7 @@ public interface PostDao {
 
     //10. 게시글 존재 여부
     boolean existsById(@Param("postId") long postId);
+
+
 
 }

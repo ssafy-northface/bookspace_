@@ -10,6 +10,8 @@ import com.bookspace.domain.post.dao.PostDao;
 import com.bookspace.domain.post.dto.PostRequestDto;
 import com.bookspace.domain.post.dto.PostResponseDto;
 import com.bookspace.domain.post.vo.PostVo;
+import java.util.Map;
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -122,7 +124,10 @@ public class PostServiceImpl implements PostService {
         dto.setPostDate(post.getPostDate());
         dto.setPostViewCnt(post.getPostViewCnt());
         dto.setPostLastModified(post.getPostLastModified());
+        dto.setLikeCount(post.getLikeCount());
 
         return dto;
     }
+
+
 }

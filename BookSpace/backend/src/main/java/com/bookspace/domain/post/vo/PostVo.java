@@ -14,4 +14,5 @@ public class PostVo {
     private LocalDateTime postDate;
     private int postViewCnt;
     private LocalDateTime postLastModified;
+    private int likeCount;
 }
