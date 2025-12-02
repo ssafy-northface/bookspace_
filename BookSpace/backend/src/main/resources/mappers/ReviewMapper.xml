@@ -87,6 +87,7 @@
         FROM review r
         JOIN user u ON r.user_id = u.user_id
         WHERE r.book_id = #{bookId}
+            AND u.user_status = 'active'
 
         <choose>
             <when test="sort == 'rating_asc'">
@@ -105,15 +106,19 @@
     <!-- 특정 책에 대한 평균 평점 조회 -->
     <select id="selectAverageRating" resultType="double">
         SELECT AVG(review_rating)
-        FROM review
-        WHERE book_id = #{bookId}
+        FROM review r
+        JOIN user u ON r.user_id = u.user_id
+        WHERE r.book_id = #{bookId}
+            AND u.user_status = 'active'
     </select>
 
     <!-- 리뷰 개수 (by bookId) -->
     <select id="countReviews" resultType="int">
         SELECT COUNT(*)
-        FROM review
+        FROM review r
+        JOIN user u ON r.user_id = u.user_id
         WHERE book_id = #{bookId}
+          AND u.user_status = 'active'
     </select>
 
 </mapper>
