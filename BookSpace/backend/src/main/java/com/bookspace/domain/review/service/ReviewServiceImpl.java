@@ -19,8 +19,16 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewDao reviewDao;
 
     // 1. 리뷰 등록
+    // 없는 책에 대해 리뷰를 등록하려고 하면 -> 404
     @Override
     public void createReview(ReviewRequestDto dto) {
+
+//        // 존재하지 않는 bookId라면 404 오류 발생
+//        if (bookDao.selectBookById(dto.getBookId()) == null) {
+//            throw new IllegalArgumentException("Book not found with id: " + dto.getBookId());
+//        }
+
+        // 정상 등록 처리
         ReviewVo vo = new ReviewVo();
         vo.setUserId(dto.getUserId());
         vo.setBookId(dto.getBookId());
@@ -81,6 +89,12 @@ public class ReviewServiceImpl implements ReviewService {
     // 6. 특정 책의 리뷰 목록 조회 (by bookId + sort)
     @Override
     public List<ReviewResponseDto> getReviewsByBookId(long bookId, String sort) {
+
+//        // 존재하지 않는 책이면 404
+//        if (bookDao.selectBookById(bookId) == null) {
+//            throw new IllegalArgumentException("Book not found with id: " + bookId);
+//        }
+
         List<ReviewVo> reviewVoList = reviewDao.selectReviewsByBookId(bookId, sort);
         return reviewVoList.stream()
                 .map(this::convertToResponseDto)
