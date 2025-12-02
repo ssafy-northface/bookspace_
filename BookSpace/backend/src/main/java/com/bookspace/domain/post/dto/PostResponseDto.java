@@ -13,4 +13,5 @@ public class PostResponseDto {
     private LocalDateTime postDate;
     private int postViewCnt;
     private LocalDateTime postLastModified;
+    private int likeCount;
 }

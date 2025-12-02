@@ -41,20 +41,47 @@
 
 
     <!-- 3. 게시글 상세 조회 -->
-    <select id="selectPostById" parameterType="long" resultType="com.bookspace.domain.post.vo.PostVo">
-        SELECT
-            post_id,
-            user_id,
-            book_id,
-            post_title,
-            post_content,
-            post_date,
-            post_view_cnt,
-            post_last_modified
-        FROM post
-        WHERE post_id = #{postId}
-    </select>
+<!--    <select id="selectPostById" parameterType="long" resultType="com.bookspace.domain.post.vo.PostVo">-->
+<!--        SELECT-->
+<!--            p.post_id,-->
+<!--            p.user_id,-->
+<!--            p.book_id,-->
+<!--            p.post_title,-->
+<!--            p.post_content,-->
+<!--            p.post_date,-->
+<!--            p.post_view_cnt,-->
+<!--            p.post_last_modified,-->
+<!--            COUNT(pl.post_id) AS likeCount-->
+<!--        FROM post p-->
+<!--                 LEFT JOIN post_like pl-->
+<!--                           ON p.post_id = pl.post_id-->
+<!--        WHERE p.post_id = #{postId}-->
+<!--        GROUP BY p.post_id-->
+<!--    </select>-->
 
+    <select id="selectPostById" parameterType="long"
+            resultType="com.bookspace.domain.post.vo.PostVo">
+
+        SELECT
+            p.post_id,
+            p.user_id,
+            p.book_id,
+            p.post_title,
+            p.post_content,
+            p.post_date,
+            p.post_view_cnt,
+            p.post_last_modified,
+
+
+            (
+                SELECT COUNT(*)
+                FROM post_like pl
+                WHERE pl.post_id = p.post_id
+            ) AS likeCount
+
+        FROM post p
+        WHERE p.post_id = #{postId}
+    </select>
 
     <!-- 4. 게시글 수정 -->
     <update id="updatePost" parameterType="com.bookspace.domain.post.vo.PostVo">
@@ -139,6 +166,14 @@
     <select id="existsById" parameterType="long" resultType="boolean">
         SELECT COUNT(*) > 0
         FROM post
+        WHERE post_id = #{postId}
+    </select>
+
+
+    <!-- 디버그용 -->
+    <select id="debugSelectLikesByPostId" parameterType="long" resultType="map">
+        SELECT *
+        FROM post_like
         WHERE post_id = #{postId}
     </select>
 </mapper>

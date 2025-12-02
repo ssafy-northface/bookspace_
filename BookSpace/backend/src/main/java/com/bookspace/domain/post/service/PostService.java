@@ -1,6 +1,7 @@
 package com.bookspace.domain.post.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.bookspace.domain.post.dto.PostRequestDto;
 import com.bookspace.domain.post.dto.PostResponseDto;
