@@ -21,4 +21,7 @@ public interface CommentService {
 
     // [U[
     void updateComment(long commentId, CommentRequestDto commentDto);
+
+    // [D]
+    void deleteComment(long commentId);
 }

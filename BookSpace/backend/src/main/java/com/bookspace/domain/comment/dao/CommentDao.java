@@ -24,4 +24,6 @@ public interface CommentDao {
     // 5. [U] - 댓글 수정
     int updateComment(CommentVo commentVo);
 
+    // 6. [D] - 댓글 삭제
+    int deleteComment(@Param("commentId") long commentId);
 }
