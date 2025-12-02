@@ -41,4 +41,13 @@ public class CommentController {
     public ResponseEntity<List<CommentResponseDto>> getCommentsByUserId(@PathVariable long userId){
         return ResponseEntity.ok(commentService.getCommentByUserId(userId));
     }
+
+    // [U] - 댓글 수정
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable long commentId, @RequestBody CommentRequestDto commentDto){
+        commentService.updateComment(commentId, commentDto);
+        // 수정 후 반환
+        return ResponseEntity.ok(commentService.getCommentByCommentId(commentId));
+    }
+
 }
