@@ -50,4 +50,12 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getCommentByCommentId(commentId));
     }
 
+    // [D] - 댓글 삭제
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<String> deleteComment(@PathVariable long commentId){
+        commentService.deleteComment(commentId);
+        return ResponseEntity.ok("Comment deleted successfully");
+    }
+
+
 }

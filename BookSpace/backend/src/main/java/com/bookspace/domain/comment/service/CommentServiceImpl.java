@@ -63,6 +63,7 @@ public class CommentServiceImpl implements CommentService {
         return comments;
     }
 
+    // [U] - commentID
     @Override
     public void updateComment(long commentId, CommentRequestDto commentDto) {
         // 1) 해당 comment가 존재하는지 확인
@@ -81,8 +82,25 @@ public class CommentServiceImpl implements CommentService {
         if (updated != 1) {
             throw new RuntimeException("Failed to update comment: "+commentId);
         }
-
-
-
     }
+
+    // [D] - commentId
+    @Override
+    public void deleteComment(long commentId) {
+        // comment가 존재하는지 확인
+        CommentResponseDto existing = commentDao.selectCommentById(commentId);
+        if(existing == null){
+            throw new IllegalArgumentException("Comment not found: " + commentId);
+        }
+
+        // 2) 삭제
+        int deleted = commentDao.deleteComment(commentId);
+        if (deleted != 1) {
+            throw new RuntimeException("Failed to delete comment: "+commentId);
+        }
+    }
+
+
+
+
 }
