@@ -3,6 +3,7 @@ package com.bookspace.domain.post.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+// 단건 조회에서 내려줄 Dto
 @Data
 public class PostResponseDto {
     private long postId;
@@ -13,5 +14,6 @@ public class PostResponseDto {
     private LocalDateTime postDate;
     private int postViewCnt;
     private LocalDateTime postLastModified;
-    private int likeCount;
+    private int likeCount; // 해당 post의 좋아요 총 개수
+    private boolean isLiked; // 로그인한 유저라면 유저가 좋아요를 눌렀는지
 }
