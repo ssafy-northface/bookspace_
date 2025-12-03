@@ -15,11 +15,11 @@ public interface PostDao {
     // 1. 게시글 등록
     int insertPost(PostVo postVo);
 
-    // 2. 게시글 전체 조회
-    List<PostVo> selectAllPosts();
+    // 2. 게시글 전체 조회 (로그인 userId -> isLiked)
+    List<PostVo> selectAllPosts(@Param("userId") Long userId);
 
-    // 3. 게시글 단건 조회
-    PostVo selectPostById(@Param("postId") long postId);
+    // 3. 게시글 단건 조회 (로그인 userId -> isLiked)
+    PostVo selectPostById(@Param("postId") long postId,@Param("userId") Long userId);
 
     // 4. 게시글 수정
     int updatePost(PostVo postVo);
@@ -41,7 +41,6 @@ public interface PostDao {
 
     //10. 게시글 존재 여부
     boolean existsById(@Param("postId") long postId);
-
 
 
 }

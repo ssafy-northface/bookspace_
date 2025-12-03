@@ -33,18 +33,35 @@ public class PostServiceImpl implements PostService {
         postDao.insertPost(vo);
     }
 
+
+    /*
+    모든 게시물 조회는 게시물 좋아요 개수, 좋아요 여부 2개가 모두 포함된 응답이 옴
+    - 로그인한 유저라면, 자신이 게시물을 좋아요 눌렀는지 여부 (full heart / empty heart)
+    - 로그인한 유저라면, liked값이 모두 false로 옴 -> 프론트 처리 (empty heart를 유저가 누르려고 시도했을 때 로그인 하라고 하기)
+
+     */
     @Override
     public List<PostResponseDto> getAllPosts() {
-        return postDao.selectAllPosts()
-                .stream()
+
+        // TODO 로그인 로직 구현 후 수정
+        Long userId = 1L; // 로그인한 유저일 경우 (1번으로 테스트)
+        // Long userId = null; // 로그인 하지 않았을 때
+
+        List<PostVo> voList = postDao.selectAllPosts(userId);
+
+        return voList.stream()
                 .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public PostResponseDto getPostById(long postId) {
 
-        PostVo postVo = postDao.selectPostById(postId);
+        // TODO 로그인 로직 구현 후 수정
+        //Long userId = 1L;
+        Long userId = null;
+
+        PostVo postVo = postDao.selectPostById(postId,userId);
 
         if(postVo == null){
             throw new IllegalArgumentException("Post not found with id: " + postId);
@@ -107,11 +124,6 @@ public class PostServiceImpl implements PostService {
     }
 
 
-
-
-
-
-
     private PostResponseDto convertToResponseDto(PostVo post) {
         if (post == null) return null;
 
@@ -125,7 +137,7 @@ public class PostServiceImpl implements PostService {
         dto.setPostViewCnt(post.getPostViewCnt());
         dto.setPostLastModified(post.getPostLastModified());
         dto.setLikeCount(post.getLikeCount()); //dto 수정
-
+        dto.setLiked(post.isLiked());
         return dto;
     }
 

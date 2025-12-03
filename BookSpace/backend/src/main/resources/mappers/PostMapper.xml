@@ -27,16 +27,33 @@
     <!-- 2. 전체 게시물 조회-->
     <select id="selectAllPosts" resultType="com.bookspace.domain.post.vo.PostVo">
         SELECT
-            post_id,
-            user_id,
-            book_id,
-            post_title,
-            post_content,
-            post_date,
-            post_view_cnt,
-            post_last_modified
-        FROM post
-        ORDER BY post_date DESC
+            p.post_id,
+            p.user_id,
+            p.book_id,
+            p.post_title,
+            p.post_content,
+            p.post_date,
+            p.post_view_cnt,
+            p.post_last_modified,
+
+            -- 좋아요 개수
+            (SELECT COUNT(*)
+             FROM post_like pl
+             WHERE pl.post_id = p.post_id) AS likeCount,
+
+            -- 유저 좋아요 여부
+            CASE
+                WHEN #{userId} IS NULL THEN FALSE
+                ELSE (
+                    SELECT COUNT(*) > 0
+                    FROM post_like pl
+                    WHERE pl.post_id = p.post_id
+                      AND pl.user_id = #{userId}
+                )
+                END AS isLiked
+
+        FROM post p
+        ORDER BY p.post_date DESC
     </select>
 
 
@@ -59,8 +76,8 @@
 <!--        GROUP BY p.post_id-->
 <!--    </select>-->
 
-    <select id="selectPostById" parameterType="long"
-            resultType="com.bookspace.domain.post.vo.PostVo">
+    <!-- 3. 단건 조회 -->
+    <select id="selectPostById" resultType="com.bookspace.domain.post.vo.PostVo">
 
         SELECT
             p.post_id,
@@ -72,16 +89,27 @@
             p.post_view_cnt,
             p.post_last_modified,
 
+            -- 좋아요 개수
+            (SELECT COUNT(*)
+             FROM post_like pl
+             WHERE pl.post_id = p.post_id) AS likeCount,
 
-            (
-                SELECT COUNT(*)
-                FROM post_like pl
-                WHERE pl.post_id = p.post_id
-            ) AS likeCount
+            -- 유저 좋아요 여부
+            CASE
+                WHEN #{userId} IS NULL THEN FALSE
+                ELSE (
+                    SELECT COUNT(*) > 0
+                    FROM post_like pl
+                    WHERE pl.post_id = p.post_id
+                      AND pl.user_id = #{userId}
+                )
+                END AS isLiked
 
         FROM post p
         WHERE p.post_id = #{postId}
     </select>
+
+
 
     <!-- 4. 게시글 수정 -->
     <update id="updatePost" parameterType="com.bookspace.domain.post.vo.PostVo">

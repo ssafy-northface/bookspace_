@@ -15,4 +15,5 @@ public class PostVo {
     private int postViewCnt;
     private LocalDateTime postLastModified;
     private int likeCount;
+    private boolean isLiked;
 }
