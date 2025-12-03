@@ -35,4 +35,7 @@ public interface PostService {
     // 게시글 조회 (by keyword)
     List<PostResponseDto> getPostsByKeyword(String keyword);
 
+    // 유저가 좋아하는 게시글 전체조회
+    List<PostResponseDto> getLikedPostsByUserId(Long userId);
+
 }

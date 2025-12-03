@@ -37,6 +37,16 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostById(postId));
     }
 
+    @GetMapping("/likes")
+    public ResponseEntity<List<PostResponseDto>> getLikedPosts() {
+        // TODO 로그인 로직 구현 후 수정 (로그인한 유저만)
+        Long userId = 1L; // userId 반드시 필요함
+
+        List<PostResponseDto> likedPosts = postService.getLikedPostsByUserId(userId);
+
+        return ResponseEntity.ok(likedPosts);
+    }
+
     // 4. 게시글 수정
     @PutMapping("/{postId}")
     public ResponseEntity<String> updatePost(
@@ -73,5 +83,6 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> getPostsByKeyword(@RequestParam String keyword) {
         return ResponseEntity.ok(postService.getPostsByKeyword(keyword));
     }
+
 
 }

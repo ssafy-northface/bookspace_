@@ -6,7 +6,7 @@
 <mapper namespace="com.bookspace.domain.post.dao.PostDao">
 
     <!-- 1. 게시글 등록 -->
-    <insert id="insertPost" parameterType="com.bookspace.domain.post.vo.PostVo">
+    <insert id="insertPost" parameterType="postVo">
         INSERT INTO post
         (
             user_id,
@@ -25,7 +25,7 @@
 
 
     <!-- 2. 전체 게시물 조회-->
-    <select id="selectAllPosts" resultType="com.bookspace.domain.post.vo.PostVo">
+    <select id="selectAllPosts" resultType="postVo">
         SELECT
             p.post_id,
             p.user_id,
@@ -77,7 +77,7 @@
 <!--    </select>-->
 
     <!-- 3. 단건 조회 -->
-    <select id="selectPostById" resultType="com.bookspace.domain.post.vo.PostVo">
+    <select id="selectPostById" resultType="postVo">
 
         SELECT
             p.post_id,
@@ -112,7 +112,7 @@
 
 
     <!-- 4. 게시글 수정 -->
-    <update id="updatePost" parameterType="com.bookspace.domain.post.vo.PostVo">
+    <update id="updatePost" parameterType="postVo">
         UPDATE post
         SET
             post_title = #{postTitle},
@@ -137,7 +137,7 @@
     </update>
 
     <!-- 7. 특정 책에 대한 게시글 조회 -->
-    <select id="selectPostsByBookId" parameterType="long" resultType="com.bookspace.domain.post.vo.PostVo">
+    <select id="selectPostsByBookId" parameterType="long" resultType="postVO">
         SELECT
             post_id,
             user_id,
@@ -156,7 +156,7 @@
     <!-- 8. 특정 사용자에 대한 게시글 조회-->
     <select id="selectPostsByUserId"
             parameterType="long"
-            resultType="com.bookspace.domain.post.vo.PostVo">
+            resultType="postVo">
         SELECT
             post_id,
             user_id,
@@ -174,7 +174,7 @@
     <!-- 9. 키워드로 게시글 조회 (제목 + 내용) -->
     <select id="selectPostsByKeyword"
             parameterType="string"
-            resultType="com.bookspace.domain.post.vo.PostVo">
+            resultType="postVo">
         SELECT
             post_id,
             user_id,
@@ -198,10 +198,30 @@
     </select>
 
 
-    <!-- 디버그용 -->
-    <select id="debugSelectLikesByPostId" parameterType="long" resultType="map">
-        SELECT *
-        FROM post_like
-        WHERE post_id = #{postId}
+    <!-- 11. 로그인한 유저가 좋아요를 누른 게시글 전체 조회  -->
+    <select id="selectLikedPostsByUserId" parameterType="long" resultType="postVo">
+        SELECT
+            p.post_id,
+            p.user_id,
+            p.book_id,
+            p.post_title,
+            p.post_content,
+            p.post_date,
+            p.post_view_cnt,
+            p.post_last_modified,
+
+            -- 좋아요 개수
+            (SELECT COUNT(*)
+             FROM post_like pl2
+             WHERE pl2.post_id = p.post_id) AS likeCount,
+
+            -- 로그인 유저가 좋아요 누른 여부 (항상 true)
+            TRUE AS isLiked
+
+        FROM post p
+                 JOIN post_like pl ON p.post_id = pl.post_id
+        WHERE pl.user_id = #{userId}
+        ORDER BY p.post_date DESC
+
     </select>
 </mapper>

@@ -123,6 +123,21 @@ public class PostServiceImpl implements PostService {
                 .toList();
     }
 
+    @Override
+    public List<PostResponseDto> getLikedPostsByUserId(Long userId) {
+        if(userId == null){
+            throw new IllegalArgumentException("userId is null (login required)");
+        }
+
+        List<PostVo> postVoList = postDao.selectLikedPostsByUserId(userId);
+
+        return postVoList.stream()
+                .map(this::convertToResponseDto)
+                .toList();
+    }
+
+
+
 
     private PostResponseDto convertToResponseDto(PostVo post) {
         if (post == null) return null;
@@ -140,6 +155,7 @@ public class PostServiceImpl implements PostService {
         dto.setLiked(post.isLiked());
         return dto;
     }
+
 
 
 }

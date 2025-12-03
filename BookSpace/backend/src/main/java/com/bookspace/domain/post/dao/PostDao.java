@@ -42,5 +42,7 @@ public interface PostDao {
     //10. 게시글 존재 여부
     boolean existsById(@Param("postId") long postId);
 
+    // 11. 유저가 좋아요를 누른 모든 게시글 조회
+    List<PostVo> selectLikedPostsByUserId(@Param("userId") Long userId);
 
 }
