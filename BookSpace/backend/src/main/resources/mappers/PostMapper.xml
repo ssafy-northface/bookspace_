@@ -39,7 +39,9 @@
             -- 좋아요 개수
             (SELECT COUNT(*)
              FROM post_like pl
-             WHERE pl.post_id = p.post_id) AS likeCount,
+                      JOIN user u ON pl.user_id = u.user_id
+             WHERE pl.post_id = p.post_id
+               AND u.user_status = 'active') AS likeCount,
 
             -- 유저 좋아요 여부
             CASE
@@ -92,7 +94,9 @@
             -- 좋아요 개수
             (SELECT COUNT(*)
              FROM post_like pl
-             WHERE pl.post_id = p.post_id) AS likeCount,
+                      JOIN user u ON pl.user_id = u.user_id
+             WHERE pl.post_id = p.post_id
+               AND u.user_status = 'active') AS likeCount,
 
             -- 유저 좋아요 여부
             CASE
