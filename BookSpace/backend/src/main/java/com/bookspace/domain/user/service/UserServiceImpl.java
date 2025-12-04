@@ -1,7 +1,201 @@
 package com.bookspace.domain.user.service;
 
+import com.bookspace.domain.user.dao.UserDao;
+import com.bookspace.domain.user.dto.LoginRequestDto;
+import com.bookspace.domain.user.dto.SignupRequestDto;
+import com.bookspace.domain.user.dto.UserResponseDto;
+import com.bookspace.domain.user.dto.UserUpdateRequestDto;
+import com.bookspace.domain.user.vo.UserVo;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
-public class UserServiceImpl {
+@RequiredArgsConstructor
+@Transactional
+public class UserServiceImpl implements UserService {
+
+    private final UserDao userDao;
+
+    // TODO: 비밀번호 암호화 적용 시
+    // private final PasswordEncoder passwordEncoder;
+
+    // 1. 회원가입
+    @Override
+    @Transactional
+    public UserResponseDto signup(SignupRequestDto dto) {
+
+        // 1-1. 중복 체크
+        if (userDao.existsByUserLoginId(dto.getUserLoginId())) {
+            throw new IllegalArgumentException("Login ID already exists.");
+        }
+        if (userDao.existsByUserNickname(dto.getUserNickname())) {
+            throw new IllegalArgumentException("Nickname already exists.");
+        }
+        if (userDao.existsByUserEmail(dto.getUserEmail())) {
+            throw new IllegalArgumentException("Email already exists.");
+        }
+
+        // 1-2. DTO -> VO 변환
+        UserVo userVo = new UserVo();
+        userVo.setUserLoginId(dto.getUserLoginId());
+        userVo.setUserName(dto.getUserName());
+        userVo.setUserNickname(dto.getUserNickname());
+        userVo.setUserEmail(dto.getUserEmail());
+        userVo.setUserPhone(dto.getUserPhone());
+        userVo.setUserBirthDate(dto.getUserBirthDate());
+
+        // TODO: 심화 단계에서 비밀번호 암호화 적용 (BCrypt 등)
+        // String encodedPw = passwordEncoder.encode(dto.getUserPw());
+        // userVo.setUserPw(encodedPw);
+        userVo.setUserPw(dto.getUserPw()); // 현재는 평문 그대로 (임시)
+
+        int result = userDao.insertUser(userVo);
+        if (result != 1) {
+            throw new IllegalStateException("Failed to create user.");
+        }
+
+        // insert 시 useGeneratedKeys 로 userId 세팅됨
+        return convertToResponseDto(userVo);
+    }
+
+
+
+    // 2. 로그인
+    // =============================================================
+    // Spring Security 구현 시 수정 필요
+    // =============================================================
+    @Override
+    public UserResponseDto login(LoginRequestDto dto) {
+
+        // 2-1. 로그인 아이디로 조회
+        UserVo userVo = userDao.selectUserByLoginId(dto.getUserLoginId());
+        if (userVo == null) {
+            throw new IllegalArgumentException("User not found with loginId: " + dto.getUserLoginId());
+        }
+
+        // 2-2. 탈퇴 상태 체크
+        if (!"active".equals(userVo.getUserStatus())) {
+            throw new IllegalArgumentException("User is inactive with loginId: " + dto.getUserLoginId());
+        }
+
+        // 2-3. 비밀번호 검증 (평문 비교, 나중에 암호화)
+        if (!dto.getUserPw().equals(userVo.getUserPw())) {
+            throw new IllegalArgumentException("Invalid password for loginId: " + dto.getUserLoginId());
+        }
+
+        return convertToResponseDto(userVo);
+    }
+
+
+    // 3. 회원 조회
+    @Override
+    public UserResponseDto getUserById(long userId) {
+        UserVo userVo = userDao.selectUserById(userId);
+        if (userVo == null) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+        if (!"active".equals(userVo.getUserStatus())) {
+            throw new IllegalArgumentException("User is inactive with id: " + userId);
+        }
+        return convertToResponseDto(userVo);
+    }
+
+
+    // 4. 회원 정보 수정
+    @Override
+    @Transactional
+    public UserResponseDto updateUser(long userId, UserUpdateRequestDto dto) {
+
+        UserVo userVo = userDao.selectUserById(userId);
+        if (userVo == null) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+        if (!"active".equals(userVo.getUserStatus())) {
+            throw new IllegalArgumentException("User is inactive with id: " + userId);
+        }
+
+        userVo.setUserNickname(dto.getUserNickname());
+        userVo.setUserPhone(dto.getUserPhone());
+        userVo.setUserBirthDate(dto.getUserBirthDate());
+
+        int result = userDao.updateUser(userVo);
+        if (result != 1) {
+            throw new IllegalStateException("Failed to update user.");
+        }
+
+        return convertToResponseDto(userVo);
+    }
+
+
+    // 5. 회원 탈퇴 (soft delete)
+    @Override
+    @Transactional
+    public void softDeleteUser(long userId) {
+
+        UserVo userVo = userDao.selectUserById(userId);
+
+        if (userVo == null) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+        if (!"active".equals(userVo.getUserStatus())) {
+            throw new IllegalArgumentException("User is already inactive with id: " + userId);
+        }
+
+        int result = userDao.softDeleteUser(userId);
+        if (result != 1) {
+            throw new IllegalStateException("Failed to delete user: " + userId);
+        }
+    }
+
+
+    // 6. 회원 영구 삭제 (hard delete)
+    @Override
+    @Transactional
+    public void hardDeleteUser(long userId) {
+
+        int result = userDao.hardDeleteUser(userId);
+        if (result == 0) {
+            log.info("User already deleted or not found: ", userId);
+        }
+    }
+
+    // 7. 아이디 중복 확인
+    @Override
+    public boolean existsUserByLoginId(String userLoginId) {
+        return userDao.existsByUserLoginId(userLoginId);
+    }
+
+    // 8. 닉네임 중복 확인
+    @Override
+    public boolean existsUserByNickname(String userNickname) {
+        return userDao.existsByUserNickname(userNickname);
+    }
+
+    // 9. 이메일 중복 확인
+    @Override
+    public boolean existsUserByEmail(String userEmail) {
+        return userDao.existsByUserEmail(userEmail);
+    }
+
+
+    // DTO 변환
+    private UserResponseDto convertToResponseDto(UserVo userVo) {
+        UserResponseDto dto = new UserResponseDto();
+        dto.setUserId(userVo.getUserId());
+        dto.setUserLoginId(userVo.getUserLoginId());
+        dto.setUserName(userVo.getUserName());
+        dto.setUserNickname(userVo.getUserNickname());
+        dto.setUserEmail(userVo.getUserEmail());
+        dto.setUserPhone(userVo.getUserPhone());
+        dto.setUserBirthDate(userVo.getUserBirthDate());
+        dto.setUserRegistDate(userVo.getUserRegistDate());
+        dto.setUserStatus(userVo.getUserStatus());
+        return dto;
+    }
+
+
 }

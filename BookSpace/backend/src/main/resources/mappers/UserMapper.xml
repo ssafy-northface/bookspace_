@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookspace.domain.user.dao.UserDao">
+
+    <!-- 1. 회원 등록 (회원가입) -->
+    <insert id="insertUser"
+            parameterType="com.bookspace.domain.user.vo.UserVo"
+            useGeneratedKeys="true"
+            keyProperty="userId">
+        INSERT INTO user (
+            user_login_id,
+            user_name,
+            user_nickname,
+            user_pw,
+            user_birth_date,
+            user_phone,
+            user_email
+        )
+        VALUES (
+                   #{userLoginId},
+                   #{userName},
+                   #{userNickname},
+                   #{userPw},
+                   #{userBirthDate},
+                   #{userPhone},
+                   #{userEmail}
+               )
+    </insert>
+
+    <!-- 2. 회원 정보 수정 -->
+    <update id="updateUser" parameterType="com.bookspace.domain.user.vo.UserVo">
+        UPDATE user
+        SET
+            user_nickname = #{userNickname},
+            user_phone = #{userPhone},
+            user_birth_date = #{userBirthDate}
+        WHERE user_id = #{userId}
+          AND user_status = 'active'
+    </update>
+
+
+    <!-- 3. 회원 정보 조회 (by userId) -->
+    <select id="selectUserById" resultType="com.bookspace.domain.user.vo.UserVo">
+        SELECT
+            user_id,
+            user_login_id,
+            user_name,
+            user_nickname,
+            user_pw,
+            user_birth_date,
+            user_phone,
+            user_email,
+            user_regist_date,
+            deleted_at,
+            user_status
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 4. 회원 정보 조회 (by userLoginId) -->
+    <select id="selectUserByLoginId" resultType="com.bookspace.domain.user.vo.UserVo">
+        SELECT
+            user_id,
+            user_login_id,
+            user_name,
+            user_nickname,
+            user_pw,
+            user_birth_date,
+            user_phone,
+            user_email,
+            user_regist_date,
+            deleted_at,
+            user_status
+        FROM user
+        WHERE user_login_id = #{userLoginId}
+    </select>
+
+    <!-- 5. 회원 탈퇴 (soft delete) -->
+    <update id="softDeleteUser">
+        UPDATE user
+        SET
+            user_status = 'inactive',
+            deleted_at  = NOW()
+        WHERE user_id = #{userId}
+          AND user_status = 'active'
+    </update>
+
+    <!-- 6. 회원 영구 삭제 (hard delete) -->
+    <!-- inactive 상태로 14일 지나면 cleanupScheduler 호출 통해 삭제됨 -->
+    <delete id="hardDeleteUser">
+        DELETE FROM user
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 7. 로그인 아이디 중복 체크 -->
+    <select id="existsByUserLoginId" resultType="boolean">
+        SELECT
+            CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM user
+        WHERE user_login_id = #{userLoginId}
+    </select>
+
+    <!-- 8. 닉네임 중복 체크 -->
+    <select id="existsByUserNickname" resultType="boolean">
+        SELECT
+            CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM user
+        WHERE user_nickname = #{userNickname}
+    </select>
+
+    <!-- 9. 이메일 중복 체크 -->
+    <select id="existsByUserEmail" resultType="boolean">
+        SELECT
+            CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM user
+        WHERE user_email = #{userEmail}
+    </select>
+
+</mapper>
