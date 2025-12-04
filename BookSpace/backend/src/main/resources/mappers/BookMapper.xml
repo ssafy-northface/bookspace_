@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bookspace.domain.comment.dao.CommentDao">
+
+
+    <!-- Search Books - DB 검색  -->
+    <select id="searchBooks" resultType="bookVo">
+    SELECT
+        book_id,
+        book_title,
+        book_author,
+        book_publisher,
+        book_publication_date,
+        book_isbn,
+        book_description,
+        book_price,
+        book_image_url,
+        book_sales_point,
+        book_category
+    FROM book
+    WHERE book_title LIKE CONCAT ("%", #{query}, '%')
+        OR ook_author LIKE CONCAT('%', #{query}, '%')
+    </select>
+
+    <!-- ISBN 존재 여부 -->
+    <select id="existsByIsbn" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM book
+        WHERE book_isbn = #{isbn}
+    </select>
+
+    <!--  알라디 API 데이터 저장  -->
+    <insert id="insertBook" parameterType="bookVo">
+        INSERT INTO book (
+            book_title,
+            book_author,
+            book_publisher,
+            book_publication_date,
+            book_isbn,
+            book_description,
+            book_price,
+            book_image_url,
+            book_sales_point,
+            book_category
+        )
+        VALUES (
+                   #{bookTitle},
+                   #{bookAuthor},
+                   #{bookPublisher},
+                   #{bookPublicationDate},
+                   #{bookIsbn},
+                   #{bookDescription},
+                   #{bookPrice},
+                   #{bookImageUrl},
+                   #{bookSalesPoint},
+                   #{bookCategory}
+               )
+    </insert>
+
+</mapper>
