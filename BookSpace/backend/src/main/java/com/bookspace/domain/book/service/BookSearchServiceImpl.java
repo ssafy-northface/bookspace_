@@ -31,7 +31,7 @@ public class BookSearchServiceImpl implements BookSearchService {
         }
 
         // 알라딘 api 호출
-        AladinListResponseDto response = aladinClient.searchBooks(query, size);
+        AladinListResponseDto response = aladinClient.searchBooks(query,"isbn", size);
 
         if(response == null || response.getItems() == null){
             log.info("알라딘 응답이 없거나 item이 비어 있음");

@@ -1,5 +1,6 @@
 package com.bookspace.domain.wish.service;
 
+import com.bookspace.domain.wish.dto.WishRequestDto;
 import com.bookspace.domain.wish.dto.WishResponseDto;
 import com.bookspace.domain.wish.vo.WishVo;
 
@@ -8,7 +9,7 @@ import java.util.List;
 public interface WishService {
 
     // 1. 찜 하기
-    void addWish(long userId, long bookId);
+    void addWish(WishRequestDto wishRequestDto);
 
     // 2. 찜 해제
     void removeWish(long userId, long bookId);

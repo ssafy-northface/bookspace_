@@ -35,6 +35,13 @@ public class AladinItemResponseDto {
     @JsonProperty("categoryName")
     private String categoryName;
 
+    @JsonProperty("description")
+    private String description;
+
+    @JsonProperty("salesPoint")
+    private Integer salesPoint;
+
+
     @JsonProperty("priceSales")
     private Integer priceSales;
 

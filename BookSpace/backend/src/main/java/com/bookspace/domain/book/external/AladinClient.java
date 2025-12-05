@@ -27,13 +27,20 @@ public class AladinClient {
     private final RestTemplate restTemplate = new RestTemplate(); // http 요청
     private final ObjectMapper objectMapper = new ObjectMapper(); // json 파싱
 
-    public AladinListResponseDto searchBooks(String query, int maxResults){
+    public AladinListResponseDto searchBooks(String query, String searchType, int maxResults){
         try{
+            // 검색 타입 -> 알라딘 api 쿼리 타입에 맞게 설정
+            String queryType = switch (searchType) {
+                case "author" -> "Author";
+                case "publisher" -> "Publisher";
+                default -> "Title";
+            };
+
             // 요청 url 구성
             String url = UriComponentsBuilder.fromHttpUrl(ITEM_SEARCH_URL)
                     .queryParam("ttbkey", ttbKey)
                     .queryParam("Query", query)
-                    .queryParam("QueryType", "Title")
+                    .queryParam("QueryType", queryType)
                     .queryParam("MaxResults", maxResults)
                     .queryParam("start", 1)
                     .queryParam("SearchTarget", "Book")
