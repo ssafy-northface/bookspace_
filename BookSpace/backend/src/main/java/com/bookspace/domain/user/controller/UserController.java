@@ -67,6 +67,38 @@ public class UserController {
     }
 
 
+    // 6~8 통합
+    // 중복 체크 통합 API (loginId, nickname, email)
+//    /users/check?type=loginId&value=user123
+//    /users/check?type=nickname&value=happyday
+//    /users/check?type=email&value=test@example.com
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkDuplicate(
+            @RequestParam String type, @RequestParam String value) {
+
+        // switch expression 문법 사용
+        boolean exists = switch (type.toLowerCase()) {
+            case "loginid" -> userService.existsUserByLoginId(value);
+            case "nickname" -> userService.existsUserByNickname(value);
+            case "email" -> {
+                // 이메일 형식 간단 검증 (안전장치)
+                if (!value.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                    throw new IllegalArgumentException("Invalid email format: " + value);
+                }
+                // yield : switch expression 안에서 값을 반환(return) 하는 최신 키워드
+                yield userService.existsUserByEmail(value);
+            }
+            // loginid, nickname, email이 아닌 type이 들어왔을때 발생 메시지
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
+
+        // true = 사용 가능(중복 아님)
+        // false = 이미 존재
+        return ResponseEntity.ok(!exists);
+    }
+
+
+
     // =============================================================
     // 6~8. 중복 체크 API (프론트 회원가입 화면용)
     //     - 아이디 / 닉네임 / 이메일 실시간 중복 확인
@@ -75,29 +107,29 @@ public class UserController {
     // =============================================================
 
 
-    // 6. 로그인 아이디 중복 체크
-    // true = 사용 가능
-    @GetMapping("/check/login-id")
-    public ResponseEntity<Boolean> checkLoginId(@RequestParam String userLoginId) {
-        boolean exists = userService.existsUserByLoginId(userLoginId);
-        return ResponseEntity.ok(!exists);
-    }
-
-    // 7. 닉네임 중복 체크
-    // true = 사용 가능
-    @GetMapping("/check/nickname")
-    public ResponseEntity<Boolean> checkNickname(@RequestParam String userNickname) {
-        boolean exists = userService.existsUserByNickname(userNickname);
-        return ResponseEntity.ok(!exists);
-    }
-
-
-    // 8. 이메일 중복 체크
-    @GetMapping("/check/email")
-    public ResponseEntity<Boolean> checkEmail(@RequestParam String userEmail) {
-        boolean exists = userService.existsUserByEmail(userEmail);
-        return ResponseEntity.ok(!exists);
-    }
+//    // 6. 로그인 아이디 중복 체크
+//    // true = 사용 가능
+//    @GetMapping("/check/login-id")
+//    public ResponseEntity<Boolean> checkLoginId(@RequestParam String userLoginId) {
+//        boolean exists = userService.existsUserByLoginId(userLoginId);
+//        return ResponseEntity.ok(!exists);
+//    }
+//
+//    // 7. 닉네임 중복 체크
+//    // true = 사용 가능
+//    @GetMapping("/check/nickname")
+//    public ResponseEntity<Boolean> checkNickname(@RequestParam String userNickname) {
+//        boolean exists = userService.existsUserByNickname(userNickname);
+//        return ResponseEntity.ok(!exists);
+//    }
+//
+//
+//    // 8. 이메일 중복 체크
+//    @GetMapping("/check/email")
+//    public ResponseEntity<Boolean> checkEmail(@RequestParam String userEmail) {
+//        boolean exists = userService.existsUserByEmail(userEmail);
+//        return ResponseEntity.ok(!exists);
+//    }
 
 
 }
