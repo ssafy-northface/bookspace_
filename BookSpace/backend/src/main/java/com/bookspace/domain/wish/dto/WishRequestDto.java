@@ -7,6 +7,6 @@ import lombok.Data;
 public class WishRequestDto {
 
     private long userId;
-    private long bookId;
+    private String isbn;
 
 }

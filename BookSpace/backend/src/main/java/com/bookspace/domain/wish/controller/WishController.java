@@ -2,6 +2,7 @@ package com.bookspace.domain.wish.controller;
 
 import java.util.List;
 
+import com.bookspace.domain.wish.dto.WishRequestDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wishes")
+@RequestMapping("/wish")
 public class WishController {
 
     private final WishService wishService;
@@ -24,12 +25,11 @@ public class WishController {
         return 1L;
     }
 
-    // 1. 찜 하기: POST /wishes?bookId=10
+    // 1. 찜 하기: POST /wish
     @PostMapping
-    public ResponseEntity<Void> addWish(@RequestParam long bookId) {
-        long userId = getCurrentUserId();
-        wishService.addWish(userId, bookId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<String> addWish(@RequestBody WishRequestDto wishRequestDto) {
+        wishService.addWish(wishRequestDto);
+        return ResponseEntity.ok("Wish added successfully!");
     }
 
     // 2. 찜 해제: DELETE /wishes?bookId=10

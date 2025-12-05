@@ -1,6 +1,12 @@
 package com.bookspace.domain.wish.service;
 
+import com.bookspace.domain.book.dao.BookDao;
+import com.bookspace.domain.book.dto.AladinItemResponseDto;
+import com.bookspace.domain.book.dto.AladinListResponseDto;
+import com.bookspace.domain.book.external.AladinClient;
+import com.bookspace.domain.book.vo.BookVo;
 import com.bookspace.domain.wish.dao.WishDao;
+import com.bookspace.domain.wish.dto.WishRequestDto;
 import com.bookspace.domain.wish.dto.WishResponseDto;
 import com.bookspace.domain.wish.vo.WishVo;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +22,49 @@ import java.util.List;
 public class WishServiceImpl implements WishService {
 
     private final WishDao wishDao;
+    private final BookDao bookDao;
+    private final AladinClient aladinClient;
 
     // 1. 찜하기
     @Override
-    public void addWish(long userId, long bookId) {
+    @Transactional
+    public void addWish(WishRequestDto wishRequestDto) {
+
+        Long userId = wishRequestDto.getUserId();
+        String isbn = wishRequestDto.getIsbn();
+
+        if(isbn == null || isbn.isBlank()){
+            throw new IllegalArgumentException("isbn is null or empty");
+        }
+
+        // isbn으로 DB 조회
+        BookVo existing = bookDao.findBookByIsbn(isbn);
+
+        Long bookId;
+        // 이미 DB에 책이 있을 경우
+        if(existing != null) {
+            bookId = existing.getBookId();
+        }
+
+        // 없을 경우
+        else{
+            // 알라딘 api 호출
+            AladinListResponseDto apiResponse = aladinClient.searchBooks(isbn,isbn,1);
+            if(apiResponse == null || apiResponse.getItems()==null || apiResponse.getItems().isEmpty()){
+                throw new IllegalArgumentException("해당 ISBN에 대한 도서 정보를 찾을 수 없습니다.");
+            }
+            AladinItemResponseDto item = apiResponse.getItems().get(0);  // 책 1권
+            BookVo newBookVo = toBookVo(item); // DB에 저장할 VO 타입으로
+            bookDao.insertBook(newBookVo);  // DB에 넣기
+            bookId = newBookVo.getBookId(); // DB에 저장된 책 ID 반환
+        }
+
+        // wish 로직 처리 (userId + bookId)
 
         // 1) 존재하지 않는 bookId라면 예외 처리
-//        if (!bookService.existsBook(bookId)) {
-//            throw new NotFoundException("존재하지 않는 책입니다.");
-//        }
+        // if (!bookService.existsBook(bookId)) {
+        //   throw new NotFoundException("존재하지 않는 책입니다.");
+        //    }
 
 
         // 2) 이미 찜한 상태라면 예외 처리
@@ -81,4 +121,22 @@ public class WishServiceImpl implements WishService {
     public int getWishCountByUserId(long userId) {
         return wishDao.countWishesByUserId(userId);
     }
+
+
+    // --converter method-- 정리하기 (공통 로직으로)
+    private BookVo toBookVo(AladinItemResponseDto item) {
+        BookVo vo = new BookVo();
+        vo.setBookTitle(item.getTitle());
+        vo.setBookAuthor(item.getAuthor());
+        vo.setBookPublisher(item.getPublisher());
+        vo.setBookPublicationDate(item.getPubDate());
+        vo.setBookIsbn(item.getIsbn13());
+        vo.setBookDescription(item.getDescription());
+        vo.setBookPrice(item.getPriceStandard());
+        vo.setBookImageUrl(item.getCover());
+        vo.setBookSalesPoint(item.getSalesPoint());
+        vo.setBookCategory(item.getCategoryName());
+        return vo;
+    }
+
 }
