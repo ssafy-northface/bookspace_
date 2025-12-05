@@ -23,7 +23,7 @@ public interface UserService {
     void softDeleteUser(long userId);
 
     // 6. 회원 영구 삭제 (hard delete)
-    // cleanupScheduler에서 사용할 예정
+    // userId를 기반으로 한 단건 삭제 => admin 권한 강제 삭제용으로 사용해도 됨
     void hardDeleteUser(long userId);
 
     // 7. 로그인 아이디 중복 체크
@@ -35,4 +35,6 @@ public interface UserService {
     // 9. 이메일 중복 체크
     boolean existsUserByEmail(String userEmail);
 
+    // 10. inactive 14일 경과 유저 일괄 영구 삭제 (CleanupScheduler 전용)
+    int deleteExpiredInactiveUsers();
 }
