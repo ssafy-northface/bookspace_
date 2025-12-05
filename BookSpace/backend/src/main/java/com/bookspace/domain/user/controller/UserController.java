@@ -67,7 +67,15 @@ public class UserController {
     }
 
 
-    // 6~8 통합
+    // 6. 회원 영구 삭제 (hard delete) - 단건 삭제 / 관리자 권한
+    @DeleteMapping("/{userId}/hard")
+    public ResponseEntity<Void> hardDeleteUser(@PathVariable long userId) {
+        userService.hardDeleteUser(userId);
+        // 성공 시 204 No Content
+        return ResponseEntity.noContent().build();
+    }
+
+    // 7~9 통합
     // 중복 체크 통합 API (loginId, nickname, email)
 //    /users/check?type=loginId&value=user123
 //    /users/check?type=nickname&value=happyday
@@ -100,22 +108,22 @@ public class UserController {
 
 
     // =============================================================
-    // 6~8. 중복 체크 API (프론트 회원가입 화면용)
+    // 7~9. 중복 체크 API (프론트 회원가입 화면용)
     //     - 아이디 / 닉네임 / 이메일 실시간 중복 확인
     //     - 회원가입 UX 개선을 위한 기능
     //     - 가입 시 실제 중복 검사는 signup() 내부에서 다시 수행됨
     // =============================================================
 
 
-//    // 6. 로그인 아이디 중복 체크
+//    // 7. 로그인 아이디 중복 체크
 //    // true = 사용 가능
 //    @GetMapping("/check/login-id")
 //    public ResponseEntity<Boolean> checkLoginId(@RequestParam String userLoginId) {
 //        boolean exists = userService.existsUserByLoginId(userLoginId);
 //        return ResponseEntity.ok(!exists);
-//    }
+//    } ,.ㅏ
 //
-//    // 7. 닉네임 중복 체크
+//    // 8. 닉네임 중복 체크
 //    // true = 사용 가능
 //    @GetMapping("/check/nickname")
 //    public ResponseEntity<Boolean> checkNickname(@RequestParam String userNickname) {
@@ -124,7 +132,7 @@ public class UserController {
 //    }
 //
 //
-//    // 8. 이메일 중복 체크
+//    // 9. 이메일 중복 체크
 //    @GetMapping("/check/email")
 //    public ResponseEntity<Boolean> checkEmail(@RequestParam String userEmail) {
 //        boolean exists = userService.existsUserByEmail(userEmail);

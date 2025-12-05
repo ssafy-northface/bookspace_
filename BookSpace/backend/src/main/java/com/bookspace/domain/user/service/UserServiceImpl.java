@@ -158,8 +158,10 @@ public class UserServiceImpl implements UserService {
     public void hardDeleteUser(long userId) {
 
         int result = userDao.hardDeleteUser(userId);
-        if (result == 0) {
-            log.info("User already deleted or not found: ", userId);
+
+        if (result != 1) {
+            // 관리자에서 없는 회원을 지우려고 한 경우 → 에러
+            throw new IllegalArgumentException("User not found or already deleted with id: " + userId);
         }
     }
 
@@ -183,6 +185,7 @@ public class UserServiceImpl implements UserService {
 
 
     // 10. Scheduler용
+    // 탈퇴 후 14일 지난 회원 일괄 영구 삭제
     @Override
     @Transactional
     public int deleteExpiredInactiveUsers() {
