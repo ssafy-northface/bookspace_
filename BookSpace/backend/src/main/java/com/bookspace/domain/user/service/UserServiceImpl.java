@@ -182,6 +182,23 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    // 10. Scheduler용
+    @Override
+    @Transactional
+    public int deleteExpiredInactiveUsers() {
+
+        int deletedCount = userDao.deleteExpiredInactiveUsers();
+
+        if (deletedCount > 0) {
+            log.info("Batch hard deleted {} expired inactive users", deletedCount);
+        } else {
+            log.info("No expired inactive users to hard delete");
+        }
+
+        return deletedCount;
+    }
+
+
     // DTO 변환
     private UserResponseDto convertToResponseDto(UserVo userVo) {
         UserResponseDto dto = new UserResponseDto();
@@ -196,6 +213,7 @@ public class UserServiceImpl implements UserService {
         dto.setUserStatus(userVo.getUserStatus());
         return dto;
     }
+
 
 
 }
