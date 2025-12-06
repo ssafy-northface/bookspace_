@@ -1,5 +1,7 @@
 package com.bookspace.domain.review.service;
 
+import com.bookspace.domain.book.dao.BookDao;
+import com.bookspace.domain.book.service.BookService;
 import com.bookspace.domain.review.dto.ReviewRequestDto;
 import com.bookspace.domain.review.dao.ReviewDao;
 import com.bookspace.domain.review.dto.ReviewRequestDto;
@@ -17,11 +19,13 @@ import java.util.List;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewDao reviewDao;
+    private final BookService bookService;
 
     // 1. 리뷰 등록
-    // 없는 책에 대해 리뷰를 등록하려고 하면 -> 404
     @Override
     public void createReview(ReviewRequestDto dto) {
+        Long userId = dto.getUserId();
+        String isbn = dto.getIsbn();
 
         // 예외 처리
         // 1. rating 범위 유효성 검사 (0~5) => 400 BAD_REQUEST
@@ -34,19 +38,20 @@ public class ReviewServiceImpl implements ReviewService {
             throw new RuntimeException("Rating must have at most one decimal place.");
         }
 
-//        // 3. 존재하지 않는 bookId => 404 NOT_FOUND
-//        if (bookDao.selectBookById(dto.getBookId()) == null) {
-//            throw new IllegalArgumentException("Book not found with id: " + dto.getBookId());
-//        }
+        // isbn 기반 DB 책 정보 확인 및 저장
+        Long bookId = bookService.ensureBookExists(isbn);
 
         // 정상 등록 처리
         ReviewVo vo = new ReviewVo();
         vo.setUserId(dto.getUserId());
-        vo.setBookId(dto.getBookId());
+        vo.setBookId(bookId);
         vo.setReviewRating(dto.getReviewRating());
         vo.setReviewContent(dto.getReviewContent());
 
-        reviewDao.insertReview(vo);
+        int rows = reviewDao.insertReview(vo);
+        if( rows != 1 ) {
+            throw new RuntimeException("Failed to insert review");
+        }
     }
 
 
