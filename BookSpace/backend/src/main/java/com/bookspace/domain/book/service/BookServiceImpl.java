@@ -20,32 +20,62 @@ public class BookServiceImpl implements BookService {
     private final AladinClient aladinClient;
 
 
-    // DB 검색 시 없으면 알라딘 API 호출
+    // [검색] DB 검색 시 없으면 알라딘 API 호출
     @Override
     public List<BookSearchResponseDto> searchBooks(String query, String searchType) {
-        // DB 검색
-        List<BookVo> dbResponse = bookDao.searchBooks(query, searchType);
 
-        if(!dbResponse.isEmpty()){
-            return dbResponse.stream().map(this::toSearchDto).toList(); // BookVo -> BookSearchResponseDto
+        // 1) DB 우선 검색
+        List<BookSearchResponseDto> dbResult = searchBooksFromDb(query, searchType);
+        if(!dbResult.isEmpty()){
+            return dbResult;
         }
         // 없으면 API 호출
-        AladinListResponseDto apiResponse = aladinClient.searchBooks(query,searchType, 10);
+        return searchBooksFromAladin(query, searchType);
+    }
 
-        if(apiResponse== null || apiResponse.getItems()==null){
+    // [검색] DB
+    private List<BookSearchResponseDto> searchBooksFromDb(String query, String searchType) {
+        List<BookVo> dbResponse = bookDao.searchBooks(query, searchType);
+
+        if(dbResponse==null||dbResponse.isEmpty()){
             return List.of();
         }
 
-        // 3) api 결과를 DTO로 변환한 후 반환
+        return dbResponse.stream().map(this::toSearchDto).toList(); // BookVo -> BookSearchResponseDto
+    }
+
+    // [검색] 알라딘 api
+    private List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType) {
+        AladinListResponseDto apiResponse = aladinClient.searchBooks(query, searchType, 10);
+
+        if(apiResponse==null||apiResponse.getItems()==null){
+            return List.of();
+        }
+
         return apiResponse.getItems().stream().map(this::toSearchDto).toList();
     }
 
+
     /**
-     * isbn 값으로 알라딘 api 호출 후, 해당 isbn 값을 가진 도서를 DB에 저장 후 bookId 반환 (저장용)
-     * !! 사용하기 전 DB에 책이 없는지 확인해야 함!!
+     * [조회] DB에서 isbn으로 bookId 조회 => return bookId
      */
     @Transactional
-    protected Long fetachAndSaveBookByIsbnFromAladin(String isbn){
+    public Long findBookIdByIsbnFromDb(String isbn){
+        if(isbn == null||isbn.isBlank()){
+            throw new IllegalArgumentException("isbn is null or empty.");
+        }
+
+        BookVo existing = bookDao.findBookByIsbn(isbn);
+        return (existing == null) ? null : existing.getBookId();
+    }
+
+
+    /**
+     * [조회 & 저장] isbn 값으로 알라딘 api 호출 후, 해당 isbn 값을 가진 도서를 DB에 저장 후 bookId 반환 (저장용)
+     * !! 사용하기 전 DB에 책이 없는지 확인해야 함!! (protected)
+     */
+    @Transactional
+    protected Long fetchAndSaveBookByIsbnFromAladin(String isbn){
         AladinListResponseDto apiResponse = aladinClient.searchBooks(isbn, "isbn",1);
 
         if(apiResponse==null || apiResponse.getItems()==null){
@@ -61,8 +91,9 @@ public class BookServiceImpl implements BookService {
     }
 
     /**
+     * [유저 액션용]: 책 찾기 + (없으면 저장) => return bookId
      * DB에서 isbn에 해당하는 책 조회 후  (findBookByIsbn)
-     * 없으면 알라딘 api 호출후 DB에 해당 책 저장 (fetachAndSaveBookByIsbnFromAladin)
+     * 없으면 알라딘 api 호출후 DB에 해당 책 저장 (fetchAndSaveBookByIsbnFromAladin)
       */
     @Override
     @Transactional
@@ -71,13 +102,13 @@ public class BookServiceImpl implements BookService {
             throw new IllegalArgumentException("isbn is null or empty");
         }
         // DB에서 isbn 조회
-        BookVo existing = bookDao.findBookByIsbn(isbn);
-        if(existing!=null){
-            return existing.getBookId();
+        Long existingBookId = findBookIdByIsbnFromDb(isbn);
+        if(existingBookId!=null){
+            return existingBookId;
         }
 
         // DB에 없는 경우 알라딘 api 호출 후 DB에 책 저장
-        return fetachAndSaveBookByIsbnFromAladin(isbn);
+        return fetchAndSaveBookByIsbnFromAladin(isbn);
     }
 
     // --- converter methods  ---

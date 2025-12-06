@@ -3,6 +3,7 @@ package com.bookspace.domain.post.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.bookspace.domain.book.service.BookService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,16 +22,40 @@ import lombok.RequiredArgsConstructor;
 public class PostServiceImpl implements PostService {
 
     private final PostDao postDao;
+    private final BookService bookService;
 
+    // 게시글 작성 (isbn)
     @Override
     public void createPost(PostRequestDto dto) {
+
+        Long userId = dto.getUserId();
+        String isbn = dto.getIsbn();
+
+        if(userId == null){
+            throw new IllegalArgumentException("userId is null");
+        }
+        if(isbn == null){
+            throw new IllegalArgumentException("isbn is null");
+        }
+
+        // 책 isbn 기준으로 DB에 저장이 되어 있어야 함 -> bookId
+        Long bookId = bookService.ensureBookExists(isbn);
+        /*
+        ensureBookExists 내부 로직
+        - FindBookIdByIsbnFromDb(isbn) 으로 DB 조회
+        - 없으면 fetchAndSaveBookByIsbnFromAladin(isbn) 호출해서 저장 후 bookId 반환
+         */
+
         PostVo vo = new PostVo();
-        vo.setUserId(dto.getUserId());
-        vo.setBookId(dto.getBookId());
+        vo.setUserId(userId);
+        vo.setBookId(bookId);
         vo.setPostTitle(dto.getPostTitle());
         vo.setPostContent(dto.getPostContent());
 
-        postDao.insertPost(vo);
+        int rows = postDao.insertPost(vo);
+        if(rows != 1){
+            throw new IllegalArgumentException("Failed to insert post");
+        }
     }
 
 
@@ -38,7 +63,6 @@ public class PostServiceImpl implements PostService {
     모든 게시물 조회는 게시물 좋아요 개수, 좋아요 여부 2개가 모두 포함된 응답이 옴
     - 로그인한 유저라면, 자신이 게시물을 좋아요 눌렀는지 여부 (full heart / empty heart)
     - 로그인한 유저라면, liked값이 모두 false로 옴 -> 프론트 처리 (empty heart를 유저가 누르려고 시도했을 때 로그인 하라고 하기)
-
      */
     @Override
     public List<PostResponseDto> getAllPosts() {
