@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
  * 알라딘 API 호출 담당 클라이언트
  * - ttbKey는 env, application.yaml에서 주입
  */
-
 @Slf4j
 @Component
 public class AladinClient {

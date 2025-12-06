@@ -33,7 +33,7 @@
     </select>
 
     <!--  Insert: 알라디 API 데이터 저장  -->
-    <insert id="insertBook" parameterType="bookVo">
+    <insert id="insertBook" parameterType="bookVo" useGeneratedKeys="true" keyProperty="bookId">
         INSERT INTO book (
             book_title,
             book_author,
