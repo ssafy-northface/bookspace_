@@ -119,4 +119,15 @@
         WHERE user_email = #{userEmail}
     </select>
 
+
+    <!-- 10. inactive 상태로 14일 지나면 회원 정보 영구 삭제   -->
+    <delete id="deleteExpiredInactiveUsers">
+        DELETE FROM user
+        WHERE user_status = 'inactive'
+            AND deleted_at IS NOT NULL
+            AND deleted_at &lt; DATE_SUB(NOW(), INTERVAL 14 DAY)
+#             cleanupScheduler 테스트용 (탈퇴한지 30초 지나면 hard delete 확인 가능)
+#             AND deleted_at &lt; DATE_SUB(NOW(), INTERVAL 30 SECOND)
+    </delete>
+
 </mapper>
