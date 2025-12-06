@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wish")
+@RequestMapping("/wishes")
 public class WishController {
 
     private final WishService wishService;
@@ -32,12 +32,12 @@ public class WishController {
         return ResponseEntity.ok("Wish added successfully!");
     }
 
-    // 2. 찜 해제: DELETE /wishes?bookId=10
-    @DeleteMapping
-    public ResponseEntity<Void> removeWish(@RequestParam long bookId) {
+    // 2. 찜 해제: DELETE /wishes/10
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity<String> removeWish(@PathVariable long bookId) {
         long userId = getCurrentUserId();
         wishService.removeWish(userId, bookId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok("Wish deleted successfully!");
     }
 
     // 3. 찜한 책 목록 조회: GET /wishes/books
