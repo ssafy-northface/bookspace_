@@ -1,11 +1,6 @@
 package com.bookspace.domain.wish.service;
 
-import com.bookspace.domain.book.dao.BookDao;
-import com.bookspace.domain.book.dto.AladinItemResponseDto;
-import com.bookspace.domain.book.dto.AladinListResponseDto;
-import com.bookspace.domain.book.external.AladinClient;
 import com.bookspace.domain.book.service.BookService;
-import com.bookspace.domain.book.vo.BookVo;
 import com.bookspace.domain.wish.dao.WishDao;
 import com.bookspace.domain.wish.dto.WishRequestDto;
 import com.bookspace.domain.wish.dto.WishResponseDto;
@@ -23,9 +18,7 @@ import java.util.List;
 public class WishServiceImpl implements WishService {
 
     private final WishDao wishDao;
-   // private final BookDao bookDao;
     private final BookService bookService;
-    //private final AladinClient aladinClient;
 
     // 1. 찜하기
     @Override
@@ -103,23 +96,6 @@ public class WishServiceImpl implements WishService {
     @Override
     public int getWishCountByUserId(long userId) {
         return wishDao.countWishesByUserId(userId);
-    }
-
-
-    // --converter method-- 정리하기 (공통 로직으로)
-    private BookVo toBookVo(AladinItemResponseDto item) {
-        BookVo vo = new BookVo();
-        vo.setBookTitle(item.getTitle());
-        vo.setBookAuthor(item.getAuthor());
-        vo.setBookPublisher(item.getPublisher());
-        vo.setBookPublicationDate(item.getPubDate());
-        vo.setBookIsbn(item.getIsbn13());
-        vo.setBookDescription(item.getDescription());
-        vo.setBookPrice(item.getPriceStandard());
-        vo.setBookImageUrl(item.getCover());
-        vo.setBookSalesPoint(item.getSalesPoint());
-        vo.setBookCategory(item.getCategoryName());
-        return vo;
     }
 
 }

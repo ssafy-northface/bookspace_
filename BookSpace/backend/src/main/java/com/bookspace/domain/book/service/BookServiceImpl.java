@@ -9,7 +9,10 @@ import com.bookspace.domain.book.vo.BookVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.bookspace.domain.book.converter.BookConverter;
 
+
+import java.awt.print.Book;
 import java.util.List;
 
 @Service
@@ -41,7 +44,7 @@ public class BookServiceImpl implements BookService {
             return List.of();
         }
 
-        return dbResponse.stream().map(this::toSearchDto).toList(); // BookVo -> BookSearchResponseDto
+        return dbResponse.stream().map(BookConverter::toSearchResponseFromBookVo).toList(); // BookVo -> BookSearchResponseDto
     }
 
     // [검색] 알라딘 api
@@ -52,7 +55,7 @@ public class BookServiceImpl implements BookService {
             return List.of();
         }
 
-        return apiResponse.getItems().stream().map(this::toSearchDto).toList();
+        return apiResponse.getItems().stream().map(BookConverter::toSearchResponseFromAladinItem).toList();
     }
 
 
@@ -84,7 +87,7 @@ public class BookServiceImpl implements BookService {
 
         AladinItemResponseDto item = apiResponse.getItems().get(0);
 
-        BookVo newBookVo = toBookVo(item); // 알라딘 응답 -> BookVo
+        BookVo newBookVo = BookConverter.toBookVoFromAladinItem(item); // 알라딘 응답 -> BookVo
         bookDao.insertBook(newBookVo);
 
         return newBookVo.getBookId();
@@ -109,49 +112,5 @@ public class BookServiceImpl implements BookService {
 
         // DB에 없는 경우 알라딘 api 호출 후 DB에 책 저장
         return fetchAndSaveBookByIsbnFromAladin(isbn);
-    }
-
-    // --- converter methods  ---
-
-    // 알라딘 api 호출 후 응답을 BookVo 타입으로 바꾸기
-    private BookVo toBookVo(AladinItemResponseDto item) {
-        BookVo vo = new BookVo();
-        vo.setBookTitle(item.getTitle());
-        vo.setBookAuthor(item.getAuthor());
-        vo.setBookPublisher(item.getPublisher());
-        vo.setBookPublicationDate(item.getPubDate());
-        vo.setBookIsbn(item.getIsbn13());
-        vo.setBookDescription(item.getDescription());
-        vo.setBookPrice(item.getPriceStandard());
-        vo.setBookImageUrl(item.getCover());
-        vo.setBookSalesPoint(item.getSalesPoint());
-        vo.setBookCategory(item.getCategoryName());
-        return vo;
-    }
-
-    // DB 조회 결과 VO -> 검색 응답 DTO 타입으로 바꾸기
-    private BookSearchResponseDto toSearchDto(BookVo vo) {
-        BookSearchResponseDto dto = new BookSearchResponseDto();
-        dto.setTitle(vo.getBookTitle());
-        dto.setAuthor(vo.getBookAuthor());
-        dto.setPublisher(vo.getBookPublisher());
-        dto.setPubDate(vo.getBookPublicationDate());
-        dto.setIsbn13(vo.getBookIsbn());
-        dto.setCover(vo.getBookImageUrl());
-        dto.setCategoryName(vo.getBookCategory());
-        return dto;
-    }
-
-    // 알라딘 조회 결과 DTO를 책 검색 결과 응답 DTO 타입으로 바꾸기
-    private BookSearchResponseDto toSearchDto(AladinItemResponseDto item) {
-        BookSearchResponseDto dto = new BookSearchResponseDto();
-        dto.setTitle(item.getTitle());
-        dto.setAuthor(item.getAuthor());
-        dto.setPublisher(item.getPublisher());
-        dto.setPubDate(item.getPubDate());
-        dto.setIsbn13(item.getIsbn13());
-        dto.setCover(item.getCover());
-        dto.setCategoryName(item.getCategoryName());
-        return dto;
     }
 }
