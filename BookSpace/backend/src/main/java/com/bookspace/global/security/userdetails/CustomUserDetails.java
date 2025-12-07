@@ -24,9 +24,9 @@ public class CustomUserDetails implements UserDetails {
         this.userPw = user.getUserPw();
         this.userStatus = user.getUserStatus();
 
-        // 권한 설정: 일단 기본 USER 권한 하나 부여
-        // 만약 UserVo에 role 컬럼이 있으면 그걸로 바꿔도 됨. => 이후 user/admin 나눌 예정
-        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // 권한 설정
+        String role = user.getUserRole();
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
     // ========= UserDetails 필수 구현 메서드들 =========

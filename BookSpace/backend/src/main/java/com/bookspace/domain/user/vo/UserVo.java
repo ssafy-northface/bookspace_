@@ -19,5 +19,6 @@ public class UserVo {
     private LocalDateTime userRegistDate;
     private LocalDateTime deletedAt;
     private String userStatus;
+    private String userRole;
 
 }
