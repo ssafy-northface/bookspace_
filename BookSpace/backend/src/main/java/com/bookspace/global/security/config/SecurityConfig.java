@@ -12,12 +12,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity // Spring Security 활성화
 public class SecurityConfig {
 
-    // 비밀번호 해싱용 (암호화)
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
     // security filter chain 정의
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

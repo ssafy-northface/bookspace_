@@ -8,8 +8,7 @@ import com.bookspace.domain.user.dto.UserUpdateRequestDto;
 import com.bookspace.domain.user.vo.UserVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     // 1. 회원가입
     @Override
@@ -41,7 +40,7 @@ public class UserServiceImpl implements UserService {
         // 1-2. DTO -> VO 변환
         UserVo userVo = new UserVo();
         userVo.setUserLoginId(dto.getUserLoginId());
-        userVo.setUserPw(bCryptPasswordEncoder.encode(dto.getUserPw()));
+        userVo.setUserPw(passwordEncoder.encode(dto.getUserPw()));
         userVo.setUserName(dto.getUserName());
         userVo.setUserNickname(dto.getUserNickname());
         userVo.setUserEmail(dto.getUserEmail());
