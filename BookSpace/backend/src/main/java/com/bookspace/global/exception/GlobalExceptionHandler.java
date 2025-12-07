@@ -39,4 +39,21 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    /** 400 - SignupRequestDTO 유효성 검증 실패 */
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+
+        // 먼저 발생한 하나의 필드 에러만 전달
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(e -> e.getField() + " : " + e.getDefaultMessage())
+                .orElse("요청값이 유효하지 않습니다.");
+
+        return ErrorResponse.builder()
+                .code("BAD_REQUEST")
+                .message(errorMessage)
+                .build();
+    }
+
 }

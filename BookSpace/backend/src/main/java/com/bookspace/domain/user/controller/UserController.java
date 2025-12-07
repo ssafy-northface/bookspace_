@@ -5,6 +5,7 @@ import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
 import com.bookspace.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class UserController {
 
     // 1. 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signup(@RequestBody SignupRequestDto dto) {
+    public ResponseEntity<UserResponseDto> signup(@Valid @RequestBody SignupRequestDto dto) {
         UserResponseDto response = userService.signup(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

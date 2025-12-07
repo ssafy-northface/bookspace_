@@ -46,8 +46,12 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
+
     // AOP
     implementation 'org.springframework.boot:spring-boot-starter-aop'
+
+    // Bean Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 
     // TEST
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
