@@ -38,6 +38,14 @@ dependencies {
     // Spring Boot 기본
     implementation 'org.springframework.boot:spring-boot-starter'
 
+    // Spring Security (Spring 3.4.x -> Security 6.4.x)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JJWT
+    implementation platform('io.jsonwebtoken:jjwt-bom:0.13.0')
+    implementation 'io.jsonwebtoken:jjwt-api'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson'
     // AOP
     implementation 'org.springframework.boot:spring-boot-starter-aop'
 
