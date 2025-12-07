@@ -9,6 +9,7 @@ import com.bookspace.domain.user.vo.UserVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
-
-    // TODO: 비밀번호 암호화 적용 시
-    // private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     // 1. 회원가입
     @Override
@@ -42,16 +41,12 @@ public class UserServiceImpl implements UserService {
         // 1-2. DTO -> VO 변환
         UserVo userVo = new UserVo();
         userVo.setUserLoginId(dto.getUserLoginId());
+        userVo.setUserPw(bCryptPasswordEncoder.encode(dto.getUserPw()));
         userVo.setUserName(dto.getUserName());
         userVo.setUserNickname(dto.getUserNickname());
         userVo.setUserEmail(dto.getUserEmail());
         userVo.setUserPhone(dto.getUserPhone());
         userVo.setUserBirthDate(dto.getUserBirthDate());
-
-        // TODO: 심화 단계에서 비밀번호 암호화 적용 (BCrypt 등)
-        // String encodedPw = passwordEncoder.encode(dto.getUserPw());
-        // userVo.setUserPw(encodedPw);
-        userVo.setUserPw(dto.getUserPw()); // 현재는 평문 그대로 (임시)
 
         int result = userDao.insertUser(userVo);
         if (result != 1) {
