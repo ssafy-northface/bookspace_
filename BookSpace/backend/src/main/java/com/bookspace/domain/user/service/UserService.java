@@ -1,6 +1,6 @@
 package com.bookspace.domain.user.service;
 
-import com.bookspace.domain.user.dto.LoginRequestDto;
+import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
@@ -11,7 +11,7 @@ public interface UserService {
     UserResponseDto signup(SignupRequestDto dto);
 
     // 2. 로그인
-    UserResponseDto login(LoginRequestDto dto);
+    UserResponseDto login(SignInRequestDto dto);
 
     // 3. 회원 정보 조회 (by userId)
     UserResponseDto getUserById(long userId);
