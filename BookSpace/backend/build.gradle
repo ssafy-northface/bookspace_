@@ -38,6 +38,8 @@ dependencies {
     // Spring Boot 기본
     implementation 'org.springframework.boot:spring-boot-starter'
 
+    //env
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     // Spring Security (Spring 3.4.x -> Security 6.4.x)
     implementation 'org.springframework.boot:spring-boot-starter-security'
 

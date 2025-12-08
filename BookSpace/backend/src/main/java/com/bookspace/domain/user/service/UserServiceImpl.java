@@ -1,7 +1,7 @@
 package com.bookspace.domain.user.service;
 
 import com.bookspace.domain.user.dao.UserDao;
-import com.bookspace.domain.user.dto.LoginRequestDto;
+import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
     // Spring Security 구현 시 수정 필요
     // =============================================================
     @Override
-    public UserResponseDto login(LoginRequestDto dto) {
+    public UserResponseDto login(SignInRequestDto dto) {
 
         // 2-1. 로그인 아이디로 조회
         UserVo userVo = userDao.selectUserByLoginId(dto.getUserLoginId());

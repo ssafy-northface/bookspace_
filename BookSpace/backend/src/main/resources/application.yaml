@@ -26,3 +26,8 @@ mybatis:
 
 aladin:
   ttbkey: ${ALADIN_TTB_KEY}
+
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity-ms: ${JWT_ACCESS_TOKEN_VALIDITY_MS:3600000}

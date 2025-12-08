@@ -1,6 +1,6 @@
 package com.bookspace.domain.user.controller;
 
-import com.bookspace.domain.user.dto.LoginRequestDto;
+import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
@@ -36,7 +36,7 @@ public class UserController {
     // 4) 인증/인가 로직(Service.login 등)은 모두 제거 또는 대체 예정
     // =============================================================
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto dto) {
+    public ResponseEntity<UserResponseDto> login(@RequestBody SignInRequestDto dto) {
         UserResponseDto response = userService.login(dto);
         return ResponseEntity.ok(response);
     }
