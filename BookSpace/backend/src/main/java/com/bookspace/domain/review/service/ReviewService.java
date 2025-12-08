@@ -8,13 +8,13 @@ import java.util.List;
 public interface ReviewService {
 
     // 1. 리뷰 등록
-    void createReview(ReviewRequestDto requestDto);
+    void createReview(ReviewRequestDto requestDto, long loginUserId);
 
     // 2. 리뷰 수정
-    void updateReview(long reviewId, ReviewRequestDto requestDto);
+    void updateReview(long reviewId, ReviewRequestDto requestDto, long loginUserId);
 
     // 3. 리뷰 삭제
-    void deleteReview(long reviewId);
+    void deleteReview(long reviewId, long loginUserId);
 
     // 4. 리뷰 단건 조회 (by reviewId)
     ReviewResponseDto getReviewById(long reviewId);

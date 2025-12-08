@@ -2,7 +2,9 @@ package com.bookspace.domain.review.controller;
 
 import java.util.List;
 
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.bookspace.domain.review.dto.ReviewRequestDto;
@@ -20,8 +22,13 @@ public class ReviewController {
 
     // 1. 리뷰 등록
     @PostMapping
-    public ResponseEntity<String> createReview(@RequestBody ReviewRequestDto dto) {
-        reviewService.createReview(dto);
+    public ResponseEntity<String> createReview(
+            @RequestBody ReviewRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails user
+            ) {
+        long loginUserId = user.getUserId();
+
+        reviewService.createReview(dto, loginUserId);
         return ResponseEntity.ok("Review created successfully");
     }
 
@@ -29,16 +36,24 @@ public class ReviewController {
     @PutMapping("/{reviewId}")
     public ResponseEntity<String> updateReview(
             @PathVariable long reviewId,
-            @RequestBody ReviewRequestDto dto
+            @RequestBody ReviewRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        reviewService.updateReview(reviewId, dto);
+        long loginUserId = user.getUserId();
+
+        reviewService.updateReview(reviewId, dto, loginUserId);
         return ResponseEntity.ok("Review updated successfully");
     }
 
     // 3. 리뷰 삭제
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<String> deleteReview(@PathVariable long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<String> deleteReview(
+            @PathVariable long reviewId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        long loginUserId = user.getUserId();
+
+        reviewService.deleteReview(reviewId, loginUserId);
         return ResponseEntity.ok("Review deleted successfully");
     }
 

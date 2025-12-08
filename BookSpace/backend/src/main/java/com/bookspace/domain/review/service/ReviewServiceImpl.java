@@ -8,6 +8,7 @@ import com.bookspace.domain.review.dto.ReviewRequestDto;
 import com.bookspace.domain.review.dto.ReviewResponseDto;
 import com.bookspace.domain.review.vo.ReviewVo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,8 +24,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 1. 리뷰 등록
     @Override
-    public void createReview(ReviewRequestDto dto) {
-        Long userId = dto.getUserId();
+    public void createReview(ReviewRequestDto dto, long loginUserId) {
+
         String isbn = dto.getIsbn();
 
         // 예외 처리
@@ -43,7 +44,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // 정상 등록 처리
         ReviewVo vo = new ReviewVo();
-        vo.setUserId(dto.getUserId());
+        vo.setUserId(loginUserId);
         vo.setBookId(bookId);
         vo.setReviewRating(dto.getReviewRating());
         vo.setReviewContent(dto.getReviewContent());
@@ -57,7 +58,20 @@ public class ReviewServiceImpl implements ReviewService {
 
     // 2. 리뷰 수정
     @Override
-    public void updateReview(long reviewId, ReviewRequestDto dto) {
+    public void updateReview(long reviewId, ReviewRequestDto dto, long loginUserId) {
+
+        // 1. 기존 리뷰 조회
+        ReviewVo reviewVo = reviewDao.selectReviewById(reviewId);
+        if(reviewVo == null) {
+            throw new IllegalArgumentException("Review not found with id: " + reviewId);
+        }
+
+        // 2. 작성자 검증
+        if(reviewVo.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access denied 본인의 리뷰만 수정할 수 있습니다.");
+        }
+
+        // 3. 수정 실행
         ReviewVo vo = new ReviewVo();
         vo.setReviewId(reviewId);
         vo.setReviewRating(dto.getReviewRating());
@@ -66,15 +80,31 @@ public class ReviewServiceImpl implements ReviewService {
         int updatedRows = reviewDao.updateReview(vo);
         if (updatedRows == 0) {
             // 존재하지 않는 reviewId일 때
-            throw new IllegalArgumentException("Review not found with id: " + reviewId);
+            throw new RuntimeException("Failed to update review with id: " + reviewId);
         }
     }
 
+
+    // 3. 리뷰 삭제
     @Override
-    public void deleteReview(long reviewId) {
+    public void deleteReview(long reviewId, long loginUserId) {
+
+        // 1. 기존 리뷰 조회
+        ReviewVo reviewVo = reviewDao.selectReviewById(reviewId);
+        if(reviewVo == null) {
+            throw new IllegalArgumentException("Review not found with id: " + reviewId);
+        }
+
+        // 2. 작성자 검증
+        if(reviewVo.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access denied 본인의 리뷰만 삭제할 수 있습니다.");
+        }
+
+
+        // 3. 삭제 실행
         int deletedRows = reviewDao.deleteReview(reviewId);
         if (deletedRows == 0) {
-            throw new IllegalArgumentException("Review not found with id: " + reviewId);
+            throw new IllegalArgumentException("Failed to delete review with id: " + reviewId);
         }
     }
 

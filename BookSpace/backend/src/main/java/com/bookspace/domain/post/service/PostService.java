@@ -9,7 +9,7 @@ import com.bookspace.domain.post.dto.PostResponseDto;
 public interface PostService {
 
     // 게시글 등록
-    void createPost(PostRequestDto requestDto);
+    void createPost(PostRequestDto requestDto, long loginUserId);
 
     // 게시글 전체 조회
     List<PostResponseDto> getAllPosts();
@@ -18,10 +18,10 @@ public interface PostService {
     PostResponseDto getPostById(long postId);
 
     // 게시글 수정
-    void updatePost(long postId, PostRequestDto requestDto);
+    void updatePost(long postId, PostRequestDto requestDto, long loginUserId);
 
     // 게시글 삭제
-    void deletePost(long postId);
+    void deletePost(long postId, long loginUserId);
 
     // 조회수 증가
     void increaseViewCount(long postId);

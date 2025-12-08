@@ -2,10 +2,12 @@ package com.bookspace.domain.post.controller;
 
 import java.util.List;
 
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-        import com.bookspace.domain.post.dto.PostRequestDto;
+import com.bookspace.domain.post.dto.PostRequestDto;
 import com.bookspace.domain.post.dto.PostResponseDto;
 import com.bookspace.domain.post.service.PostService;
 
@@ -20,8 +22,13 @@ public class PostController {
 
     // 1. 게시글 등록
     @PostMapping
-    public ResponseEntity<String> createPost(@RequestBody PostRequestDto dto) {
-        postService.createPost(dto);
+    public ResponseEntity<String> createPost(
+            @RequestBody PostRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        // 로그인한 유저의 userId 가져오기
+        long loginUserId = user.getUserId();
+        postService.createPost(dto, loginUserId);
         return ResponseEntity.ok("Post created successfully");
     }
 
@@ -51,16 +58,22 @@ public class PostController {
     @PutMapping("/{postId}")
     public ResponseEntity<String> updatePost(
             @PathVariable long postId,
-            @RequestBody PostRequestDto dto
+            @RequestBody PostRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        postService.updatePost(postId, dto);
+        long loginUserId = user.getUserId();
+        postService.updatePost(postId, dto, loginUserId);
         return ResponseEntity.ok("Post updated successfully");
     }
 
     // 5. 게시글 삭제
     @DeleteMapping("/{postId}")
-    public ResponseEntity<String> deletePost(@PathVariable long postId) {
-        postService.deletePost(postId);
+    public ResponseEntity<String> deletePost(
+            @PathVariable long postId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        long loginUserId = user.getUserId();
+        postService.deletePost(postId, loginUserId);
         return ResponseEntity.ok("Post deleted successfully");
     }
 

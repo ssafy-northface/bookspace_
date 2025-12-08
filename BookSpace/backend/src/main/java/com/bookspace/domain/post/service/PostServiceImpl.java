@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.bookspace.domain.book.service.BookService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,14 +27,15 @@ public class PostServiceImpl implements PostService {
 
     // 게시글 작성 (isbn)
     @Override
-    public void createPost(PostRequestDto dto) {
+    public void createPost(PostRequestDto dto, long loginUserId) {
 
-        Long userId = dto.getUserId();
+//        Long userId = dto.getUserId();
         String isbn = dto.getIsbn();
 
-        if(userId == null){
-            throw new IllegalArgumentException("userId is null");
-        }
+//        if(userId == null){
+//            throw new IllegalArgumentException("userId is null");
+//        }
+
         if(isbn == null){
             throw new IllegalArgumentException("isbn is null");
         }
@@ -47,7 +49,7 @@ public class PostServiceImpl implements PostService {
          */
 
         PostVo vo = new PostVo();
-        vo.setUserId(userId);
+        vo.setUserId(loginUserId);
         vo.setBookId(bookId);
         vo.setPostTitle(dto.getPostTitle());
         vo.setPostContent(dto.getPostContent());
@@ -96,24 +98,68 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void updatePost(long postId, PostRequestDto dto) {
+    public void updatePost(long postId, PostRequestDto dto, long loginUserId) {
+//        PostVo vo = new PostVo();
+//        vo.setPostId(postId);
+//        vo.setPostTitle(dto.getPostTitle());
+//        vo.setPostContent(dto.getPostContent());
+//        int updatedRows = postDao.updatePost(vo);
+//        if (updatedRows == 0) {
+//            // 존재하지 않는 postId일 때
+//            throw new IllegalArgumentException("Post not found with id: " + postId);
+//        }
+
+        // 1. 기존 게시글 조회
+        PostVo postVo = postDao.selectPostById(postId,loginUserId);
+        if(postVo == null){
+            throw new IllegalArgumentException("Post not found with id: " + postId);
+        }
+
+        // 2. 작성자 userId 기준으로 권한 체크
+        if(postVo.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access denied 본인의 게시글만 수정할 수 있습니다");
+        }
+
+        // 3. 통과하면 수정 진행
         PostVo vo = new PostVo();
         vo.setPostId(postId);
         vo.setPostTitle(dto.getPostTitle());
         vo.setPostContent(dto.getPostContent());
+
         int updatedRows = postDao.updatePost(vo);
-        if (updatedRows == 0) {
-            // 존재하지 않는 postId일 때
-            throw new IllegalArgumentException("Post not found with id: " + postId);
-        }    }
+        if(updatedRows != 1){
+            throw new RuntimeException("Failed to update post: " + postId);
+        }
+
+
+
+    }
 
 
     @Override
-    public void deletePost(long postId) {
-        int deletedRows = postDao.deletePost(postId);
-        if (deletedRows == 0) {
+    public void deletePost(long postId, long loginUserId) {
+//        int deletedRows = postDao.deletePost(postId);
+//        if (deletedRows == 0) {
+//            throw new IllegalArgumentException("Post not found with id: " + postId);
+//        }
+
+        // 1. 기존 게시글 조회
+        PostVo postVo = postDao.selectPostById(postId, loginUserId);
+        if(postVo == null){
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
+
+        // 2. 작성자 체크
+        if(postVo.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access denied 본인의 게시글만 삭제할 수 있습니다.");
+        }
+
+        // 3. 통과하면 삭제
+        int deletedRows = postDao.deletePost(postId);
+        if(deletedRows != 1){
+            throw new RuntimeException("Failed to delete post: " + postId);
+        }
+
     }
 
 

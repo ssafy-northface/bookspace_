@@ -5,10 +5,12 @@ import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
 import com.bookspace.domain.user.service.UserService;
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
