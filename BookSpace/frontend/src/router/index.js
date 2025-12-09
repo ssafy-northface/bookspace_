@@ -1,4 +1,3 @@
-
 // // src/router/index.js
 // import { createRouter, createWebHistory } from 'vue-router'
 
@@ -78,15 +77,20 @@
 
 // export default router
 
-
 // vue router 세팅 파일
 import { createRouter, createWebHistory } from "vue-router";
+import DefaultLayout from "@/components/layout/DefaultLayout.vue";
 import HomeView from "@/pages/HomeView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [{ path: "/", component: HomeView }],
+  routes: [
+    {
+      path: "/",
+      component: DefaultLayout,
+      children: [{ path: "", name: "home", component: HomeView }],
+    },
+  ],
 });
 
 export default router;
-

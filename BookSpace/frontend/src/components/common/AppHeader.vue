@@ -2,7 +2,11 @@
 import { BookOpen, Search, User, Menu } from "lucide-vue-next";
 import { RouterLink } from "vue-router";
 // Heroicons import
-import { MagnifyingGlassIcon, UserIcon } from "@heroicons/vue/24/outline";
+import {
+  MagnifyingGlassIcon,
+  UserIcon,
+  Bars3Icon,
+} from "@heroicons/vue/24/outline";
 </script>
 <template>
   <header
@@ -66,7 +70,7 @@ import { MagnifyingGlassIcon, UserIcon } from "@heroicons/vue/24/outline";
 
         <!-- 모바일 메뉴 버튼 -->
         <button class="md:hidden text-sm font-medium hover:text-primary">
-          메뉴
+          <Bars3Icon class="w-5 h-5" />
         </button>
       </div>
     </div>
