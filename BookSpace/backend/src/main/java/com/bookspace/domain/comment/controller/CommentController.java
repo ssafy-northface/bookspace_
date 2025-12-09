@@ -3,8 +3,10 @@ package com.bookspace.domain.comment.controller;
 import com.bookspace.domain.comment.dto.CommentRequestDto;
 import com.bookspace.domain.comment.dto.CommentResponseDto;
 import com.bookspace.domain.comment.service.CommentService;
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +21,11 @@ public class CommentController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<String> createComment(
             @PathVariable("postId") long postId,
-            @RequestBody CommentRequestDto commentDto) {
-        commentService.createComment(postId, commentDto);
+            @RequestBody CommentRequestDto commentDto,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        long loginsUserId = user.getUserId();
+        commentService.createComment(postId, commentDto, loginsUserId);
         return ResponseEntity.ok("Comment created successfully");
     }
 
@@ -44,16 +49,25 @@ public class CommentController {
 
     // [U] - 댓글 수정
     @PutMapping("/comments/{commentId}")
-    public ResponseEntity<CommentResponseDto> updateComment(@PathVariable long commentId, @RequestBody CommentRequestDto commentDto){
-        commentService.updateComment(commentId, commentDto);
+    public ResponseEntity<CommentResponseDto> updateComment(
+            @PathVariable long commentId,
+            @RequestBody CommentRequestDto commentDto,
+            @AuthenticationPrincipal CustomUserDetails user
+    ){
+        long loginsUserId = user.getUserId();
+        commentService.updateComment(commentId, commentDto, loginsUserId);
         // 수정 후 반환
         return ResponseEntity.ok(commentService.getCommentByCommentId(commentId));
     }
 
     // [D] - 댓글 삭제
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<String> deleteComment(@PathVariable long commentId){
-        commentService.deleteComment(commentId);
+    public ResponseEntity<String> deleteComment(
+            @PathVariable long commentId,
+            @AuthenticationPrincipal CustomUserDetails user
+    ){
+        long loginsUserId = user.getUserId();
+        commentService.deleteComment(commentId, loginsUserId);
         return ResponseEntity.ok("Comment deleted successfully");
     }
 

@@ -6,6 +6,7 @@ import com.bookspace.domain.comment.dto.CommentResponseDto;
 import com.bookspace.domain.comment.vo.CommentVo;
 import com.bookspace.domain.common.validation.ValidatePostExists;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -18,10 +19,10 @@ public class CommentServiceImpl implements CommentService {
     // [C]
     @Override
     @ValidatePostExists(postId = "#postId")
-    public void createComment(long postId, CommentRequestDto commentDto) {
+    public void createComment(long postId, CommentRequestDto commentDto, long loginUserId) {
         CommentVo commentVo = new CommentVo();
         commentVo.setPostId(postId);
-        commentVo.setUserId(commentDto.getUserId());
+        commentVo.setUserId(loginUserId);
         commentVo.setCommentContent(commentDto.getCommentContent());
 
         int inserted = commentDao.insertComment(commentVo);
@@ -65,14 +66,21 @@ public class CommentServiceImpl implements CommentService {
 
     // [U] - commentID
     @Override
-    public void updateComment(long commentId, CommentRequestDto commentDto) {
+    public void updateComment(long commentId, CommentRequestDto commentDto, long loginUserId) {
         // 1) 해당 comment가 존재하는지 확인
         CommentResponseDto existing = commentDao.selectCommentById(commentId);
         if (existing == null) {
             throw new IllegalArgumentException("Comment not found: " + commentId);
         }
 
-        // 2) 업데이트 값 전달
+
+        // 2) 권한 체크
+        if(existing.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access denied 본인의 댓글만 수정할 수 있습니다.");
+        }
+
+
+        // 3) 업데이트 값 전달 - 수정 실행
         CommentVo commentVo = new CommentVo();
         commentVo.setCommentId(commentId);
         commentVo.setCommentContent(commentDto.getCommentContent());
@@ -86,14 +94,20 @@ public class CommentServiceImpl implements CommentService {
 
     // [D] - commentId
     @Override
-    public void deleteComment(long commentId) {
-        // comment가 존재하는지 확인
+    public void deleteComment(long commentId, long loginUserId) {
+
+        // 1) comment가 존재하는지 확인
         CommentResponseDto existing = commentDao.selectCommentById(commentId);
         if(existing == null){
             throw new IllegalArgumentException("Comment not found: " + commentId);
         }
 
-        // 2) 삭제
+        // 2) 권한 체크
+        if(existing.getUserId() != loginUserId){
+            throw new AccessDeniedException("Access Denied  본인의 댓글만 삭제할 수 있습니다.");
+        }
+
+        // 3) 삭제
         int deleted = commentDao.deleteComment(commentId);
         if (deleted != 1) {
             throw new RuntimeException("Failed to delete comment: "+commentId);

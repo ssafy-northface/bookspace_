@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CommentService {
     // [C]
-    void createComment(long postId, CommentRequestDto commentDto);
+    void createComment(long postId, CommentRequestDto commentDto, long loginUserId);
 
     // [R]
     // postId로 댓글 전체 조회
@@ -20,8 +20,8 @@ public interface CommentService {
     List<CommentResponseDto> getCommentByUserId (long userId);
 
     // [U[
-    void updateComment(long commentId, CommentRequestDto commentDto);
+    void updateComment(long commentId, CommentRequestDto commentDto, long loginUserId);
 
     // [D]
-    void deleteComment(long commentId);
+    void deleteComment(long commentId, long loginUserId);
 }
