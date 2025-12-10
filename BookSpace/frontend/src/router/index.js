@@ -1,8 +1,8 @@
 // // src/router/index.js
-// import { createRouter, createWebHistory } from 'vue-router'
+// import { createRouter, createWebHistory } from "vue-router";
 
 // // === views import ===
-// import HomeView from '@/views/HomeView.vue'
+// import HomeView from "@/views/HomeView.vue";
 // import AiRecommendView from '@/views/AiRecommendView.vue'
 // import BooksView from '@/views/BooksView.vue'
 // import BookDetailView from '@/views/BookDetailView.vue'
@@ -79,17 +79,61 @@
 
 // vue router 세팅 파일
 import { createRouter, createWebHistory } from "vue-router";
+// layout
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
-import HomeView from "@/views/HomeView.vue";
+// views
+import HomeView from "@/views/HomeView";
+import AiRecommendView from "@/views/AiRecommendView";
+import BooksView from "@/views/BooksView";
+import BookDetailView from "@/views/BookDetailView";
+import CommunityView from "@/views/CommunityView";
+import PostDetailView from "@/views/PostDetailView";
+import ProfileView from "@/views/ProfileView";
+import SignInView from "../views/SignInView";
+import SignupView from "@/views/SignupView";
 
 const router = createRouter({
   history: createWebHistory(),
+
   routes: [
     {
       path: "/",
       component: DefaultLayout,
-      children: [{ path: "", name: "home", component: HomeView }],
+      children: [
+        // home
+        { path: "", name: "home", component: HomeView },
+        // ai recommend
+        { path: "", name: "aiRecommend", component: AiRecommendView },
+        // books
+        { path: "/books", name: "books", component: BooksView },
+        // book detail
+        {
+          path: "/books/:bookId",
+          name: "bookDetail",
+          component: BookDetailView,
+          props: true,
+        },
+        // community
+        { path: "/community", name: "community", component: CommunityView },
+        // post detail
+        {
+          path: "/community/:postId",
+          name: "postDetail",
+          component: PostDetailView,
+          props: true,
+        },
+        // profile - 로그인 필요
+        {
+          path: "/profile",
+          name: "profile",
+          component: ProfileView,
+          meta: { requiresAuth: true },
+        },
+      ],
     },
+    //  layout(헤더, 푸터) 적용 없는 페이지
+    { path: "/signin", name: "signin", component: SignInView },
+    { path: "/signup", name: "signup", component: SignupView },
   ],
 });
 

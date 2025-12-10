@@ -10,5 +10,6 @@ export default defineConfig({
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+    extensions: [".js", ".ts", ".vue", ".json"], // 파일 확장자 자동 인식
   },
 });

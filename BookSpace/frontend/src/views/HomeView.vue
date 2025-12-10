@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <script setup>
 import { ref } from "vue";
 import Switch from "@/components/ui/Switch.vue";
