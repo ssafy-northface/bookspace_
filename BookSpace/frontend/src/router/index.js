@@ -82,6 +82,9 @@ import { createRouter, createWebHistory } from "vue-router";
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
 import HomeView from "@/views/HomeView.vue";
 
+// 테스트용 뷰
+import AuthTestView from "../views/AuthTestView.vue";
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
