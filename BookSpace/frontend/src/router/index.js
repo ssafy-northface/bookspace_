@@ -80,7 +80,7 @@
 // vue router 세팅 파일
 import { createRouter, createWebHistory } from "vue-router";
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
-import HomeView from "@/pages/HomeView.vue";
+import HomeView from "@/views/HomeView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
