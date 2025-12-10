@@ -92,6 +92,9 @@ import ProfileView from "@/views/ProfileView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
 
+// 테스트용 뷰
+import AuthTestView from "../views/AuthTestView.vue";
+
 const router = createRouter({
   history: createWebHistory(),
 
