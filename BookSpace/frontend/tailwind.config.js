@@ -36,6 +36,9 @@ module.exports = {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+
+        card: "var(--card)",
+        "card-foreground": "var(--card-foreground)",
       },
     },
   },
