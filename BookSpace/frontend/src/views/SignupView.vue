@@ -21,8 +21,8 @@
       <form @submit.prevent="signup" class="space-y-4">
         <!-- 아이디 -->
         <ValidatedInput
-          v-model="id"
-          :v$="v$.id"
+          v-model="loginId"
+          :v$="v$.loginId"
           type="text"
           placeholder="아이디"
         />
@@ -41,6 +41,14 @@
           :v$="v$.confirmPassword"
           type="password"
           placeholder="비밀번호 확인"
+        />
+
+        <!-- 이름 -->
+        <ValidatedInput
+          v-model="name"
+          :v$="v$.name"
+          type="text"
+          placeholder="이름"
         />
 
         <!-- 이메일 -->
@@ -102,39 +110,46 @@
 
 <script setup>
 // 상태
-const id = ref("");
+const loginId = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
+const name = ref("");
 const nickname = ref("");
 const phone = ref("");
 const birth = ref("");
+const isSubmitting = ref(false);
+
+const userStore = useUserStore();
+const router = useRouter();
 
 // vuelidate 규칙 정의
 const rules = {
-  id: { required, minLength: minLength(4) },
+  loginId: { required, minLength: minLength(4) },
   email: { required, email: emailValidator },
   password: { required, minLength: minLength(8) },
   confirmPassword: { required, sameAs: sameAs(password) },
+  name: { required },
   nickname: { required },
   phone: {
     //000-0000-0000
-    required,
     phoneFormat: helpers.regex(/^\d{3}-\d{4}-\d{4}$/),
+    $autoDirty: true,
   },
   birth: {
     // 0000-00-00
-    required,
     birthFormat: helpers.regex(/^\d{4}-\d{2}-\d{2}$/),
+    $autoDirty: true,
   },
 };
 
 //vuelidate 인스턴스 생성
 const v$ = useVuelidate(rules, {
-  id,
+  loginId,
   email,
   password,
   confirmPassword,
+  name,
   nickname,
   phone,
   birth,
@@ -142,25 +157,51 @@ const v$ = useVuelidate(rules, {
 
 // 회원가입 확인
 const signup = async () => {
-  //   const valid = await v$.value.$validate();
-  //   if (!valid) {
-  //     console.log("실패", v$.value.$errors);
-  //     return;
-  //   }
+  
+  // 이미 요청 중이면 또 요청 안보내기
+  if (isSubmitting.value) return;
 
-  console.log({
-    id: id.value,
-    email: email.value,
-    password: password.value,
-    confirmPassword: confirmPassword.value,
-    nickname: nickname.value,
-    phone: phone.value,
-    birth: birth.value,
-  });
+  // 유효성 검사
+  const valid = await v$.value.$validate();
+  if (!valid) {
+    alert("입력한 정보를 다시 확인해주세요.")
+    return;
+  }
+  
+  // DTO 형식에 맞게 payload 구성
+  const payload = {
+    userLoginId : loginId.value,
+    userPw: password.value,
+    userName: name.value,
+    userNickname: nickname.value,
+    userEmail: email.value,
+    userPhone: phone.value,
+    userBirthDate: birth.value,
+  };
+
+  // 콘솔창에 출력해보기
+  console.log("Signup Info: ", payload);
+  
+  try {
+    isSubmitting.value = true;
+
+    // 회원가입 API 호출
+    await userStore.signup(payload);
+
+    alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.") // 확인하기 위한 알림창. 나중에 삭제해도 됨
+    await router.push("/signin");
+  } catch (err) {
+    const msg = err?.response?.data?.message ||
+      "회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.";
+      alert(msg);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
+
 import { ref } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import ValidatedInput from "@/components/ui/ValidatedInput.vue";
 import Button from "@/components/ui/Button.vue";
 import AppLogo from "@/components/common/AppLogo.vue";
@@ -173,4 +214,5 @@ import {
   sameAs,
   helpers,
 } from "@vuelidate/validators";
+import { useUserStore } from "../stores/userStore";
 </script>

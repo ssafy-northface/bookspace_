@@ -11,7 +11,7 @@ export const useAuthStore = defineStore("auth", {
 
   actions: {
     async login(payload) {
-        // payload: {userLoginId, userPw}
+      // payload: {userLoginId, userPw}
       const data = await loginApi(payload); // 에러 시 그대로 throw
 
       // 백엔드 응답 : {accessToken, refreshToken}
