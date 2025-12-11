@@ -110,10 +110,11 @@ const errorMessage = computed(() => {
     return "비밀번호가 일치하지 않습니다.";
   }
 
-  // number (numeric)
-  if (props.type === "number" && props.v$.numeric?.$invalid) {
-    return "숫자만 입력할 수 있습니다.";
-  }
+  if (props.v$.phoneFormat?.$invalid)
+    return "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+
+  if (props.v$.birthFormat?.$invalid)
+    return "생년월일 형식이 올바르지 않습니다. (예: 2025-12-17)";
 
   // minLength & maxLength
   if (props.v$.minLength?.$invalid)

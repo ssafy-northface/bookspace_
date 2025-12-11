@@ -1,11 +1,16 @@
 <template>
   <button
     :type="type"
-    :class="buttonClass"
-    :disabled="disabled"
+    :class="[buttonClass, loading ? 'cursor-wait opacity-80' : '']"
+    :disabled="disabled || loading"
     data-slot="button"
     v-bind="$attrs"
   >
+    <!-- 로딩일 때 스피너 -->
+    <span
+      v-if="loading"
+      class="w-4 h-4 mr-2 border-2 rounded-full animate-spin border-t-transparent"
+    ></span>
     <slot />
   </button>
 </template>
@@ -41,6 +46,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
     className: {
       type: String,
       default: "",
@@ -56,7 +65,7 @@ export default {
         "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 " +
         "outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] " +
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive " +
-        "active:scale-95";
+        "hover:scale-95";
 
       const variants = {
         default:
@@ -66,7 +75,7 @@ export default {
           "focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground " +
-          "active:bg-accent/60 active:text-accent-foreground/80 " /* ← active 추가 */ +
+          "active:bg-accent/60 active:text-accent-foreground/80 " +
           "dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/70",

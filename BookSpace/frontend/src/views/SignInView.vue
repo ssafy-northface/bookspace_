@@ -19,8 +19,8 @@
       <!-- form -->
       <form @submit.prevent="login" class="space-y-4">
         <ValidatedInput
-          v-model="id"
-          :v$="v$.id"
+          v-model="loginId"
+          :v$="v$.loginId"
           type="text"
           placeholder="아이디"
         />
@@ -33,7 +33,12 @@
         />
 
         <!-- 버튼 -->
-        <Button type="submit" :disabled="v$.$invalid" class="w-full mt-6">
+        <Button
+          type="submit"
+          :loading="isSubmitting"
+          :disabled="v$.$invalid"
+          class="w-full mt-6"
+        >
           로그인
         </Button>
       </form>
@@ -53,32 +58,27 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { RouterLink , useRouter} from "vue-router";
+import { nextTick, ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
 import AppLogo from "@/components/common/AppLogo.vue";
 import ValidatedInput from "@/components/ui/ValidatedInput.vue";
 import Button from "@/components/ui/Button.vue";
 import useVuelidate from "@vuelidate/core";
-import {
-  required,
-  email as emailValidator,
-  minLength,
-} from "@vuelidate/validators";
+import { required } from "@vuelidate/validators";
 import { useAuthStore } from "../stores/authStore";
 
 // 상태
 const loginId = ref("");
 const password = ref("");
-  
+
 // Vuelidate 규칙 정의
 const rules = {
   loginId: { required },
   password: { required },
 };
-  
-// Vuelidate 인스턴스 생성
-const v$ = useVuelidate(rules, { id, password }); //useVuelidate로 규칙 적용
 
+// Vuelidate 인스턴스 생성
+const v$ = useVuelidate(rules, { loginId, password }); //useVuelidate로 규칙 적용
 
 const errorMessage = ref("");
 const isSubmitting = ref(false);
@@ -86,16 +86,17 @@ const isSubmitting = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
 
-
 // 로그인 함수
 const login = async () => {
   if (isSubmitting.value) return;
+
+  await nextTick;
   isSubmitting.value = true;
   errorMessage.value = "";
 
   try {
     await authStore.login({
-      userLoginId: loginId.value,   // 🔹 백엔드 DTO 필드명에 맞춰서 매핑
+      userLoginId: loginId.value, // 🔹 백엔드 DTO 필드명에 맞춰서 매핑
       userPw: password.value,
     });
 
@@ -117,5 +118,4 @@ const login = async () => {
     isSubmitting.value = false;
   }
 };
-
 </script>
