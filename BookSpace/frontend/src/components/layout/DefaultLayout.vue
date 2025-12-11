@@ -5,7 +5,7 @@ import AppFooter from "@/components/common/AppFooter.vue";
 </script>
 <template>
   <AppHeader />
-  <main class="min-h-screen">
+  <main class="container flex-1 py-8">
     <RouterView />
   </main>
   <AppFooter />
