@@ -37,4 +37,7 @@ public interface UserService {
 
     // 10. inactive 14일 경과 유저 일괄 영구 삭제 (CleanupScheduler 전용)
     int deleteExpiredInactiveUsers();
+
+    // 11. 로그인한 사용자의 내 정보 조회
+    UserResponseDto getMyInfo(Long userId);
 }

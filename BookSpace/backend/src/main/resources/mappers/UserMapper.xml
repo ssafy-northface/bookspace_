@@ -55,7 +55,8 @@
             user_email,
             user_regist_date,
             deleted_at,
-            user_status
+            user_status,
+            user_role
         FROM user
         WHERE user_id = #{userId}
     </select>
@@ -73,7 +74,8 @@
             user_email,
             user_regist_date,
             deleted_at,
-            user_status
+            user_status,
+            user_role
         FROM user
         WHERE user_login_id = #{userLoginId}
     </select>
