@@ -1,9 +1,12 @@
 package com.bookspace.domain.post.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.bookspace.domain.book.service.BookService;
+import com.bookspace.domain.post.dto.PostPageResponseDto;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +27,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostDao postDao;
     private final BookService bookService;
+    private final ParameterNamesModule parameterNamesModule;
 
     // 게시글 작성 (isbn)
     @Override
@@ -62,22 +66,39 @@ public class PostServiceImpl implements PostService {
 
 
     /*
+    모든 게시글 조회 (페이지네이션 적용)
     모든 게시물 조회는 게시물 좋아요 개수, 좋아요 여부 2개가 모두 포함된 응답이 옴
     - 로그인한 유저라면, 자신이 게시물을 좋아요 눌렀는지 여부 (full heart / empty heart)
     - 로그인한 유저라면, liked값이 모두 false로 옴 -> 프론트 처리 (empty heart를 유저가 누르려고 시도했을 때 로그인 하라고 하기)
      */
     @Override
-    public List<PostResponseDto> getAllPosts() {
+    public PostPageResponseDto getAllPosts(int page, int size, Long userId)
+    {
 
         // TODO 로그인 로직 구현 후 수정
-        Long userId = 1L; // 로그인한 유저일 경우 (1번으로 테스트)
-        // Long userId = null; // 로그인 하지 않았을 때
+//        Long userId = 1L; // 로그인한 유저일 경우 (1번으로 테스트)
+//        // Long userId = null; // 로그인 하지 않았을 때
 
-        List<PostVo> voList = postDao.selectAllPosts(userId);
+        int offset = page * size;
 
-        return voList.stream()
-                .map(this::convertToResponseDto)
-                .toList();
+        Map<String, Object> params = new HashMap<>();
+        params.put("size", size);
+        params.put("offset", offset);
+        params.put("userId", userId);
+
+        List<PostResponseDto> posts = postDao.selectAllPosts(params);
+
+        int totalCount = postDao.countAllPosts();
+
+        boolean hasNext = (page + 1) * size < totalCount;
+        Integer nextPage = hasNext ? page + 1 : null;
+
+
+        PostPageResponseDto.Content content =
+                new PostPageResponseDto.Content(posts, page, size, totalCount);
+
+        return new PostPageResponseDto(content, hasNext, nextPage);
+
     }
 
     @Override

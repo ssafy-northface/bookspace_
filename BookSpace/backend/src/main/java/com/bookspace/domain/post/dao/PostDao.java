@@ -16,7 +16,11 @@ public interface PostDao {
     int insertPost(PostVo postVo);
 
     // 2. 게시글 전체 조회 (로그인 userId -> isLiked)
-    List<PostVo> selectAllPosts(@Param("userId") Long userId);
+    // 페이징 목록
+    List<PostResponseDto> selectAllPosts(Map<String,Object> params);
+
+    // 전체 게시물 개수
+    int countAllPosts();
 
     // 3. 게시글 단건 조회 (로그인 userId -> isLiked)
     PostVo selectPostById(@Param("postId") long postId,@Param("userId") Long userId);

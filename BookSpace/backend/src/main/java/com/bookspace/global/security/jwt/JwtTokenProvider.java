@@ -28,7 +28,6 @@ public class JwtTokenProvider {
     private final long refreshTokenExpireMs = 1000L * 60 * 60 * 24 * 14; // 14일
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret) {
-        System.out.println("🔥 jwt.secret = " + secret);   // 임시 디버깅
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
