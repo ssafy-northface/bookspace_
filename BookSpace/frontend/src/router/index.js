@@ -92,6 +92,7 @@ import ProfileView from "@/views/ProfileView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
 
+
 const router = createRouter({
   history: createWebHistory(),
 
