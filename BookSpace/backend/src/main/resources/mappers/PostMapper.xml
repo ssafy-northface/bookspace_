@@ -23,9 +23,13 @@
             )
     </insert>
 
+    <!--전체 게시글 개수 조회 <- 페이지네이션에 사용 -->
+    <select id="countAllPosts" resultType="int">
+        SELECT COUNT(*) FROM post
+    </select>
 
-    <!-- 2. 전체 게시물 조회-->
-    <select id="selectAllPosts" resultType="postVo">
+    <!-- 2. 전체 게시물 조회: 페이지네이션 적용-->
+    <select id="selectAllPosts" resultType="postResponseDto">
         SELECT
             p.post_id,
             p.user_id,
@@ -36,14 +40,27 @@
             p.post_view_cnt,
             p.post_last_modified,
 
+            -- 책 정보
+            b.book_title AS bookTitle,
+            b.book_author AS bookAuthor,
+            b.book_image_url AS bookImageUrl,
+
+            -- 작성자 정보
+            u.user_nickname AS userNickname,
+
             -- 좋아요 개수
             (SELECT COUNT(*)
              FROM post_like pl
-                      JOIN user u ON pl.user_id = u.user_id
+                      JOIN user u2 ON pl.user_id = u2.user_id
              WHERE pl.post_id = p.post_id
-               AND u.user_status = 'active') AS likeCount,
+               AND u2.user_status = 'active') AS likeCount,
 
-            -- 유저 좋아요 여부
+            -- 댓글 개수
+            (SELECT COUNT(*)
+             FROM comment c
+             WHERE c.post_id = p.post_id) AS commentCount,
+
+            -- 로그인 유저 좋아요 여부
             CASE
                 WHEN #{userId} IS NULL THEN FALSE
                 ELSE (
@@ -55,8 +72,16 @@
                 END AS isLiked
 
         FROM post p
+                 JOIN book b ON p.book_id = b.book_id
+                 JOIN user u ON p.user_id = u.user_id
+
         ORDER BY p.post_date DESC
+        LIMIT #{size}
+        OFFSET #{offset}
     </select>
+
+
+
 
 
     <!-- 3. 게시글 상세 조회 -->

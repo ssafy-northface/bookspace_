@@ -2,6 +2,7 @@ package com.bookspace.domain.post.controller;
 
 import java.util.List;
 
+import com.bookspace.domain.post.dto.PostPageResponseDto;
 import com.bookspace.global.security.userdetails.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,10 +33,13 @@ public class PostController {
         return ResponseEntity.ok("Post created successfully");
     }
 
-    // 2. 전체 조회
+    // 2. 전체 조회 (페이지네이션 적용)
     @GetMapping
-    public ResponseEntity<List<PostResponseDto>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<PostPageResponseDto> getAllPosts(@RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size,
+                                                                 @RequestParam(required = false)Long userId) {
+        PostPageResponseDto response = postService.getAllPosts(page,size,userId);
+        return ResponseEntity.ok(response);
     }
 
     // 3. 단건 조회
