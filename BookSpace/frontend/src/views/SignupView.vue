@@ -63,20 +63,25 @@
         <ValidatedInput
           v-model="phone"
           :v$="v$.phone"
-          type="number"
-          placeholder="전화번호 (e.g.01012345678)"
+          type="text"
+          placeholder="전화번호 (e.g.010-1234-5678)"
         />
 
         <!-- 생년월일 -->
         <ValidatedInput
           v-model="birth"
           :v$="v$.birth"
-          type="number"
-          placeholder="생년월일 (e.g.20251217)"
+          type="text"
+          placeholder="생년월일 (e.g.2025-12-17)"
         />
 
         <!-- 회원가입 버튼 -->
-        <Button type="submit" :disabled="v$.$invalid" class="w-full mt-6">
+        <Button
+          type="submit"
+          :loading="isSubmitting"
+          :disabled="v$.$invalid"
+          class="w-full mt-6"
+        >
           회원가입
         </Button>
       </form>
@@ -113,16 +118,14 @@ const rules = {
   confirmPassword: { required, sameAs: sameAs(password) },
   nickname: { required },
   phone: {
+    //000-0000-0000
     required,
-    numeric: helpers.regex(/^[0-9]*$/),
-    minLength: minLength(11),
-    maxLength: maxLength(11),
+    phoneFormat: helpers.regex(/^\d{3}-\d{4}-\d{4}$/),
   },
   birth: {
+    // 0000-00-00
     required,
-    numeric: helpers.regex(/^[0-9]*$/),
-    minLength: minLength(8),
-    maxLength: maxLength(8),
+    birthFormat: helpers.regex(/^\d{4}-\d{2}-\d{2}$/),
   },
 };
 

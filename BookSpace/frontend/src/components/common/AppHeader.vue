@@ -12,7 +12,7 @@ import {
   <header
     class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
   >
-    <div class="container flex h-16 items-center justify-between">
+    <div class="container flex items-center justify-between h-16">
       <!-- 왼쪽 로고 + 내비게이션 -->
       <div class="flex items-center gap-8">
         <RouterLink to="/" class="flex items-center gap-2">
@@ -21,22 +21,22 @@ import {
         </RouterLink>
 
         <!--네브바 -->
-        <nav class="hidden md:flex items-center gap-6">
+        <nav class="items-center hidden gap-6 md:flex">
           <RouterLink
             to="/books"
-            class="text-sm font-medium hover:text-primary transition-colors"
+            class="text-sm font-medium transition-colors hover:text-primary"
           >
             도서 목록
           </RouterLink>
           <RouterLink
             to="/community"
-            class="text-sm font-medium hover:text-primary transition-colors"
+            class="text-sm font-medium transition-colors hover:text-primary"
           >
             커뮤니티
           </RouterLink>
           <RouterLink
             to="/ai-recommend"
-            class="text-sm font-medium hover:text-primary transition-colors"
+            class="text-sm font-medium transition-colors hover:text-primary"
           >
             AI 추천
           </RouterLink>
@@ -47,7 +47,7 @@ import {
         <!-- 검색 아이콘 -->
         <RouterLink
           to="/search"
-          class="hidden md:flex items-center hover:text-blue-600 transition"
+          class="items-center hidden transition md:flex hover:text-blue-600"
         >
           <MagnifyingGlassIcon class="w-5 h-5" />
         </RouterLink>
@@ -55,21 +55,21 @@ import {
         <!-- 프로필 텍스트 -->
         <RouterLink
           to="/profile"
-          class="text-sm font-medium hover:text-blue-600 transition-colors"
+          class="text-sm font-medium transition-colors hover:text-blue-600"
         >
           <UserIcon class="w-5 h-5" />
         </RouterLink>
 
         <!-- 로그인 버튼 -->
         <RouterLink
-          to="/login"
+          to="/signin"
           class="hidden md:flex text-sm font-medium border px-3 py-1.5 rounded-md hover:bg-accent transition"
         >
           로그인
         </RouterLink>
 
         <!-- 모바일 메뉴 버튼 -->
-        <button class="md:hidden text-sm font-medium hover:text-primary">
+        <button class="text-sm font-medium md:hidden hover:text-primary">
           <Bars3Icon class="w-5 h-5" />
         </button>
       </div>
