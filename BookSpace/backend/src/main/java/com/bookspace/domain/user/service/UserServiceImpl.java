@@ -195,6 +195,22 @@ public class UserServiceImpl implements UserService {
         return deletedCount;
     }
 
+    // 11. 로그인한 사용자의 내 정보 조회
+    public UserResponseDto getMyInfo(Long userId) {
+
+        UserVo userVo = userDao.selectUserById(userId);
+
+        if (userVo == null) {
+            throw new IllegalArgumentException("회원 정보를 찾을 수 없습니다.");
+        }
+
+        // inactive인 경우 막기 (나중에 수정해도 됨)
+        if (!"active".equalsIgnoreCase(userVo.getUserStatus())) {
+            throw new IllegalStateException("비활성화된 계정입니다.");
+        }
+
+        return convertToResponseDto(userVo);
+    }
 
     // DTO 변환
     private UserResponseDto convertToResponseDto(UserVo userVo) {
@@ -208,6 +224,7 @@ public class UserServiceImpl implements UserService {
         dto.setUserBirthDate(userVo.getUserBirthDate());
         dto.setUserRegistDate(userVo.getUserRegistDate());
         dto.setUserStatus(userVo.getUserStatus());
+        dto.setUserRole(userVo.getUserRole());
         return dto;
     }
 

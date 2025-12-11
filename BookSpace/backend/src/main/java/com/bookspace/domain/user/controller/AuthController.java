@@ -3,15 +3,17 @@ package com.bookspace.domain.user.controller;
 import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.SingInResponseDto;
+import com.bookspace.domain.user.dto.UserResponseDto;
+import com.bookspace.domain.user.service.UserService;
 import com.bookspace.global.security.jwt.JwtTokenProvider;
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
 
     /**
      * 로그인 API
@@ -39,4 +42,16 @@ public class AuthController {
         return new SingInResponseDto(accessToken,refreshToken);
 
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long loginUserId = userDetails.getUserId();
+
+        UserResponseDto dto = userService.getMyInfo(loginUserId);
+
+        return ResponseEntity.ok(dto);
+    }
+
 }

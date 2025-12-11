@@ -12,9 +12,11 @@ import {
   hardDeleteUserApi,
   checkDuplicateApi,
 } from "@/api/userApi";
+import { getMyInfoApi } from "../api/authApi";
 
 export const useUserStore = defineStore("user", () => {
   const profile = ref(null); // 현재 보고 있는 유저 정보
+  const me = ref(null); // 로그인한 내 정보 (/auth/me)
 
   // 1. 회원가입
   const signup = async (payload) => {
@@ -23,6 +25,18 @@ export const useUserStore = defineStore("user", () => {
     const data = await signupApi(payload);
     return data; // 필요하면 응답 데이터 사용
   };
+
+  // 2. 내 정보 조회
+  const fetchMyInfo = async () => {
+    const data = await getMyInfoApi();
+    me.value = data;
+    return data;
+  };
+
+  const clearMe = () => {
+    me.value = null;
+  };
+
 
   // 3. 회원 정보 조회
   const fetchUserById = async (userId) => {
@@ -57,7 +71,10 @@ export const useUserStore = defineStore("user", () => {
 
   return {
     profile,
+    me,
     signup,
+    fetchMyInfo,
+    clearMe,
     fetchUserById,
     updateUser,
     softDeleteUser,
