@@ -11,6 +11,8 @@
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@primeuix/themes": "^2.0.2",
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
     "embla-carousel": "^8.6.0",

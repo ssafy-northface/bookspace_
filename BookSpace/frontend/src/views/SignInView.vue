@@ -1,32 +1,45 @@
+<!-- 
+# Sign In View
+- <ValidatedInput>: 폼 유효성 검사 & 에러 메세지 포함 컴포넌트 (src/components/ui/ValidatedInput.vue)
+- 검사 시점: 각 인풋에서 포커스가 벗어날 때 검사 (blur) 
+-->
 <template>
   <div
-    class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/20 px-4"
+    class="flex flex-col items-center justify-center min-h-screen px-4 bg-gradient-to-b from-background to-muted/20"
   >
     <div class="w-full max-w-md">
-      <!-- 로고 -->
+      <!-- 로고 & 로그인 -->
       <div class="mb-8 text-center">
-        <RouterLink to="/" class="inline-flex items-center gap-2 mb-4">
-          <BookOpen class="h-8 w-8" />
-          <span class="text-2xl font-semibold">Bookspace</span>
-        </RouterLink>
-
+        <AppLogo size="lg" />
         <h1 class="text-3xl font-bold">로그인</h1>
         <p class="mt-2 text-muted-foreground">
           독서의 즐거움을 함께 나누어보세요
         </p>
       </div>
+      <!-- form -->
+      <form @submit.prevent="login" class="space-y-4">
+        <ValidatedInput
+          v-model="id"
+          :v$="v$.id"
+          type="text"
+          placeholder="아이디"
+        />
 
-      <div class="space-y-4">
-        <Input v-model="loginId" type="text" placeholder="아이디" />
+        <ValidatedInput
+          v-model="password"
+          :v$="v$.password"
+          type="password"
+          placeholder="비밀번호"
+        />
 
-        <Input v-model="password" type="password" placeholder="비밀번호" />
-      </div>
-
-      <!-- 버튼 -->
-      <Button class="w-full mt-6" @click="login"> 로그인 </Button>
+        <!-- 버튼 -->
+        <Button type="submit" :disabled="v$.$invalid" class="w-full mt-6">
+          로그인
+        </Button>
+      </form>
 
       <!-- 회원가입 링크 -->
-      <p class="mt-6 text-center text-sm text-muted-foreground">
+      <p class="mt-6 text-sm text-center text-muted-foreground">
         계정이 없으신가요?
         <RouterLink
           to="/signup"
@@ -42,14 +55,30 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink , useRouter} from "vue-router";
-import { BookOpen } from "lucide-vue-next";
-import Input from "@/components/ui/Input.vue";
+import AppLogo from "@/components/common/AppLogo.vue";
+import ValidatedInput from "@/components/ui/ValidatedInput.vue";
 import Button from "@/components/ui/Button.vue";
+import useVuelidate from "@vuelidate/core";
+import {
+  required,
+  email as emailValidator,
+  minLength,
+} from "@vuelidate/validators";
 import { useAuthStore } from "../stores/authStore";
 
 // 상태
 const loginId = ref("");
 const password = ref("");
+  
+// Vuelidate 규칙 정의
+const rules = {
+  loginId: { required },
+  password: { required },
+};
+  
+// Vuelidate 인스턴스 생성
+const v$ = useVuelidate(rules, { id, password }); //useVuelidate로 규칙 적용
+
 
 const errorMessage = ref("");
 const isSubmitting = ref(false);
@@ -57,17 +86,6 @@ const isSubmitting = ref(false);
 const authStore = useAuthStore();
 const router = useRouter();
 
-// // 로그인 함수
-// const login = () => {
-//   console.log("Email:", email.value);
-//   console.log("Password:", password.value);
-
-//   // 서버 전달 가능
-//   // await axios.post("/api/login", {
-//   //   email: email.value,
-//   //   password: password.value
-//   // });
-// };
 
 // 로그인 함수
 const login = async () => {
