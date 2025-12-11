@@ -70,6 +70,11 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  // 필드 구분용 (loginId / email / nickname)
+  field: {
+    type: String,
+    default: "",
+  },
 });
 
 // 부모 -> 자식으로 v-model sync 가능하도록 emit 정의
@@ -89,6 +94,22 @@ const error = computed(() => props.v$.$error);
 // type기반 에러 메시지
 const errorMessage = computed(() => {
   if (!error.value) return "";
+
+
+  // 1) 중복(unique) 에러 (아이디 / 이메일 / 닉네임 등)
+  if (props.v$.unique?.$invalid) {
+    if (props.field === "loginId") {
+      return "이미 사용 중인 아이디입니다.";
+    }
+    if (props.field === "email") {
+      return "이미 사용 중인 이메일입니다.";
+    }
+    if (props.field === "nickname") {
+      return "이미 사용 중인 닉네임입니다.";
+    }
+    return "이미 사용 중인 값입니다.";
+  }  
+
 
   // required
   if (props.v$.required?.$invalid) {

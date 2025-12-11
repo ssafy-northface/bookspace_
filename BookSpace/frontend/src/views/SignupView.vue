@@ -24,6 +24,7 @@
           v-model="loginId"
           :v$="v$.loginId"
           type="text"
+          field="loginId"
           placeholder="아이디"
         />
 
@@ -56,6 +57,7 @@
           v-model="email"
           :v$="v$.email"
           type="email"
+          field="email"
           placeholder="이메일"
         />
 
@@ -64,6 +66,7 @@
           v-model="nickname"
           :v$="v$.nickname"
           type="text"
+          field="nickname"
           placeholder="닉네임"
         />
 
@@ -123,14 +126,36 @@ const isSubmitting = ref(false);
 const userStore = useUserStore();
 const router = useRouter();
 
+// 중복 체크용 함수 정의
+const dupCheck = (type) =>
+    helpers.withAsync(async (value) => {
+      if(!value) return true;
+      try {
+        return await userStore.checkDuplicate(type, value);
+      } catch {
+        return true;
+      }
+    });
+
 // vuelidate 규칙 정의
 const rules = {
-  loginId: { required, minLength: minLength(4) },
-  email: { required, email: emailValidator },
+  loginId: { 
+    required, 
+    minLength: minLength(4),
+    unique: dupCheck("loginId"),
+  },
+  email: { 
+    required, 
+    email: emailValidator,
+    unique: dupCheck("email")
+  },
   password: { required, minLength: minLength(8) },
   confirmPassword: { required, sameAs: sameAs(password) },
   name: { required },
-  nickname: { required },
+  nickname: { 
+    required,
+    unique: dupCheck("nickname")
+  },
   phone: {
     //000-0000-0000
     phoneFormat: helpers.regex(/^\d{3}-\d{4}-\d{4}$/),
