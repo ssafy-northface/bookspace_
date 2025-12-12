@@ -14,4 +14,8 @@ public interface BookService {
     // DB에 없을 경우, 알라딘 api 호출 . DB 저장 -> book_id 반환 (유저 액션: 찜, post, review)
     Long ensureBookExists(String  isbn);
 
+    // 알라딘 API로만 책 조회
+    List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType, String sort);
+
+
 }

@@ -19,7 +19,7 @@
         <!-- 검색창 -->
         <SearchInput 
             v-model="searchQuery" 
-            placeholder="검색어를 입력하세요..." 
+            placeholder="검색어를 입력하세요" 
             @search="onSearch"
         />
     </section> 

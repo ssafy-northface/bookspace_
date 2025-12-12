@@ -26,20 +26,41 @@ public class AladinClient {
     private final RestTemplate restTemplate = new RestTemplate(); // http 요청
     private final ObjectMapper objectMapper = new ObjectMapper(); // json 파싱
 
-    public AladinListResponseDto searchBooks(String query, String searchType, int maxResults){
+    // 기존에 파라미터 query와 searchType 2개만 받는 메서드 유지 (오버로드 메서드)
+    // 다른 파트에서 파라미터 Sort가 포함되지 않은 searchBooks()를 호출하고 있을수도 있기 때문에
+    // Sort의 default값을 설정하여 에러발생 방지
+    public AladinListResponseDto searchBooks(String query, String searchType, int maxResults) {
+        return searchBooks(query, searchType, "latest", maxResults);
+    }
+
+    // query, searchType, sort => 3개의 파라미터
+    public AladinListResponseDto searchBooks(String query, String searchType, String sort, int maxResults){
         try{
             // 검색 타입 -> 알라딘 api 쿼리 타입에 맞게 설정
             String queryType = switch (searchType) {
                 case "author" -> "Author";
                 case "publisher" -> "Publisher";
+                case "isbn" -> "ISBN";
                 default -> "Title";
             };
 
+            // 정렬 기준 -> 알라딘 Sort 파라미터로 매핑
+            String sortKey = (sort == null || sort.isBlank()) ? "latest" : sort.toLowerCase();
+            String sortType = switch (sortKey) {
+                case "latest" -> "PublishTime";   // 출간일 최신순
+                case "popular" -> "SalesPoint";   // 판매지수(인기순)
+                case "accuracy" -> "Accuracy";   // 정확도순
+                default -> "PublishTime";         // 기본: 출간일순
+            };
+
+
             // 요청 url 구성
+            // sort 추가
             String url = UriComponentsBuilder.fromHttpUrl(ITEM_SEARCH_URL)
                     .queryParam("ttbkey", ttbKey)
                     .queryParam("Query", query)
                     .queryParam("QueryType", queryType)
+                    .queryParam("Sort", sortType)
                     .queryParam("MaxResults", maxResults)
                     .queryParam("start", 1)
                     .queryParam("SearchTarget", "Book")
