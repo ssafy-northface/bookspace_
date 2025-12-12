@@ -113,4 +113,19 @@ public class BookServiceImpl implements BookService {
         // DB에 없는 경우 알라딘 api 호출 후 DB에 책 저장
         return fetchAndSaveBookByIsbnFromAladin(isbn);
     }
+
+    // 알라딘 API로만 책 조회 (3개의 파라미터)
+    @Override
+    public List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType, String sort) {
+        AladinListResponseDto apiResponse =
+                aladinClient.searchBooks(query, searchType, sort, 20);
+
+        if (apiResponse == null || apiResponse.getItems() == null) {
+            return List.of();
+        }
+
+        return apiResponse.getItems().stream()
+                .map(BookConverter::toSearchResponseFromAladinItem)
+                .toList();
+    }
 }

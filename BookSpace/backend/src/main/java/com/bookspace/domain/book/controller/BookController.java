@@ -20,13 +20,13 @@ public class BookController {
      * @param query 검색어
      * @param searchType 검색 카테고리 (책 이름, 저자명, 출판사)
      */
-    @GetMapping("/search")
-    public List<BookSearchResponseDto> searchBooks(@RequestParam String query,
-                                                   @RequestParam(name="type",required = false,defaultValue = "title") String searchType){
-        System.out.println("query = " + query + ", type = " + searchType);
-
-        return bookService.searchBooks(query, searchType);
-    }
+//    @GetMapping("/search")
+//    public List<BookSearchResponseDto> searchBooks(@RequestParam String query,
+//                                                   @RequestParam(name="type",required = false,defaultValue = "title") String searchType){
+//        System.out.println("query = " + query + ", type = " + searchType);
+//
+//        return bookService.searchBooks(query, searchType);
+//    }
 
     /**
      * 2. ISBN 기반 단건 조회: 유저 액션 (찜, 포스트, 리뷰 작성) 처리할 때 DB에서 bookId 생성용
@@ -39,4 +39,26 @@ public class BookController {
         //return bookService.searchBooks(isbn).get(0);
         return null;
     }
+
+    /**
+     * 3. 책 검색 (알라딘 API 기반)
+     * - 알라딘 API에서 직접 도서 목록을 조회
+     * - DB는 사용하지 않으며, 모든 검색 결과는 알라딘 데이터 기준으로 구성됨
+     * - 정렬(sort) 값은 내부적으로 알라딘 API의 정렬 키(PublishTime, SalesPoint 등)로 매핑되어 전달됨
+     *
+     * @param query 검색어 (필수)
+     * @param searchType 검색 카테고리 (책 제목, 저자명, 출판사, ISBN) — 기본값: "title"
+     * @param sort 정렬 기준 (latest: 출간일 최신순 / popular: 판매지수순 / accuracy: 정확도순) — 기본값: "latest"
+     *
+     * @return 알라딘 API에서 조회된 도서 목록
+     */
+    @GetMapping("/search")
+    public List<BookSearchResponseDto> searchBooksFromAladin(
+            @RequestParam String query,
+            @RequestParam(name = "type", required = false, defaultValue = "title") String searchType,
+            @RequestParam(name = "sort", required = false, defaultValue = "latest") String sort
+    ) {
+        return bookService.searchBooksFromAladin(query, searchType, sort);
+    }
+
 }

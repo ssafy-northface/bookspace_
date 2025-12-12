@@ -51,7 +51,8 @@ public class SecurityConfig {
                                 "/join",
                                 "/users/**",
                                 "/auth/**",
-                                "/posts/**"
+                                "/posts/**",
+                                "/books/**"
                         ).permitAll() // 인증 없이 가능
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated() // 나머지 요청은 jwt가 필요함
