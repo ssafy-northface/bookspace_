@@ -11,7 +11,7 @@
                 focus-visible:border-ring
                 "
             >
-            <option value="title">책제목</option>
+            <option value="title">제목</option>
             <option value="author">저자</option>
             <option value="publisher">출판사</option>
         </select>
@@ -22,10 +22,12 @@
             placeholder="검색어를 입력하세요" 
             @search="onSearch"
         />
+
+        <Button class="w-16 h-5 text-white font-extrabold">검색</Button>
     </section> 
 
     <!-- 정렬기준 선택 -->
-    <section class="mt-6 mb-6 flex justify-end gap-4">
+    <section class="mt-6 mb-6 flex justify-end gap-3">
         <span
             @click="setSort('latest')"
             :class="[
@@ -36,7 +38,16 @@
             출간일순
         </span>
 
-
+        <span
+            @click="setSort('accuracy')"
+            :class="[
+                'cursor-pointer text-sm',
+                sort === 'accuracy' ? 'font-extrabold text-primary' : 'font-normal'
+            ]"
+        >
+            정확도순
+        </span>
+        
         <span
             @click="setSort('popular')"
             :class="[
@@ -52,6 +63,7 @@
 <script setup>
 import { ref } from 'vue';
 import SearchInput from '../common/SearchInput.vue';
+import Button from '../ui/Button.vue';
 
 const type = ref("title");
 const sort = ref("latest");

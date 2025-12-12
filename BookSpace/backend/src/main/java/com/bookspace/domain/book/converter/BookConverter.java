@@ -44,6 +44,7 @@ public final class BookConverter {
         dto.setIsbn13(vo.getBookIsbn());
         dto.setCover(vo.getBookImageUrl());
         dto.setCategoryName(vo.getBookCategory());
+        dto.setDescription(vo.getBookDescription());
         return dto;
     }
 
@@ -62,6 +63,7 @@ public final class BookConverter {
         dto.setIsbn13(item.getIsbn13());
         dto.setCover(item.getCover());
         dto.setCategoryName(item.getCategoryName());
+        dto.setDescription(item.getDescription());
         return dto;
     }
 }

@@ -15,4 +15,5 @@ public class BookSearchResponseDto {
     private String isbn13;
     private String cover; // 책 표지 url
     private String categoryName;
+    private String description;
 }
