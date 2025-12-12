@@ -64,6 +64,7 @@ public class AladinClient {
                     .queryParam("MaxResults", maxResults)
                     .queryParam("start", 1)
                     .queryParam("SearchTarget", "Book")
+                    .queryParam("Cover", "Big")
                     .queryParam("output", "js")
                     .queryParam("Version", "20131101")
                     .build()
