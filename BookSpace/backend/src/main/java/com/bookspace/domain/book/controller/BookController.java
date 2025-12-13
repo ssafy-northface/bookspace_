@@ -61,4 +61,22 @@ public class BookController {
         return bookService.searchBooksFromAladin(query, searchType, sort);
     }
 
+    /**
+     * 4. 기본 도서 목록 조회 (검색어 없이)
+     * - 메인 도서 목록 화면에서 사용하는 기본 리스트
+     * - 정렬(sort)을 제공하지 않고, "어떤 목록을 가져올지"만 선택
+     *
+     * @param type 기본 목록 종류
+     *             - new : 신간 전체 목록 (출간일 최신순)
+     *             - bestseller : 베스트셀러 목록 (판매지수순)
+     *
+     * @return 알라딘 ItemList API 기반 기본 도서 목록
+     */
+    @GetMapping // GET /books
+    public List<BookSearchResponseDto> getDefaultBooks(
+            @RequestParam(name = "type", required = false, defaultValue = "bestseller") String type
+    ) {
+        // type: "new" | "bestseller"
+        return bookService.getDefaultBooksFromAladin(type);
+    }
 }
