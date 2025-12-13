@@ -17,5 +17,6 @@ public interface BookService {
     // 알라딘 API로만 책 조회
     List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType, String sort);
 
-
+    // 검색어 없이 알라딘 API 호출하여 기본 목록 조회
+    List<BookSearchResponseDto> getDefaultBooksFromAladin(String type);
 }

@@ -128,4 +128,24 @@ public class BookServiceImpl implements BookService {
                 .map(BookConverter::toSearchResponseFromAladinItem)
                 .toList();
     }
+
+    /**
+     * [기본 목록] 검색어 없이 알라딘에서 기본 도서 리스트 조회
+     * - 메인 도서 목록 화면에서 사용
+     * - type: new | bestseller
+     */
+    @Override
+    public List<BookSearchResponseDto> getDefaultBooksFromAladin(String type) {
+        // type: "new" | "bestseller"
+        AladinListResponseDto apiResponse =
+                aladinClient.fetchDefaultBooks(type, 100);
+
+        if (apiResponse == null || apiResponse.getItems() == null) {
+            return List.of();
+        }
+
+        return apiResponse.getItems().stream()
+                .map(BookConverter::toSearchResponseFromAladinItem)
+                .toList();
+    }
 }

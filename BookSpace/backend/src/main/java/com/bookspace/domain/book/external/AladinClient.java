@@ -22,6 +22,7 @@ public class AladinClient {
     private String ttbKey;
 
     private static final String ITEM_SEARCH_URL = "https://www.aladin.co.kr/ttb/api/ItemSearch.aspx";
+    private static final String ITEM_LIST_URL   = "https://www.aladin.co.kr/ttb/api/ItemList.aspx"; // 기본 목록 조회용
 
     private final RestTemplate restTemplate = new RestTemplate(); // http 요청
     private final ObjectMapper objectMapper = new ObjectMapper(); // json 파싱
@@ -86,6 +87,62 @@ public class AladinClient {
         }
         catch(Exception e){
             log.error("알라딘 API 도서 검색 실패",query, e);
+            return null;
+        }
+    }
+
+    // 검색어 없이 기본 도서 목록 조회 (/books 메인화면에 보여질 기본 도서 목록)
+    public AladinListResponseDto fetchDefaultBooks(String type, int maxResults) {
+        try {
+            String key = (type == null || type.isBlank()) ? "bestseller" : type.toLowerCase();
+
+            String queryType;  // ItemList API의 QueryType
+            String sortType;   // 알라딘 Sort
+
+            switch (key) {
+                case "bestseller" -> {
+                    // 베스트셀러 목록 (인기순)
+                    queryType = "BestSeller";
+                    sortType = "SalesPoint";
+                }
+                case "new" -> {
+                    // 신간 전체 (출간일 최신순)
+                    queryType = "ItemNewAll";
+                    sortType = "PublishTime";
+                }
+                default -> {
+                    // 이상한 값 오면 기본은 신간 최신순
+                    queryType = "ItemNewAll";
+                    sortType = "PublishTime";
+                }
+            }
+
+            String url = UriComponentsBuilder.fromHttpUrl(ITEM_LIST_URL)
+                    .queryParam("ttbkey", ttbKey)
+                    .queryParam("QueryType", queryType)
+                    .queryParam("Sort", sortType)
+                    .queryParam("MaxResults", maxResults)
+                    .queryParam("start", 1)
+                    .queryParam("SearchTarget", "Book")
+                    .queryParam("Cover", "Big")
+                    .queryParam("output", "js")
+                    .queryParam("Version", "20131101")
+                    .build()
+                    .toUriString();
+
+            log.info("[Aladin][Default] request URL = {}", url);
+
+            String responseBody = restTemplate.getForObject(url, String.class);
+
+            log.info("[Aladin][Default] raw response = {}", responseBody);
+            if (responseBody != null && responseBody.contains("\"errorCode\"")) {
+                log.error("[Aladin][Default] ERROR RESPONSE: {}", responseBody);
+                return null;
+            }
+
+            return objectMapper.readValue(responseBody, AladinListResponseDto.class);
+        } catch (Exception e) {
+            log.error("알라딘 API 기본 도서 목록 조회 실패", e);
             return null;
         }
     }
