@@ -1,6 +1,5 @@
 <template>
-  <input
-    data-slot="input"
+  <textarea
     :class="classes"
     :value="modelValue"
     @input="emit('update:modelValue', $event.target.value)"
@@ -25,7 +24,12 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const baseClasses =
-  "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm";
+  "w-full rounded-md border border-[color:var(--border)] bg-[color:var(--background)] " +
+  "text-[color:var(--foreground)] px-3 py-2 text-base md:text-sm shadow-xs transition outline-none " +
+  "placeholder:text-[color:var(--muted-foreground)] " +
+  "focus-visible:ring-[3px] focus-visible:ring-[color:var(--ring)]/50 focus-visible:border-[color:var(--ring)] min-h-[220px] resize-none leading-relaxed";
 
-const classes = computed(() => [baseClasses, props.class].join(" "));
+const classes = computed(() =>
+  [baseClasses, props.class].filter(Boolean).join(" ")
+);
 </script>
