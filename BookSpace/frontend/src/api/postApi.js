@@ -2,7 +2,23 @@
 
 import httpClient from "./httpClient";
 
-// 게시글 목록 조회 (페이징)
+// [C] 게시글 생성
+export const createPostApi = async (payload) => {
+  // payload: { userId, bookId?, isbn?, postTitle, postContent }
+  const body = { ...payload };
+
+  // 빈 값은 전송 X
+  Object.keys(body).forEach((key) => {
+    if (body[key] === "" || body[key] === null || body[key] === undefined) {
+      delete body[key];
+    }
+  });
+
+  const res = await httpClient.post("/posts", body);
+  return res.data;
+};
+
+// [R] 게시글 목록 조회 (페이징)
 export const fetchPosts = async ({ pageParam = 0 }) => {
   const res = await httpClient.get("/posts", {
     params: {

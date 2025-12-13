@@ -36,7 +36,7 @@
       @keyup.enter="$emit('search', modelValue)"
       type="text"
       :placeholder="placeholder"
-      class="w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm shadow-xs outline-none transition focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed"
+      class="w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm shadow-xs outline-none transition focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-muted-foreground"
     />
   </div>
 </template>

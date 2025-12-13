@@ -59,13 +59,15 @@
 
 <script setup>
 import { nextTick, ref } from "vue";
-import { RouterLink, useRouter } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import AppLogo from "@/components/common/AppLogo.vue";
 import ValidatedInput from "@/components/ui/ValidatedInput.vue";
 import Button from "@/components/ui/Button.vue";
 import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { useAuthStore } from "../stores/authStore";
+
+const route = useRoute();
 
 // 상태
 const loginId = ref("");
@@ -100,11 +102,13 @@ const login = async () => {
       userPw: password.value,
     });
 
-    // 로그인 성공 메시지 (나중에 삭제해도 됨)
+    const redirect = route.query.redirect;
+    if (typeof redirect === "string" && redirect.startsWith("/")) {
+      await router.replace(redirect); // 로그인 페이지 히스토리 남지 않게
+    } else {
+      await router.replace({ name: "home" });
+    }
     alert("로그인 성공!");
-
-    // 로그인 성공 시 메인으로 이동 (원하는 경로로 수정 가능)
-    await router.push("/");
   } catch (err) {
     const msg =
       // 백에서 작성한 error 메시지 나옴 => "자격증명에 실패했습니다"

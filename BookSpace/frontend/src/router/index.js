@@ -79,6 +79,8 @@
 
 // vue router 세팅 파일
 import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
+
 // layout
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
 // views
@@ -89,9 +91,9 @@ import BookDetailView from "@/views/BookDetailView";
 import CommunityView from "@/views/CommunityView";
 import PostDetailView from "@/views/PostDetailView";
 import ProfileView from "@/views/ProfileView";
+import PostCreateView from "@/views/PostCreateView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
-
 
 const router = createRouter({
   history: createWebHistory(),
@@ -104,7 +106,11 @@ const router = createRouter({
         // home
         { path: "", name: "home", component: HomeView },
         // ai recommend
-        { path: "", name: "aiRecommend", component: AiRecommendView },
+        {
+          path: "ai-recommend",
+          name: "aiRecommend",
+          component: AiRecommendView,
+        },
         // books
         { path: "/books", name: "books", component: BooksView },
         // book detail
@@ -116,6 +122,13 @@ const router = createRouter({
         },
         // community
         { path: "/community", name: "community", component: CommunityView },
+        // post create
+        {
+          path: "/community/create",
+          name: "postCreate",
+          component: PostCreateView,
+          meta: { requiresAuth: true },
+        },
         // post detail
         {
           path: "/community/:postId",
@@ -138,4 +151,18 @@ const router = createRouter({
   ],
 });
 
+// 전역 가드 추가: 인증이 필요한 페이지 접근 제어
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+
+  // 인증이 필요한데 비로그인 유저면 signin으로 보내고
+  // 원래 가려던 경로 (to.fullPath)를 redirect로 들고감
+  if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    return {
+      name: "signin",
+      query: { redirect: to.fullPath },
+    };
+  }
+  return true;
+});
 export default router;
