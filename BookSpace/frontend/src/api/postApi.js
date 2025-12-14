@@ -38,3 +38,18 @@ export const fetchPosts = async ({ pageParam = 0 }) => {
     hasNext: responseData.hasNext, // 다음 페이지 존재 여부 (백엔드에서 제공)
   };
 };
+
+// 게시글 좋아요
+export const postLikes = async (postId) => {
+  console.log("liked");
+  const res = await httpClient.post(`/posts/${postId}/like`);
+  return res.data;
+};
+
+// 게시글 좋아요 취소
+export const deleteLikes = async (postId) => {
+  console.log("disliked");
+
+  const res = await httpClient.delete(`/posts/${postId}/like`);
+  return res.data;
+};
