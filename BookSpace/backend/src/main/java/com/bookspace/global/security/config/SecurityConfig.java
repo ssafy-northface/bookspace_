@@ -13,6 +13,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration // Spring 설정 클래스
 @EnableWebSecurity // Spring Security 활성화
@@ -30,6 +35,24 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
+    // cors 설정
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization", "Refresh-Token"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+
+    }
 
     // security filter chain 정의
     @Bean
@@ -38,6 +61,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtTokenProvider,customUserDetailsService);
 
         http
+                .cors(cors->{})// cors 활성화
                 .csrf(csrf -> csrf.disable()) // 브라우저 기본 폼 요청 공격 방어 (주로 세션에서 사용됨)
                 .formLogin(form -> form.disable()) // 기본 폼 (/login) 비활성화 -> (/auth/login)
                 .httpBasic(basic -> basic.disable()) // 헤더에 id/pw 실어 보내는 basic 방식 비활성화
@@ -51,9 +75,13 @@ public class SecurityConfig {
                                 "/join",
                                 "/users/**",
                                 "/auth/**",
-                                "/posts/**",
                                 "/books/**"
                         ).permitAll() // 인증 없이 가능
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/posts/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT,  "/posts/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE,"/posts/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()
+
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated() // 나머지 요청은 jwt가 필요함
                 )

@@ -1,9 +1,11 @@
 package com.bookspace.domain.postLike.controller;
 
-import com.bookspace.domain.postLike.dto.PostLikeRequestDto;
 import com.bookspace.domain.postLike.service.PostLikeService;
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,19 +17,22 @@ public class PostLikeController {
 
     // 좋아요 추가
     @PostMapping("/{postId}/like")
-    public ResponseEntity<String> addLike(@PathVariable Long postId) {
-        // TODO 로그인 구현 후 수정
-        long userId = 1;
-        postLikeService.addLike(postId, userId);
-        return ResponseEntity.ok("Like added successfully");
+    public ResponseEntity<Void> addLike(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails user) {
+       if(user==null){
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+       }
+
+        postLikeService.addLike(postId, user.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
     // 좋아요 취소
     @DeleteMapping ("/{postId}/like")
-    public ResponseEntity<String> removeLike(@PathVariable("postId") Long postId) {
-        // TODO 로그인 구현 후 수정
-        long userId = 1;
-        postLikeService.removeLike(postId, userId);
+    public ResponseEntity<String> removeLike(@PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails user) {
+        if(user==null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        postLikeService.removeLike(postId, user.getUserId());
         return ResponseEntity.ok("Like deleted successfully");
     }
 }

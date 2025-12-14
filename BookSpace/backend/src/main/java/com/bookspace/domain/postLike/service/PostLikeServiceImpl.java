@@ -1,10 +1,10 @@
 package com.bookspace.domain.postLike.service;
 
 import com.bookspace.domain.postLike.dao.PostLikeDao;
-import com.bookspace.domain.postLike.dto.PostLikeRequestDto;
 import com.bookspace.domain.postLike.vo.PostLikeVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +14,7 @@ public class PostLikeServiceImpl implements PostLikeService {
 
 
     @Override
+    @Transactional
     public void addLike(long postId, long userId) {
         // 1) 좋아요 중복 체크
         int exists = postLikeDao.existsLike(postId, userId);

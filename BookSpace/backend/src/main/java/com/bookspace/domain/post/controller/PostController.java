@@ -37,7 +37,8 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PostPageResponseDto> getAllPosts(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size,
-                                                                 @RequestParam(required = false)Long userId) {
+                                                                @AuthenticationPrincipal CustomUserDetails user) {
+        Long userId = (user!=null)?user.getUserId():null; // 비로그인 userId = null
         PostPageResponseDto response = postService.getAllPosts(page,size,userId);
         return ResponseEntity.ok(response);
     }
