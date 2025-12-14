@@ -115,7 +115,7 @@ const router = createRouter({
         { path: "/books", name: "books", component: BooksView },
         // book detail
         {
-          path: "/books/:bookId",
+          path: "/books/:isbn",
           name: "bookDetail",
           component: BookDetailView,
           props: true,
