@@ -118,7 +118,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType, String sort) {
         AladinListResponseDto apiResponse =
-                aladinClient.searchBooks(query, searchType, sort, 20);
+                aladinClient.searchBooks(query, searchType, sort, 100);
 
         if (apiResponse == null || apiResponse.getItems() == null) {
             return List.of();
