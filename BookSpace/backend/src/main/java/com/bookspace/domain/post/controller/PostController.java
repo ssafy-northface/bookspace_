@@ -5,7 +5,9 @@ import java.util.List;
 import com.bookspace.domain.post.dto.PostPageResponseDto;
 import com.bookspace.global.security.userdetails.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.bookspace.domain.post.dto.PostRequestDto;
@@ -37,27 +39,27 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PostPageResponseDto> getAllPosts(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size,
-                                                                @AuthenticationPrincipal CustomUserDetails user) {
-        Long userId = (user!=null)?user.getUserId():null; // 비로그인 userId = null
+                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        System.out.println(SecurityContextHolder.getContext().getAuthentication());
+
+        System.out.println("userId = " + userId);
+
         PostPageResponseDto response = postService.getAllPosts(page,size,userId);
         return ResponseEntity.ok(response);
     }
 
     // 3. 단건 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable long postId) {
-        return ResponseEntity.ok(postService.getPostById(postId));
+    public ResponseEntity<PostResponseDto> getPost(@PathVariable long postId, @AuthenticationPrincipal CustomUserDetails user  ) {
+
+        Long userId = (user!=null)?user.getUserId():null;
+        System.out.println("userId = " + userId);
+
+        PostResponseDto response = postService.getPostById(postId, userId);
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/likes")
-    public ResponseEntity<List<PostResponseDto>> getLikedPosts() {
-        // TODO 로그인 로직 구현 후 수정 (로그인한 유저만)
-        Long userId = 1L; // userId 반드시 필요함
-
-        List<PostResponseDto> likedPosts = postService.getLikedPostsByUserId(userId);
-
-        return ResponseEntity.ok(likedPosts);
-    }
 
     // 4. 게시글 수정
     @PutMapping("/{postId}")
@@ -100,6 +102,17 @@ public class PostController {
     // /posts/search?keyword=강아
     public ResponseEntity<List<PostResponseDto>> getPostsByKeyword(@RequestParam String keyword) {
         return ResponseEntity.ok(postService.getPostsByKeyword(keyword));
+    }
+
+    // 9. 유저가 좋아하는 게시물 목록 조회
+    @GetMapping("/likes")
+    public ResponseEntity<List<PostResponseDto>> getLikedPosts() {
+        // TODO 로그인 로직 구현 후 수정 (로그인한 유저만)
+        Long userId = 1L; // userId 반드시 필요함
+
+        List<PostResponseDto> likedPosts = postService.getLikedPostsByUserId(userId);
+
+        return ResponseEntity.ok(likedPosts);
     }
 
 

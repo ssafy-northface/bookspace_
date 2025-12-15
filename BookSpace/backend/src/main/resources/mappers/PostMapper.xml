@@ -63,14 +63,14 @@
             -- 로그인 유저 좋아요 여부
             CASE
                 WHEN #{userId} IS NULL THEN FALSE
-                ELSE (
-                    SELECT COUNT(*) > 0
+                WHEN EXISTS (
+                    SELECT 1
                     FROM post_like pl
                     WHERE pl.post_id = p.post_id
                       AND pl.user_id = #{userId}
-                )
-                END AS isLiked
-
+                ) THEN TRUE
+                ELSE FALSE
+                END AS liked
         FROM post p
                  JOIN book b ON p.book_id = b.book_id
                  JOIN user u ON p.user_id = u.user_id
@@ -104,39 +104,53 @@
 <!--    </select>-->
 
     <!-- 3. 단건 조회 -->
-    <select id="selectPostById" resultType="postVo">
-
+    <select id="selectPostById" resultType="postResponseDto">
         SELECT
-            p.post_id,
-            p.user_id,
-            p.book_id,
-            p.post_title,
-            p.post_content,
-            p.post_date,
-            p.post_view_cnt,
-            p.post_last_modified,
+            p.post_id            AS postId,
+            p.user_id            AS userId,
+            p.book_id            AS bookId,
 
-            -- 좋아요 개수
+            b.book_title         AS bookTitle,
+            b.book_author        AS bookAuthor,
+            b.book_image_url     AS bookImageUrl,
+
+            p.post_title         AS postTitle,
+            p.post_content       AS postContent,
+            p.post_date          AS postDate,
+            p.post_view_cnt      AS postViewCnt,
+            p.post_last_modified AS postLastModified,
+
+            u.user_nickname      AS userNickName,
+
+            -- 좋아요 수
             (SELECT COUNT(*)
              FROM post_like pl
-                      JOIN user u ON pl.user_id = u.user_id
-             WHERE pl.post_id = p.post_id
-               AND u.user_status = 'active') AS likeCount,
+             WHERE pl.post_id = p.post_id) AS likeCount,
 
-            -- 유저 좋아요 여부
+            -- 댓글 수
+            (SELECT COUNT(*)
+             FROM comment c
+             WHERE c.post_id = p.post_id) AS commentCount,
+
+            -- 로그인 유저 좋아요 여부
             CASE
                 WHEN #{userId} IS NULL THEN FALSE
-                ELSE (
-                    SELECT COUNT(*) > 0
+                WHEN EXISTS (
+                    SELECT 1
                     FROM post_like pl
                     WHERE pl.post_id = p.post_id
                       AND pl.user_id = #{userId}
-                )
-                END AS isLiked
+                ) THEN TRUE
+                ELSE FALSE
+                END AS liked
 
         FROM post p
+                 JOIN user u ON p.user_id = u.user_id
+                 JOIN book b ON p.book_id = b.book_id
         WHERE p.post_id = #{postId}
+
     </select>
+
 
 
 

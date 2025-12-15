@@ -2,7 +2,6 @@ package com.bookspace.domain.post.service;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.bookspace.domain.book.service.BookService;
 import com.bookspace.domain.post.dto.PostPageResponseDto;
@@ -75,10 +74,6 @@ public class PostServiceImpl implements PostService {
     public PostPageResponseDto getAllPosts(int page, int size, Long userId)
     {
 
-        // TODO 로그인 로직 구현 후 수정
-//        Long userId = 1L; // 로그인한 유저일 경우 (1번으로 테스트)
-//        // Long userId = null; // 로그인 하지 않았을 때
-
         int offset = page * size;
 
         Map<String, Object> params = new HashMap<>();
@@ -102,20 +97,17 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostResponseDto getPostById(long postId) {
+    @Transactional
+    public PostResponseDto getPostById(long postId, Long userId) {
 
-        // TODO 로그인 로직 구현 후 수정
-        //Long userId = 1L;
-        Long userId = null;
+        PostResponseDto responseDto = postDao.selectPostById(postId,userId);
 
-        PostVo postVo = postDao.selectPostById(postId,userId);
-
-        if(postVo == null){
+        if(responseDto == null){
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
 
         postDao.increaseViewCount(postId);
-        return convertToResponseDto(postVo);
+        return responseDto;
     }
 
     @Override
@@ -131,13 +123,13 @@ public class PostServiceImpl implements PostService {
 //        }
 
         // 1. 기존 게시글 조회
-        PostVo postVo = postDao.selectPostById(postId,loginUserId);
-        if(postVo == null){
+        PostResponseDto responseDto = postDao.selectPostById(postId,loginUserId);
+        if(responseDto == null){
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
 
         // 2. 작성자 userId 기준으로 권한 체크
-        if(postVo.getUserId() != loginUserId){
+        if(responseDto.getUserId() != loginUserId){
             throw new AccessDeniedException("Access denied 본인의 게시글만 수정할 수 있습니다");
         }
 
@@ -158,20 +150,20 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public void deletePost(long postId, long loginUserId) {
+    public void deletePost(long postId, Long loginUserId) {
 //        int deletedRows = postDao.deletePost(postId);
 //        if (deletedRows == 0) {
 //            throw new IllegalArgumentException("Post not found with id: " + postId);
 //        }
 
         // 1. 기존 게시글 조회
-        PostVo postVo = postDao.selectPostById(postId, loginUserId);
-        if(postVo == null){
+       PostResponseDto responseDto= postDao.selectPostById(postId, loginUserId);
+        if(responseDto == null){
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
 
         // 2. 작성자 체크
-        if(postVo.getUserId() != loginUserId){
+        if(responseDto.getUserId() != loginUserId){
             throw new AccessDeniedException("Access denied 본인의 게시글만 삭제할 수 있습니다.");
         }
 

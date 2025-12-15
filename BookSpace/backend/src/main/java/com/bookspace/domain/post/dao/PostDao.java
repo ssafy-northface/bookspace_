@@ -23,7 +23,7 @@ public interface PostDao {
     int countAllPosts();
 
     // 3. 게시글 단건 조회 (로그인 userId -> isLiked)
-    PostVo selectPostById(@Param("postId") long postId,@Param("userId") Long userId);
+    PostResponseDto selectPostById(@Param("postId") long postId, @Param("userId") Long userId);
 
     // 4. 게시글 수정
     int updatePost(PostVo postVo);

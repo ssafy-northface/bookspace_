@@ -6,6 +6,7 @@ import com.bookspace.global.security.userdetails.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -77,11 +78,7 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/books/**"
                         ).permitAll() // 인증 없이 가능
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/posts/**").authenticated()
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT,  "/posts/**").authenticated()
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE,"/posts/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()
-
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated() // 나머지 요청은 jwt가 필요함
                 )

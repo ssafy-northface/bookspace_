@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 
 // 단건 조회에서 내려줄 Dto
 @Data
-public class PostlResponseDto {
+public class PostResponseDto {
     private long postId;
     private long userId;
     private long bookId;
