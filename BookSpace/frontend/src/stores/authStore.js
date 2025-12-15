@@ -8,6 +8,7 @@ export const useAuthStore = defineStore("auth", {
     // user: null, // 로그인한 사용자 정보 (나중에 받아오기)
     token: localStorage.getItem("accessToken") || null, // 새로고침해도 토큰 유지
     isLoggedIn: !!localStorage.getItem("accessToken"), // 토큰 존재 여부로 로그인 상태 판별
+    isReady: false,
   }),
 
   actions: {
@@ -35,5 +36,12 @@ export const useAuthStore = defineStore("auth", {
       const userStore = useUserStore();
       userStore.clearMe();
     },
-  }
+
+    restoreAuth() {
+      const token = localStorage.getItem("accessToken");
+      this.token = token;
+      this.isLoggedIn = !!token;
+      this.isReady = true;
+    },
+  },
 });

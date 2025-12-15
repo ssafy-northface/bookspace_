@@ -21,12 +21,15 @@ const userStore = useUserStore();
 
 // 앱이 처음 로드되거나 새로고침됐을 떄 한 번 실행
 onMounted(async () => {
+  // 인증 상태 복구 (localStorage -> pinia)
+  authStore.restoreAuth();
+
   // 로그인 상태가 아니면 아무것도 안 함
   if (!authStore.isLoggedIn) {
     return;
   }
 
-  // 2) 이미 me가 채워져 있으면 다시 호출할 필요 없음
+  // 이미 me가 채워져 있으면 다시 호출할 필요 없음
   if (userStore.me && userStore.me.value) {
     return;
   }

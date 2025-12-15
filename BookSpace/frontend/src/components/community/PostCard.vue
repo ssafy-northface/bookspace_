@@ -130,9 +130,9 @@ const isLiked = ref(!!props.post.liked);
 
 // 좋아요 토글 (낙관적 업데이트)
 const toggleLikeMutation = useMutation({
-  mutationFn: ({ postId, nextLiked }) =>
-    nextLiked ? postLikes(postId) : deleteLikes(postId),
-  onMutate: async ({ nextLiked }) => {
+  mutationFn: (nextLiked) =>
+    nextLiked ? postLikes(props.post.postId) : deleteLikes(props.post.postId),
+  onMutate: async (nextLiked) => {
     // 현재 목록 쿼리 취소
     await queryClient.cancelQueries({ queryKey: ["posts"] });
     await queryClient.cancelQueries({ queryKey: ["posts", "latest"] });
@@ -190,14 +190,14 @@ const toggleLike = async () => {
   }
 
   const nextLiked = !isLiked.value;
-  await toggleLikeMutation.mutateAsync({
-    postId: props.post.postId,
-    nextLiked,
-  });
+  await toggleLikeMutation.mutateAsync(nextLiked);
 };
 
 const goToPostDetail = () => {
-  // TODO 게시글 상세 페이지 조회
+  router.push({
+    name: "postDetail",
+    params: { postId: props.post.postId },
+  });
 };
 </script>
 

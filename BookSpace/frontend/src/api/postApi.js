@@ -18,7 +18,7 @@ export const createPostApi = async (payload) => {
   return res.data;
 };
 
-// [R] 게시글 목록 조회 (페이징)
+// [R] 게시글 전체 조회 (페이징)
 export const fetchPosts = async ({ pageParam = 0 }) => {
   const res = await httpClient.get("/posts", {
     params: {
@@ -39,17 +39,22 @@ export const fetchPosts = async ({ pageParam = 0 }) => {
   };
 };
 
+// [R] 게시글 단건 조회
+export const fetchPostDetail = async (postId) => {
+  const res = await httpClient.get(`/posts/${postId}`);
+  return res.data;
+};
+
 // 게시글 좋아요
 export const postLikes = async (postId) => {
-  console.log("liked");
+  console.log("post likes");
   const res = await httpClient.post(`/posts/${postId}/like`);
   return res.data;
 };
 
 // 게시글 좋아요 취소
 export const deleteLikes = async (postId) => {
-  console.log("disliked");
-
+  console.log("post likes non nonono");
   const res = await httpClient.delete(`/posts/${postId}/like`);
   return res.data;
 };

@@ -98,7 +98,7 @@ const login = async () => {
 
   try {
     await authStore.login({
-      userLoginId: loginId.value, // 🔹 백엔드 DTO 필드명에 맞춰서 매핑
+      userLoginId: loginId.value,
       userPw: password.value,
     });
 
