@@ -82,9 +82,13 @@ import Button from "../components/ui/Button.vue";
 import { PlusIcon } from "lucide-vue-next";
 import { ArrowUpIcon } from "@heroicons/vue/24/solid";
 import PostCard from "@/components/community/PostCard";
-import { useInfiniteQuery, useQuery } from "@tanstack/vue-query";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/vue-query";
 import { fetchPosts } from "../api/postApi.js";
-import { computed, onMounted, ref, onUnmounted } from "vue";
+import { computed, onMounted, ref, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
 import { useAuthStore } from "@/stores/authStore";
@@ -92,6 +96,7 @@ import { useAuthStore } from "@/stores/authStore";
 const authStore = useAuthStore();
 const router = useRouter();
 const { toast } = useToast();
+const queryClient = useQueryClient();
 
 // 게시글 목록 경로: data.pages[0].content.posts
 const {
