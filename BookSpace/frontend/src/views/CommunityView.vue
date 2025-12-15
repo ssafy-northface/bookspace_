@@ -82,23 +82,24 @@ import Button from "../components/ui/Button.vue";
 import { PlusIcon } from "lucide-vue-next";
 import { ArrowUpIcon } from "@heroicons/vue/24/solid";
 import PostCard from "@/components/community/PostCard";
-import {
-  useInfiniteQuery,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/vue-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/vue-query";
 import { fetchPosts } from "../api/postApi.js";
-import { computed, onMounted, ref, onUnmounted, watch } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, ref, onUnmounted, watch, nextTick } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
 import { useAuthStore } from "@/stores/authStore";
 
 const authStore = useAuthStore();
+const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
-const queryClient = useQueryClient();
+
+// 1. 쿼리에서 목록 상태 복원 (스크롤 복원 위치)
+const page = computed(() => Number(route.query.page ?? 0));
+const keyword = computed(() => route.query.keyword ?? "");
 
 // 게시글 목록 경로: data.pages[0].content.posts
+// 2. 게시글 목록 조회
 const {
   data,
   fetchNextPage,
@@ -118,6 +119,23 @@ const {
   // onSuccess: (data) => {
   //   console.log(JSON.parse(JSON.stringify(data)));
   // },
+});
+
+// 스크롤 복원용 상태
+const pendingScroll = ref(null);
+const hasRestoredScroll = ref(false);
+const isRestoringScroll = ref(false);
+
+// 3. scroll 위치 복원
+onMounted(() => {
+  const stored = sessionStorage.getItem("communityScroll");
+  if (stored) {
+    try {
+      pendingScroll.value = JSON.parse(stored);
+    } catch (err) {
+      console.error("Failed to parse scroll state", err);
+    }
+  }
 });
 
 // 최신 게시글 감지용 쿼리 (첫 페이지만 주기적으로 조회)
@@ -228,4 +246,47 @@ const showLatestPosts = async () => {
 const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
+
+// 데이터 로드 후 저장된 스크롤 위치로 복원
+const restoreScrollIfNeeded = async () => {
+  if (
+    hasRestoredScroll.value ||
+    isRestoringScroll.value ||
+    !pendingScroll.value
+  )
+    return;
+
+  isRestoringScroll.value = true;
+  await nextTick();
+
+  let targetEl = null;
+  if (pendingScroll.value.postId) {
+    targetEl = document.querySelector(
+      `[data-post-id="${pendingScroll.value.postId}"]`
+    );
+  }
+
+  // 대상 게시글이 아직 렌더되지 않았으면 다음 페이지 불러오기
+  if (!targetEl && hasNextPage.value && !isFetchingNextPage.value) {
+    isRestoringScroll.value = false;
+    await fetchNextPage();
+    return;
+  }
+
+  const targetTop =
+    pendingScroll.value.scrollY ??
+    (targetEl ? targetEl.getBoundingClientRect().top + window.scrollY - 60 : 0);
+
+  window.scrollTo({ top: targetTop, behavior: "auto" });
+  hasRestoredScroll.value = true;
+  isRestoringScroll.value = false;
+  sessionStorage.removeItem("communityScroll");
+};
+
+watch(
+  () => [data.value?.pages?.length, isFetchingNextPage.value],
+  () => {
+    restoreScrollIfNeeded();
+  }
+);
 </script>

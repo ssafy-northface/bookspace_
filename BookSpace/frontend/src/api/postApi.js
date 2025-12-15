@@ -45,6 +45,26 @@ export const fetchPostDetail = async (postId) => {
   return res.data;
 };
 
+// [U] 게시글 수정
+export const updatePostApi = async (postId, payload) => {
+  const body = { ...payload };
+
+  Object.keys(body).forEach((key) => {
+    if (body[key] === "" || body[key] === null || body[key] === undefined) {
+      delete body[key];
+    }
+  });
+
+  const res = await httpClient.put(`/posts/${postId}`, body);
+  return res.data;
+};
+
+// [D] 게시글 삭제
+export const deletePostApi = async (postId) => {
+  const res = await httpClient.delete(`/posts/${postId}`);
+  return res.data;
+};
+
 // 게시글 좋아요
 export const postLikes = async (postId) => {
   console.log("post likes");

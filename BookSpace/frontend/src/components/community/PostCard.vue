@@ -2,6 +2,7 @@
 <template>
   <div
     class="flex justify-between w-full p-5 transition border shadow-sm cursor-pointer border-border rounded-xl bg-card hover:shadow-md"
+    :data-post-id="post.postId"
     @click="goToPostDetail"
   >
     <div class="flex flex-col justify-between">
@@ -99,7 +100,7 @@ import { useToast } from "@/composables/useToast";
 import { postLikes, deleteLikes } from "@/api/postApi";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/authStore";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 const { toast } = useToast();
 
 const props = defineProps({
@@ -109,6 +110,7 @@ const props = defineProps({
   },
 });
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 const queryClient = useQueryClient();
@@ -194,9 +196,20 @@ const toggleLike = async () => {
 };
 
 const goToPostDetail = () => {
+  // 현재 스크롤 위치를 저장해서 돌아올 때 위치 복원하기
+  sessionStorage.setItem(
+    "communityScroll",
+    JSON.stringify({
+      scrollY: window.scrollY,
+      postId: props.post.postId,
+    })
+  );
   router.push({
     name: "postDetail",
     params: { postId: props.post.postId },
+    query: {
+      ...route.query,
+    },
   });
 };
 </script>
