@@ -1,7 +1,6 @@
 package com.bookspace.domain.post.service;
 
 import java.util.List;
-import java.util.Map;
 
 import com.bookspace.domain.post.dto.PostPageResponseDto;
 import com.bookspace.domain.post.dto.PostRequestDto;
@@ -16,13 +15,13 @@ public interface PostService {
     PostPageResponseDto getAllPosts(int page, int size, Long userId);
 
     // 게시글 단건 조회
-    PostResponseDto getPostById(long postId);
+    PostResponseDto getPostById(long postId, Long userId);
 
     // 게시글 수정
     void updatePost(long postId, PostRequestDto requestDto, long loginUserId);
 
     // 게시글 삭제
-    void deletePost(long postId, long loginUserId);
+    void deletePost(long postId, Long loginUserId);
 
     // 조회수 증가
     void increaseViewCount(long postId);
