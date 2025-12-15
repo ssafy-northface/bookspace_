@@ -1,9 +1,9 @@
-<!-- TODO 검색 기능 -->
+<!-- TODO 검색 기능: 책 검색 (알라딘 api 조회 후) -> isbn으로 서버에 보내기-->
 <!--TODO 스타일 수정  -->
 <template>
   <ViewHeader
-    title="게시글 작성"
-    description="책에 대한 소감을 남겨보세요."
+    :title="headerTitle"
+    :description="headerDescription"
     align="left"
     size="lg"
   />
@@ -19,7 +19,7 @@
         </div>
         <SearchInput
           v-model="isbn"
-          placeholder="책 제목 또는 ISBN을 검색하세요"
+          placeholder="책 제목을 검색하세요"
           @search="onSearch"
         />
       </div>
@@ -39,7 +39,6 @@
         <Textarea
           v-model="postContent"
           rows="10"
-          :class="textareaClasses"
           placeholder="책에 대한 생각이나 질문을 자유롭게 작성하세요"
           required
         />
@@ -60,10 +59,10 @@
           </Button>
           <Button
             type="submit"
-            :disabled="!isFormValid || isSubmitting"
+            :disabled="!isFormValid || isSubmitting || isEditLoading"
             :loading="isSubmitting"
           >
-            게시글 등록
+            {{ submitLabel }}
           </Button>
         </div>
       </div>
@@ -72,30 +71,34 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import ViewHeader from "@/components/common/ViewHeader.vue";
 import Button from "@/components/ui/Button.vue";
 import SearchInput from "../components/common/SearchInput.vue";
 import Input from "@/components/ui/Input.vue";
 import Textarea from "@/components/ui/Textarea.vue";
-import { createPostApi } from "@/api/postApi";
-import { useMutation, useQueryClient } from "@tanstack/vue-query";
+import { createPostApi, fetchPostDetail, updatePostApi } from "@/api/postApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 
 const router = useRouter();
+const route = useRoute();
 const queryClient = useQueryClient();
+
+const isEditMode = computed(() => route.query.mode === "edit");
+const postId = computed(() => route.query.postId);
+const preloadedPost =
+  route.state?.post &&
+  postId.value &&
+  String(route.state.post.postId) === String(postId.value)
+    ? route.state.post
+    : null;
 
 const isbn = ref("");
 const postTitle = ref("");
 const postContent = ref("");
 const errorMessage = ref("");
 const isSubmitting = ref(false);
-
-const textareaClasses =
-  "w-full rounded-md border border-[color:var(--border)] bg-[color:var(--background)] " +
-  "text-[color:var(--foreground)] px-3 py-2 text-sm shadow-xs transition outline-none " +
-  "placeholder:text-[color:var(--muted-foreground)] " +
-  "focus-visible:ring-[3px] focus-visible:ring-[color:var(--ring)]/50 focus-visible:border-[color:var(--ring)] min-h-[220px] resize-y leading-relaxed";
 
 const isFormValid = computed(() => {
   return (
@@ -104,6 +107,37 @@ const isFormValid = computed(() => {
     !!isbn.value.trim()
   );
 });
+
+const headerTitle = computed(() =>
+  isEditMode.value ? "게시글 수정" : "게시글 작성"
+);
+const headerDescription = computed(() =>
+  isEditMode.value
+    ? "게시글을 수정할 수 있습니다."
+    : "책에 대한 소감을 남겨보세요."
+);
+const submitLabel = computed(() =>
+  isEditMode.value ? "수정 완료" : "게시글 등록"
+);
+
+const { data: detailData, isLoading: isEditLoading } = useQuery({
+  queryKey: ["post", postId.value],
+  queryFn: () => fetchPostDetail(postId.value),
+  enabled: computed(() => isEditMode.value && !!postId.value),
+  initialData: () => (isEditMode.value ? preloadedPost : undefined),
+  staleTime: 0,
+});
+
+watch(
+  () => detailData.value,
+  (val) => {
+    if (!isEditMode.value || !val) return;
+    isbn.value = val.isbn || "";
+    postTitle.value = val.postTitle || "";
+    postContent.value = val.postContent || "";
+  },
+  { immediate: true }
+);
 
 const createPostMutation = useMutation({
   mutationFn: (payload) => createPostApi(payload),
@@ -116,6 +150,21 @@ const createPostMutation = useMutation({
     errorMessage.value =
       error?.response?.data?.message ||
       "게시글 등록에 실패했습니다. 잠시 후 다시 시도해주세요.";
+  },
+});
+
+const updatePostMutation = useMutation({
+  mutationFn: (payload) => updatePostApi(postId.value, payload),
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({ queryKey: ["posts"] });
+    await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
+    await queryClient.invalidateQueries({ queryKey: ["post", postId.value] });
+    router.push({ name: "postDetail", params: { postId: postId.value } });
+  },
+  onError: (error) => {
+    errorMessage.value =
+      error?.response?.data?.message ||
+      "게시글 수정에 실패했습니다. 잠시 후 다시 시도해주세요.";
   },
 });
 
@@ -137,11 +186,21 @@ const handleSubmit = async () => {
 
   isSubmitting.value = true;
   try {
-    await createPostMutation.mutateAsync({
-      isbn: trimmedIsbn,
-      postTitle: trimmedTitle,
-      postContent: trimmedContent,
-    });
+    // 게시글 수정
+    if (isEditMode.value && postId.value) {
+      await updatePostMutation.mutateAsync({
+        isbn: trimmedIsbn,
+        postTitle: trimmedTitle,
+        postContent: trimmedContent,
+      });
+    } else {
+      // 게시글 작성
+      await createPostMutation.mutateAsync({
+        isbn: trimmedIsbn,
+        postTitle: trimmedTitle,
+        postContent: trimmedContent,
+      });
+    }
   } finally {
     isSubmitting.value = false;
   }

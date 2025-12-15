@@ -91,7 +91,7 @@ import BookDetailView from "@/views/BookDetailView";
 import CommunityView from "@/views/CommunityView";
 import PostDetailView from "@/views/PostDetailView";
 import ProfileView from "@/views/ProfileView";
-import PostCreateView from "@/views/PostCreateView";
+import PostCreateUpdateView from "@/views/PostCreateUpdateView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
 
@@ -126,12 +126,12 @@ const router = createRouter({
         {
           path: "/community/create",
           name: "postCreate",
-          component: PostCreateView,
+          component: PostCreateUpdateView,
           meta: { requiresAuth: true },
         },
         // post detail
         {
-          path: "/community/:postId",
+          path: "/community/posts/:postId",
           name: "postDetail",
           component: PostDetailView,
           props: true,
