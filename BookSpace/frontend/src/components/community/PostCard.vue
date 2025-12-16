@@ -8,10 +8,10 @@
     <div class="flex flex-col justify-between">
       <!-- 작성자 정보 -->
       <div class="flex items-center gap-3 mb-4">
-        <img
-          :src="post.userProfileImage || defaultProfile"
-          class="object-cover w-10 h-10 rounded-full"
-          alt="profile"
+        <UserProfileImg
+          :src="post.userProfileImage"
+          :name="post.userNickName"
+          sizeClass="w-10 h-10"
         />
         <div>
           <p class="font-medium text-foreground">{{ post.userNickName }}</p>
@@ -101,6 +101,7 @@ import { postLikes, deleteLikes } from "@/api/postApi";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/authStore";
 import { useRoute, useRouter } from "vue-router";
+import UserProfileImg from "@/components/common/UserProfileImg.vue";
 const { toast } = useToast();
 
 const props = defineProps({
@@ -116,7 +117,6 @@ const authStore = useAuthStore();
 const queryClient = useQueryClient();
 
 // TODO 기본 이미지
-const defaultProfile = "/default-profile.png";
 const defaultBook = "/default-book.png";
 
 // 날짜 포맷
