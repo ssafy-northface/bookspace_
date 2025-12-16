@@ -17,7 +17,7 @@ public class CommentController {
 
     private final CommentService commentService;
 
-    // [C] 댓글 생성 (Create)
+    // [C] 댓글 / 대댓글 생성 (Create)
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<String> createComment(
             @PathVariable("postId") long postId,
@@ -43,7 +43,8 @@ public class CommentController {
 
     // [R] - userId 특정 유저가 작성한 댓글 전체 조회 : 마이페이지에서 유저가 자신이 남긴 모든 댓글 목록 불러오기
     @GetMapping ("comments/user/{userId}")
-    public ResponseEntity<List<CommentResponseDto>> getCommentsByUserId(@PathVariable long userId){
+    public ResponseEntity<List<CommentResponseDto>> getCommentsByUserId(@AuthenticationPrincipal CustomUserDetails user){
+        long userId = user.getUserId();
         return ResponseEntity.ok(commentService.getCommentByUserId(userId));
     }
 

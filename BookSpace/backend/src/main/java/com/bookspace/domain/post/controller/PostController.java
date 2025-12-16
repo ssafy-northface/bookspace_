@@ -41,10 +41,6 @@ public class PostController {
                                                                  @RequestParam(defaultValue = "10") int size,
                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        System.out.println(SecurityContextHolder.getContext().getAuthentication());
-
-        System.out.println("userId = " + userId);
-
         PostPageResponseDto response = postService.getAllPosts(page,size,userId);
         return ResponseEntity.ok(response);
     }
@@ -52,10 +48,7 @@ public class PostController {
     // 3. 단건 조회
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponseDto> getPost(@PathVariable long postId, @AuthenticationPrincipal CustomUserDetails user  ) {
-
         Long userId = (user!=null)?user.getUserId():null;
-        System.out.println("userId = " + userId);
-
         PostResponseDto response = postService.getPostById(postId, userId);
         return ResponseEntity.ok(response);
     }

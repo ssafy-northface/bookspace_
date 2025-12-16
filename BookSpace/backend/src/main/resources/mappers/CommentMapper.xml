@@ -7,37 +7,68 @@
 
     <!-- Create   -->
     <insert id="insertComment" parameterType="commentVo">
-        INSERT INTO comment (post_id, user_id, comment_content)
-        VALUES (#{postId}, #{userId}, #{commentContent})
+        INSERT INTO comment (
+            post_id,
+            user_id,
+            parent_comment_id,
+            comment_content
+        )
+        VALUES (
+                   #{postId},
+                   #{userId},
+                   #{parentCommentId},
+                   #{commentContent}
+               )
     </insert>
 
-    <!--  Read - postId  -->
+    <!--  Read - postId (댓글 + 대댓글) -->
     <select id="selectCommentsByPostId" resultType="commentResponseDto">
-        SELECT *
-        FROM comment
-        WHERE post_id = #{postId}
+        SELECT
+            c.comment_id,
+            c.post_id,
+            c.user_id,
+            u.user_nickname,
+            c.parent_comment_id,
+            c.comment_content,
+            c.comment_date,
+            c.comment_last_modified
+        FROM comment c
+                 JOIN user u ON c.user_id = u.user_id
+        WHERE c.post_id = #{postId}
         ORDER BY comment_date DESC
     </select>
 
     <!-- Read - commentId  -->
     <select id="selectCommentById"  parameterType="long" resultType="commentResponseDto">
         SELECT
-            comment_id,
-            post_id,
-            user_id,
-            comment_content,
-            comment_date,
-            comment_last_modified
-        FROM comment
-        WHERE comment_id = #{commentId}
+            c.comment_id,
+            c.post_id,
+            c.user_id,
+            u.user_nickname,
+            c.parent_comment_id,
+            c.comment_content,
+            c.comment_date,
+            c.comment_last_modified
+        FROM comment c
+                 JOIN user u ON c.user_id = u.user_id
+        WHERE c.comment_id = #{commentId}
     </select>
 
     <!-- Read - userId -->
     <select id="selectCommentsByUserId" resultType="commentResponseDto">
-        SELECT *
-        FROM comment
-        WHERE user_id = #{userId}
-        ORDER BY comment_date DESC
+        SELECT
+            c.comment_id,
+            c.post_id,
+            c.user_id,
+            u.user_nickname,
+            c.parent_comment_id,
+            c.comment_content,
+            c.comment_date,
+            c.comment_last_modified
+        FROM comment c
+                 JOIN user u ON c.user_id = u.user_id
+        WHERE c.user_id = #{userId}
+        ORDER BY c.comment_date DESC
     </select>
 
     <!-- Update - commentId   -->

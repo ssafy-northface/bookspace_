@@ -22,7 +22,7 @@ mybatis:
   type-aliases-package: com.bookspace.domain
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 aladin:
   ttbkey: ${ALADIN_TTB_KEY}
