@@ -20,10 +20,10 @@
       <article class="p-6 space-y-5 border shadow-sm rounded-xl bg-card">
         <header class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
-            <img
-              :src="post.userProfileImage || defaultProfile"
-              alt="작성자 프로필"
-              class="object-cover w-12 h-12 rounded-full"
+            <UserProfileImg
+              :src="post.userProfileImage"
+              :name="post.userNickName"
+              sizeClass="w-12 h-12"
             />
             <div>
               <p class="font-semibold text-foreground">
@@ -146,6 +146,13 @@
         </div>
       </article>
 
+      <!-- 댓글 섹션 -->
+      <CommentsSection
+        v-if="post"
+        :post-id="post.postId"
+        @comment-changed="handleCommentChanged"
+      />
+
       <div v-if="isError" class="flex items-center gap-3 text-sm">
         <span class="text-destructive"
           >최신 정보를 불러오는 데 실패했습니다.</span
@@ -175,6 +182,8 @@ import { MessageSquare, Eye, ArrowLeft, MoreVertical } from "lucide-vue-next";
 import { HeartIcon } from "@heroicons/vue/24/solid";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
+import CommentsSection from "@/components/community/CommentsSection.vue";
+import UserProfileImg from "@/components/common/UserProfileImg.vue";
 
 const { toast } = useToast();
 
@@ -404,4 +413,25 @@ watch(
 onBeforeRouteUpdate(() => {
   viewAdjusted.value = false;
 });
+
+/**
+ * 댓글 변경 이벤트 핸들러
+ */
+const handleCommentChanged = ({ type }) => {
+  if (!post.value) return;
+
+  // 댓글 수 변화
+  const delta = type === "create" ? 1 : type === "delete" ? -1 : 0; // update는 변화 없음
+  if (delta == 0) return;
+
+  const nextCount = Math.max(0, (post.value.commentCount ?? 0) + delta);
+
+  const nextPost = { ...post.value, commentCount: nextCount };
+
+  // 상세 조회 캐시 즉시 반영
+  queryClient.setQueryData(["post", props.postId], nextPost);
+
+  // 목록 캐시도 동기화
+  syncPostToLists(nextPost);
+};
 </script>
