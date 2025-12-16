@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class CommentRequestDto {
 
-    private long userId;
+    private Long parentCommentId; // 일반 댓글이면 null
     private String commentContent;
 }

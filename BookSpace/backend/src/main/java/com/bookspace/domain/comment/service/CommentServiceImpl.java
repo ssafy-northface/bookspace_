@@ -8,7 +8,11 @@ import com.bookspace.domain.common.validation.ValidatePostExists;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -20,9 +24,26 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @ValidatePostExists(postId = "#postId")
     public void createComment(long postId, CommentRequestDto commentDto, long loginUserId) {
+        // 대댓글일 경우 부모 댓글 검증
+        if(commentDto.getParentCommentId()!=null){
+            CommentResponseDto parent = commentDao.selectCommentById(commentDto.getParentCommentId());
+            if(parent == null){
+                throw new IllegalArgumentException("Parent comment not found");
+            }
+            // depth = 1 제한
+            if(parent.getParentCommentId()!=null){
+                throw new IllegalArgumentException("대댓글에는 답글을 달 수 없습니다.");
+            }
+            // post 정합성
+            if(parent.getPostId()!=postId){
+                throw new IllegalArgumentException("잘못된 요청입니다.");
+            }
+        }
+
         CommentVo commentVo = new CommentVo();
         commentVo.setPostId(postId);
         commentVo.setUserId(loginUserId);
+        commentVo.setParentCommentId(commentDto.getParentCommentId());
         commentVo.setCommentContent(commentDto.getCommentContent());
 
         int inserted = commentDao.insertComment(commentVo);
@@ -32,11 +53,34 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
-    // [R] - postId
+    // [R] - postId : 게시글 댓글 + 대댓글 조회
     @Override
     @ValidatePostExists(postId = "#postId")
     public List<CommentResponseDto> getCommentByPostId(long postId) {
-        return commentDao.selectCommentsByPostId(postId);
+        List<CommentResponseDto> flat = commentDao.selectCommentsByPostId(postId);
+        Map<Long,CommentResponseDto> map = new HashMap<>();
+        List<CommentResponseDto> replies = new ArrayList<>();
+
+
+        // 부모 댓글 먼저 수집
+        for(CommentResponseDto comment : flat){
+            if(comment.getParentCommentId()==null){
+                map.put(comment.getCommentId(),comment);
+            }else{
+                replies.add(comment);
+            }
+        }
+
+        // 대댓글 연결
+        for(CommentResponseDto reply : replies){
+            CommentResponseDto parent = map.get(reply.getParentCommentId());
+
+            // 부모 없으면 스킵
+            if(parent!=null){
+                parent.getReplies().add(reply);
+            }
+        }
+        return new ArrayList<>(map.values());
     }
 
     // [R] - commentId

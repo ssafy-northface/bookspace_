@@ -162,6 +162,7 @@ public class PostServiceImpl implements PostService {
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
 
+
         // 2. 작성자 체크
         if(responseDto.getUserId() != loginUserId){
             throw new AccessDeniedException("Access denied 본인의 게시글만 삭제할 수 있습니다.");

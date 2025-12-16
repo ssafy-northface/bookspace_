@@ -12,7 +12,7 @@ public interface CommentDao {
     // 1. [C] 댓글 등록
     int insertComment(CommentVo commentVo);
 
-    // 2. [R] 특정 postId의 모든 댓글 조회
+    // 2. [R] 특정 postId의 모든 댓글 조회 (댓글 + 대댓글)
     List<CommentResponseDto> selectCommentsByPostId(@Param("postId") long postId);
 
     // 3. [R] commentId로 단건 조회
