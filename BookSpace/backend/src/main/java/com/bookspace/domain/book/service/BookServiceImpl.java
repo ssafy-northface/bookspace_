@@ -3,16 +3,18 @@ package com.bookspace.domain.book.service;
 import com.bookspace.domain.book.dao.BookDao;
 import com.bookspace.domain.book.dto.AladinItemResponseDto;
 import com.bookspace.domain.book.dto.AladinListResponseDto;
+import com.bookspace.domain.book.dto.BookDetailResponseDto;
 import com.bookspace.domain.book.dto.BookSearchResponseDto;
 import com.bookspace.domain.book.external.AladinClient;
 import com.bookspace.domain.book.vo.BookVo;
+import com.bookspace.domain.post.dao.PostDao;
+import com.bookspace.domain.review.dao.ReviewDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.bookspace.domain.book.converter.BookConverter;
 
 
-import java.awt.print.Book;
 import java.util.List;
 
 @Service
@@ -21,6 +23,9 @@ public class BookServiceImpl implements BookService {
 
     private final BookDao bookDao;
     private final AladinClient aladinClient;
+    // 순환의존성 문제로 DAO를 직접 주입
+    private final ReviewDao reviewDao;
+    private final PostDao postDao;
 
 
     // [검색] DB 검색 시 없으면 알라딘 API 호출
@@ -148,4 +153,67 @@ public class BookServiceImpl implements BookService {
                 .map(BookConverter::toSearchResponseFromAladinItem)
                 .toList();
     }
+
+    /**
+     * [상세조회용 - 저장 X] ISBN으로 알라딘 API 단건 조회
+     * - DB 저장 없이 조회 결과(단건 item)만 반환
+     * - 내부적으로 ItemSearch + QueryType=ISBN + MaxResults=1 사용
+     */
+    private AladinItemResponseDto fetchBookByIsbnFromAladinNoSave(String isbn) {
+        AladinListResponseDto apiResponse = aladinClient.searchBooks(isbn, "isbn", 1);
+
+        if (apiResponse == null || apiResponse.getItems() == null || apiResponse.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Book Not Found for ISBN: " + isbn);
+        }
+
+        return apiResponse.getItems().get(0);
+    }
+
+
+    // 도서 상세조회 시
+    // DB에 있는 책 -> DB에서 조회
+    // DB에 없는 책 -> 알라딘 API 호출 (저장 X, 단순 조회)
+    @Override
+    public BookDetailResponseDto getBookDetail(String isbn) {
+        if (isbn == null || isbn.isBlank()) {
+            throw new IllegalArgumentException("isbn is null or empty");
+        }
+
+        // 1) DB 우선 조회
+        BookVo existing = bookDao.findBookByIsbn(isbn);
+
+        if (existing != null) {
+            BookDetailResponseDto dto = BookConverter.toDetailResponseFromBookVo(existing);
+
+            Long bookId = existing.getBookId();
+
+            // 메타값
+            Double avgRating = reviewDao.selectAverageRating(bookId);
+            Integer reviewCnt = reviewDao.countReviews(bookId);
+            Integer postCnt = postDao.countPostsByBookId(bookId);
+
+            // 메타 기본값 (다음 단계에서 review/post/wish 연결)
+            dto.setAverageRating(avgRating == null ? 0.0 : avgRating);
+            dto.setReviewCount(reviewCnt == null ? 0 : reviewCnt);
+            dto.setPostCount(postCnt == null ? 0 : postCnt);
+            dto.setIsWished(false);
+
+            return dto;
+        }
+
+        // 2) DB에 없으면 알라딘 호출(저장 X)
+        AladinItemResponseDto item = fetchBookByIsbnFromAladinNoSave(isbn);
+        BookDetailResponseDto dto = BookConverter.toDetailResponseFromAladinItem(item);
+
+        // DB에 없는 책이면 메타 기본값
+        dto.setAverageRating(0.0);
+        dto.setReviewCount(0);
+        dto.setPostCount(0);
+        dto.setIsWished(false);
+
+        return dto;
+    }
+
+
+
 }

@@ -267,4 +267,13 @@
         ORDER BY p.post_date DESC
 
     </select>
+
+    <!-- 12. 특정 책에 대한 게시글 개수 (active 유저 기준) -->
+    <select id="countPostsByBookId" resultType="int">
+        SELECT COUNT(*)
+        FROM post p
+                 JOIN user u ON p.user_id = u.user_id
+        WHERE p.book_id = #{bookId}
+          AND u.user_status = 'active'
+    </select>
 </mapper>

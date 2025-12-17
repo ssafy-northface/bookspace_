@@ -1,5 +1,6 @@
 package com.bookspace.domain.book.controller;
 
+import com.bookspace.domain.book.dto.BookDetailResponseDto;
 import com.bookspace.domain.book.dto.BookSearchResponseDto;
 import com.bookspace.domain.book.service.BookService;
 import lombok.RequiredArgsConstructor;
@@ -78,5 +79,19 @@ public class BookController {
     ) {
         // type: "new" | "bestseller"
         return bookService.getDefaultBooksFromAladin(type);
+    }
+
+
+    /**
+     * 5. 도서 상세조회 (ISBN 기반)
+     * - DB에 있으면 DB 정보로 반환
+     * - DB에 없으면 알라딘 API로 조회하여 반환 (저장 X)
+     * - DB에 없는 책은 메타 정보 기본값(0/false) 반환
+     *
+     * GET /books/detail/{isbn}
+     */
+    @GetMapping("/detail/{isbn}")
+    public BookDetailResponseDto getBookDetail(@PathVariable String isbn) {
+        return bookService.getBookDetail(isbn);
     }
 }

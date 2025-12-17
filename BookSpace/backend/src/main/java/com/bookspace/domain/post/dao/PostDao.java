@@ -49,4 +49,6 @@ public interface PostDao {
     // 11. 유저가 좋아요를 누른 모든 게시글 조회
     List<PostVo> selectLikedPostsByUserId(@Param("userId") Long userId);
 
+    // 12. 특정 책에 대한 게시글 개수
+    Integer countPostsByBookId(@Param("bookId") long bookId);
 }
