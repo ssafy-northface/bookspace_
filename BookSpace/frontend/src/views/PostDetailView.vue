@@ -35,41 +35,7 @@
             </div>
           </div>
           <!-- 로그인한 유저가 게시글 작성 유저일 경우 three-dot 메뉴 -->
-          <div class="flex items-center gap-2">
-            <div v-if="isOwner" class="relative">
-              <button
-                type="button"
-                class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-muted"
-                @click="toggleMenu"
-              >
-                <MoreVertical class="w-4 h-4 text-muted-foreground" />
-              </button>
-              <!-- ... 클릭 -> 메뉴 -->
-              <div
-                v-if="showMenu"
-                class="absolute right-0 z-10 w-20 h-auto p-3 mt-1 overflow-hidden border rounded-md shadow-md bg-card border-border"
-              >
-                <!-- 수정 버튼 -->
-                <button
-                  type="button"
-                  class="flex justify-center w-full px-3 py-3 mb-1 text-sm text-left hover:bg-muted"
-                  @mousedown.prevent
-                  @click="editPost"
-                >
-                  수정하기
-                </button>
-                <!-- 삭제버튼 -->
-                <button
-                  type="button"
-                  class="flex justify-center w-full px-3 py-2 text-sm text-left text-destructive hover:bg-muted"
-                  @mousedown.prevent
-                  @click="deletePost"
-                >
-                  삭제하기
-                </button>
-              </div>
-            </div>
-          </div>
+          <KebabMenu v-if="isOwner" @edit="editPost" @delete="deletePost" />
         </header>
 
         <div class="space-y-4">
@@ -178,12 +144,13 @@ import {
   fetchPostDetail,
   postLikes,
 } from "@/api/postApi";
-import { MessageSquare, Eye, ArrowLeft, MoreVertical } from "lucide-vue-next";
+import { MessageSquare, Eye, ArrowLeft } from "lucide-vue-next";
 import { HeartIcon } from "@heroicons/vue/24/solid";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
 import CommentsSection from "@/components/community/CommentsSection.vue";
 import UserProfileImg from "@/components/common/UserProfileImg.vue";
+import KebabMenu from "@/components/community/KebabMenu.vue";
 
 const { toast } = useToast();
 
@@ -236,14 +203,6 @@ const goBack = () => {
     name: "community",
     query: router.currentRoute.value.query,
   });
-};
-
-const showMenu = ref(false);
-const toggleMenu = () => {
-  showMenu.value = !showMenu.value;
-};
-const closeMenu = () => {
-  showMenu.value = false;
 };
 
 const syncPostToLists = (nextPost) => {
@@ -359,7 +318,6 @@ const handleToggleLike = async () => {
 };
 
 const editPost = () => {
-  closeMenu();
   router.push({
     name: "postCreate",
     query: { mode: "edit", postId: props.postId },
@@ -377,7 +335,6 @@ const deletePostMutation = useMutation({
 });
 
 const deletePost = async () => {
-  closeMenu();
   if (!confirm("게시글을 삭제하시겠습니까?")) return;
   await deletePostMutation.mutateAsync();
 };

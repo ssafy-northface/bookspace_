@@ -24,6 +24,7 @@
           등록
         </Button>
       </div>
+      <!-- mutation 에러 -->
       <p v-if="errorMessage" class="text-sm text-destructive">
         {{ errorMessage }}
       </p>
@@ -40,7 +41,7 @@
       <button
         type="button"
         class="font-medium text-primary hover:underline"
-        @click="goToLogin"
+        @click="ensureAuth"
       >
         로그인 하러 가기 →
       </button>
@@ -58,8 +59,12 @@
         v-for="comment in comments"
         :key="comment.commentId"
         :comment="comment"
+        :post-id="postId"
         @reply="activateReply"
+        @comment-updated="handleCommentUpdated"
+        @comment-deleted="handleCommentDeleted"
       >
+        <!-- 답글 -->
         <template #replyArea v-if="replyTargetId === comment.commentId">
           <div
             class="p-4 mt-2 space-y-3 border rounded-lg bg-muted/40 border-border"
@@ -114,6 +119,7 @@ import { createCommentApi, fetchCommentsApi } from "@/api/postApi";
 import { useAuthStore } from "@/stores/authStore";
 import { useToast } from "@/composables/useToast";
 
+// ------------ props & emits ------------
 const props = defineProps({
   postId: {
     type: [String, Number],
@@ -121,17 +127,21 @@ const props = defineProps({
   },
 });
 
+// comment Section -> post detail view : 게시글 상세 조회 조회 수 없데이트 emit
+const emit = defineEmits(["comment-changed"]);
+
+// ------------ basic setup ------------
 const authStore = useAuthStore();
 const router = useRouter();
 const queryClient = useQueryClient();
 const { toast } = useToast();
 
+// ------------ local ui state ------------
 const commentText = ref("");
 const replyText = ref("");
 const replyTargetId = ref(null);
-const errorMessage = ref("");
-const isSubmitting = ref(false);
 
+// ------------ comment 조회 ------------
 const {
   data: commentData,
   isLoading,
@@ -144,30 +154,15 @@ const {
 
 const comments = computed(() => commentData.value || []);
 
+// ------------ comment 개수 계산 ------------
 const commentCount = computed(() => {
   const countReplies = (items = []) =>
     items.reduce((acc, cur) => acc + 1 + countReplies(cur.replies || []), 0);
   return countReplies(comments.value);
 });
 
-const resetForm = () => {
-  commentText.value = "";
-  replyText.value = "";
-  replyTargetId.value = null;
-  errorMessage.value = "";
-};
-
-const activateReply = (commentId) => {
-  replyTargetId.value = commentId;
-  replyText.value = "";
-  errorMessage.value = "";
-};
-
-const cancelReply = () => {
-  replyTargetId.value = null;
-  replyText.value = "";
-};
-
+// ------------ auth helper ------------
+// 비로그인 유저 로그인 뷰 이동 & 로그인 -> 해당 포스트 게시물 상세보기 부로 이동
 const ensureAuth = () => {
   if (authStore.isLoggedIn) return true;
   const redirectPath = router.resolve({
@@ -185,32 +180,17 @@ const ensureAuth = () => {
   return false;
 };
 
-/**
- * 비유저 로그인 로그인 페이지 이동
- */
-const goToLogin = () => {
-  const redirectPath = router.resolve({
-    name: "postDetail",
-    params: { postId: props.postId },
-  }).path;
-
-  router.push({
-    name: "signin",
-    query: { redirect: redirectPath },
-  });
-};
-
-// comment Section -> post detail view : 게시글 상세 조회 조회 수 없데이트 emit
-const emit = defineEmits(["comment-changed"]);
-
+// ------------ 댓글 작성 Mutation ------------
 const createCommentMutation = useMutation({
   mutationFn: (payload) => createCommentApi(props.postId, payload),
-  onSuccess: async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ["comments", props.postId],
-    });
+  onSuccess: () => {
+    queryClient.invalidateQueries(["comments", props.postId]);
     emit("comment-changed", { type: "create" });
-    await refetch();
+    // ui 초기화
+    commentText.value = "";
+    replyText.value = "";
+    replyTargetId.value = null;
+    errorMessage.value = "";
   },
   onError: (err) => {
     errorMessage.value =
@@ -219,37 +199,47 @@ const createCommentMutation = useMutation({
   },
 });
 
+// ------------ mutation 관련 상태 ------------
+const isSubmitting = computed(() => createCommentMutation.isPending.value);
+
+const errorMessage = computed(
+  () => createCommentMutation.error?.response?.data?.message
+);
+
+// ------------ handlers ------------
+
 const submitComment = async () => {
   if (!ensureAuth()) return;
   const content = commentText.value.trim();
   if (!content) return;
-  isSubmitting.value = true;
-  errorMessage.value = "";
-  try {
-    await createCommentMutation.mutateAsync({
-      commentContent: content,
-    });
-    commentText.value = "";
-  } finally {
-    isSubmitting.value = false;
-  }
+  createCommentMutation.mutate({
+    commentContent: content,
+  });
 };
 
 const submitReply = async () => {
   if (!ensureAuth()) return;
   const content = replyText.value.trim();
   if (!content || !replyTargetId.value) return;
-  isSubmitting.value = true;
+  createCommentMutation.mutate({
+    commentContent: content,
+    parentCommentId: replyTargetId.value,
+  });
+};
+
+const activateReply = (commentId) => {
+  replyTargetId.value = commentId;
+  replyText.value = "";
   errorMessage.value = "";
-  try {
-    await createCommentMutation.mutateAsync({
-      commentContent: content,
-      parentCommentId: replyTargetId.value,
-    });
-    replyText.value = "";
-    replyTargetId.value = null;
-  } finally {
-    isSubmitting.value = false;
-  }
+};
+
+const cancelReply = () => {
+  replyTargetId.value = null;
+  replyText.value = "";
+};
+
+const handleCommentDeleted = async () => {
+  emit("comment-changed", { type: "delete" });
+  queryClient.invalidateQueries(["comments", props.postId]);
 };
 </script>

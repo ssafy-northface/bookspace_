@@ -99,8 +99,6 @@ export const postLikes = async (postId) => {
 
 /**
  * 게시글 좋아요 취소
- * @param {*} postId
- * @returns
  */
 export const deleteLikes = async (postId) => {
   console.log("post likes non nonono");
@@ -109,6 +107,21 @@ export const deleteLikes = async (postId) => {
 };
 
 // -------------------------- 게시글 댓글  --------------------------
+/**
+ * [C] 댓글 작성 (parentCommentId 없으면 일반 댓글)
+ */
+export const createCommentApi = async (postId, payload) => {
+  const body = { ...payload };
+  Object.keys(body).forEach((key) => {
+    if (body[key] === "" || body[key] === null || body[key] === undefined) {
+      delete body[key];
+    }
+  });
+
+  const res = await httpClient.post(`/posts/${postId}/comments`, body);
+  return res.data;
+};
+
 /**
  * [R] 댓글 목록 조회 (대댓글 포함)
  * @param {*} postId
@@ -120,12 +133,9 @@ export const fetchCommentsApi = async (postId) => {
 };
 
 /**
- * [C] 댓글 작성 (parentCommentId 없으면 일반 댓글)
- * @param {*} postId
- * @param {*} payload
- * @returns
+ * [U] 댓글 수정
  */
-export const createCommentApi = async (postId, payload) => {
+export const updateCommentApi = async (commentId, payload) => {
   const body = { ...payload };
   Object.keys(body).forEach((key) => {
     if (body[key] === "" || body[key] === null || body[key] === undefined) {
@@ -133,6 +143,14 @@ export const createCommentApi = async (postId, payload) => {
     }
   });
 
-  const res = await httpClient.post(`/posts/${postId}/comments`, body);
+  const res = await httpClient.put(`/comments/${commentId}`, body);
+  return res.data;
+};
+
+/**
+ * [D] 댓글 삭제
+ */
+export const deleteCommentApi = async (commentId) => {
+  const res = await httpClient.delete(`/comments/${commentId}`);
   return res.data;
 };
