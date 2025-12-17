@@ -220,6 +220,10 @@ public class PostServiceImpl implements PostService {
                 .toList();
     }
 
+    @Override
+    public Integer getPostCountByBookId(long bookId) {
+        return postDao.countPostsByBookId(bookId);
+    }
 
 
 

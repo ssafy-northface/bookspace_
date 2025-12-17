@@ -1,6 +1,7 @@
 package com.bookspace.domain.book.service;
 
 import com.bookspace.domain.book.dto.AladinItemResponseDto;
+import com.bookspace.domain.book.dto.BookDetailResponseDto;
 import com.bookspace.domain.book.dto.BookSearchResponseDto;
 import com.bookspace.domain.book.vo.BookVo;
 
@@ -19,4 +20,7 @@ public interface BookService {
 
     // 검색어 없이 알라딘 API 호출하여 기본 목록 조회
     List<BookSearchResponseDto> getDefaultBooksFromAladin(String type);
+
+    // ISBN 기반 도서 상세 정보 조회
+    BookDetailResponseDto getBookDetail(String isbn);
 }
