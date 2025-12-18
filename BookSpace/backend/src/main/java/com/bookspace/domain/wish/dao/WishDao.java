@@ -27,7 +27,7 @@ public interface WishDao {
     int countWishesByBookId(long bookId);
 
     // 6. 이미 찜을 했는지 확인
-    boolean existsWish(@Param("userId") long userId,
+    int existsWish(@Param("userId") long userId,
                        @Param("bookId") long bookId);
 
 }

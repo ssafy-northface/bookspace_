@@ -64,11 +64,8 @@
     </select>
 
     <!-- 6. 이미 찜을 했는지 확인 (중복 방지) -->
-    <select id="existsWish" resultType="boolean">
-        SELECT
-            CASE WHEN COUNT(*) > 0 THEN TRUE
-                ELSE FALSE
-            END
+    <select id="existsWish" resultType="int">
+        SELECT COUNT(*)
         FROM wish
         WHERE user_id = #{userId}
           AND book_id = #{bookId}

@@ -43,7 +43,7 @@ public class WishServiceImpl implements WishService {
 
 
         // 2) 이미 찜한 상태라면 예외 처리
-        if (wishDao.existsWish(userId, bookId)) {
+        if (wishDao.existsWish(userId, bookId) > 0) {
             throw new IllegalArgumentException("You have already wished this book.");
         }
 

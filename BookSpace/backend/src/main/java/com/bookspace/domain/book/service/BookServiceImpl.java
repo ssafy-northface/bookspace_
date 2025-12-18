@@ -9,7 +9,11 @@ import com.bookspace.domain.book.external.AladinClient;
 import com.bookspace.domain.book.vo.BookVo;
 import com.bookspace.domain.post.dao.PostDao;
 import com.bookspace.domain.review.dao.ReviewDao;
+import com.bookspace.domain.wish.dao.WishDao;
+import com.bookspace.global.security.userdetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.bookspace.domain.book.converter.BookConverter;
@@ -26,6 +30,7 @@ public class BookServiceImpl implements BookService {
     // 순환의존성 문제로 DAO를 직접 주입
     private final ReviewDao reviewDao;
     private final PostDao postDao;
+    private final WishDao wishDao;
 
 
     // [검색] DB 검색 시 없으면 알라딘 API 호출
@@ -196,7 +201,7 @@ public class BookServiceImpl implements BookService {
             dto.setAverageRating(avgRating == null ? 0.0 : avgRating);
             dto.setReviewCount(reviewCnt == null ? 0 : reviewCnt);
             dto.setPostCount(postCnt == null ? 0 : postCnt);
-            dto.setIsWished(false);
+            dto.setIsWished(isWishedByCurrentUser(bookId));
 
             return dto;
         }
@@ -214,6 +219,16 @@ public class BookServiceImpl implements BookService {
         return dto;
     }
 
+    private boolean isWishedByCurrentUser(Long bookId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) return false;
+
+        Object principal = auth.getPrincipal();
+        if (!(principal instanceof CustomUserDetails userDetails)) return false;
+
+        long userId = userDetails.getUserId();
+        return wishDao.existsWish(userId, bookId) > 0;
+    }
 
 
 }
