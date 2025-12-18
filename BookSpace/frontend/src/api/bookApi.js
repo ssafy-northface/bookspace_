@@ -1,6 +1,5 @@
 // src/api/bookApi.js
-import httpClient from "./httpClient";
-import httpClinet from "./httpClient"; 
+import httpClient from "./httpClient"; 
 
 const BASE = "/books";
 
@@ -9,7 +8,7 @@ const BASE = "/books";
  * GET /books?type=bestseller|new
  */
 export const fetchDefaultBooks = async ({ type = "bestseller" } = {}) => {
-  const res = await httpClinet.get(BASE, {
+  const res = await httpClient.get(BASE, {
     params: { type },
   });
   return res.data; // List<BookSearchResponseDto>
@@ -34,6 +33,21 @@ export const searchBooks = async ({
     },
   });
   return res.data; // List<BookSearchResponseDto>
+};
+
+/**
+ * 도서 상세조회 (ISBN 기반)
+ * GET /books/detail/{isbn}
+ * -> BookDetailResponseDto
+ */
+export const fetchBookDetailByIsbn = async (isbn) => {
+  if (!isbn || !String(isbn).trim()) {
+    throw new Error("isbn is required");
+  }
+  const res = await httpClient.get(
+    `${BASE}/detail/${encodeURIComponent(String(isbn).trim())}`
+  );
+  return res.data; // BookDetailResponseDto
 };
 
 /**
