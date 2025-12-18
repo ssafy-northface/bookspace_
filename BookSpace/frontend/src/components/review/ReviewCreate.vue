@@ -23,7 +23,7 @@
           :maxlength="maxLength"
           rows="1"
           class="flex-1 h-10 overflow-hidden rounded-md border border-input bg-background px-4 py-2 text-sm outline-none placeholder:text-muted-foreground resize-none transition-all duration-200 ease-out"
-          placeholder="이 책에 대한 생각을 자유롭게 적어주세요 (최대 300자)"
+          placeholder="이 책에 대한 생각을 자유롭게 적어주세요"
           @click="expand"
         ></textarea>
 
