@@ -1,6 +1,5 @@
 // src/api/bookApi.js
 import httpClient from "./httpClient";
-import httpClinet from "./httpClient"; 
 
 const BASE = "/books";
 
@@ -9,7 +8,7 @@ const BASE = "/books";
  * GET /books?type=bestseller|new
  */
 export const fetchDefaultBooks = async ({ type = "bestseller" } = {}) => {
-  const res = await httpClinet.get(BASE, {
+  const res = await httpClient.get(BASE, {
     params: { type },
   });
   return res.data; // List<BookSearchResponseDto>
@@ -26,6 +25,11 @@ export const searchBooks = async ({
 } = {}) => {
   if (!query || !query.trim()) return []; // 빈 검색어 방어
 
+  console.log(query);
+  console.log(type);
+  console.log(sort);
+  console.log(`${BASE}/search`);
+
   const res = await httpClient.get(`${BASE}/search`, {
     params: {
       query: query.trim(),
@@ -33,6 +37,7 @@ export const searchBooks = async ({
       sort,
     },
   });
+  console.log(res.data);
   return res.data; // List<BookSearchResponseDto>
 };
 

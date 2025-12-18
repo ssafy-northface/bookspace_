@@ -26,18 +26,23 @@ export function useBookSearch() {
       error.value = "";
 
       try {
+        // 1. 기본 목록 조회 (검색어 없음)
         if (!q) {
-          books.value = await fetchDefaultBooks({ type: "bestseller" });
+          books.value = await fetchDefaultBooks({
+            type: t === "new" ? "new" : "bestseller",
+          });
           return;
         }
 
+        // 2. 검색 조회
         books.value = await searchBooks({
           query: q,
           type: t,
           sort: s,
         });
       } catch (e) {
-        error.value = e?.response?.data?.message || "검색 결과를 불러오지 못했습니다.";
+        error.value =
+          e?.response?.data?.message || "검색 결과를 불러오지 못했습니다.";
         books.value = [];
       } finally {
         loading.value = false;
@@ -50,16 +55,18 @@ export function useBookSearch() {
   const search = ({ query, type }) => {
     const trimmed = (query ?? "").trim();
     if (!trimmed) {
-      router.push({ path: "/books" });
+      router.replace({
+        path: "/books",
+        query: {}, // query 파라미터 제거
+      });
       return;
     }
 
-    router.push({
+    router.replace({
       path: "/books",
       query: {
         query: trimmed,
         type: type ?? "title",
-        sort: "latest",
       },
     });
   };
