@@ -13,8 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.bookspace.domain.book.converter.BookConverter;
-
-
+import java.util.LinkedHashSet;
 import java.util.List;
 
 @Service
@@ -120,18 +119,95 @@ public class BookServiceImpl implements BookService {
     }
 
     // 알라딘 API로만 책 조회 (3개의 파라미터)
+    // searchType에 따라 알라딘 api 조회 결과 부정확함
+    // -> 서버에서 searchType별로
+    // query와 일치하는 도서 -> query로 시작하는 도서의 순으로 최대 3권 반환
     @Override
-    public List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType, String sort) {
+    public List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType,   String sort) {
+
+        final int maxResults = 100;
+
         AladinListResponseDto apiResponse =
-                aladinClient.searchBooks(query, searchType, sort, 100);
+                aladinClient.searchBooks(query, searchType, sort, maxResults);
 
         if (apiResponse == null || apiResponse.getItems() == null) {
             return List.of();
         }
 
-        return apiResponse.getItems().stream()
+        String normalizedQuery = normalize(query);
+        if (normalizedQuery.isEmpty()) {
+            return List.of();
+        }
+
+        List<AladinItemResponseDto> items = apiResponse.getItems();
+
+        // 중복 제거 + 순서 유지 (equals 결과 먼저, 그 다음 startsWith 결과)
+        LinkedHashSet<AladinItemResponseDto> result = new LinkedHashSet<>();
+
+        // 1) equals 우선
+        for (AladinItemResponseDto item : items) {
+            String target = normalize(extractTarget(item, searchType));
+            if (!target.isEmpty() && target.equals(normalizedQuery)) {
+                result.add(item);
+            }
+        }
+
+        // 2) startsWith
+        for (AladinItemResponseDto item : items) {
+            String target = normalize(extractTarget(item, searchType));
+            if (!target.isEmpty() && target.startsWith(normalizedQuery)) {
+                result.add(item);
+            }
+        }
+
+        return result.stream()
                 .map(BookConverter::toSearchResponseFromAladinItem)
                 .toList();
+    }
+
+    /**
+     * 비교용 정규화:
+     * - 괄호/대괄호 내용 제거: (개정판), [세트] 등
+     * - 특수문자 제거
+     * - 공백 정리
+     * - 소문자 변환
+     */
+    private String normalize(String raw) {
+        if (raw == null) return "";
+
+        String s = raw.trim().toLowerCase();
+
+        // () [] 안 내용 제거
+        s = s.replaceAll("\\(.*?\\)", " ");
+        s = s.replaceAll("\\[.*?\\]", " ");
+
+        // 한글/영문/숫자/공백만 남김
+        s = s.replaceAll("[^\\p{IsAlphabetic}\\p{IsDigit}\\p{IsHangul}\\s]", " ");
+
+        // 공백 정규화
+        return s.replaceAll("\\s+", " ").trim();
+    }
+
+
+    /**
+     * 검색 타입에 따라 비교 대상 문자열 추출
+     */
+    private String extractTarget(AladinItemResponseDto item, String searchType) {
+        String raw =  switch(searchType.toLowerCase()){
+            case "title" -> item.getTitle();
+            case "author" -> item.getAuthor();
+            case "publisher" -> item.getPublisher();
+            default -> null;
+        };
+
+        if (raw == null) return null;
+
+        int idx = raw.indexOf("(");
+        if (idx > 0) {
+            raw = raw.substring(0, idx);
+        }
+
+        return raw.trim();
     }
 
     /**
