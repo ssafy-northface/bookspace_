@@ -38,4 +38,6 @@ public interface PostService {
     // 유저가 좋아하는 게시글 전체조회
     List<PostResponseDto> getLikedPostsByUserId(Long userId);
 
+    // 특정 책에 대한 게시글 개수 조회
+    Integer getPostCountByBookId(long bookId);
 }

@@ -1,5 +1,5 @@
 // src/api/bookApi.js
-import httpClient from "./httpClient";
+import httpClient from "./httpClient"; 
 
 const BASE = "/books";
 
@@ -39,6 +39,21 @@ export const searchBooks = async ({
   });
   console.log(res.data);
   return res.data; // List<BookSearchResponseDto>
+};
+
+/**
+ * 도서 상세조회 (ISBN 기반)
+ * GET /books/detail/{isbn}
+ * -> BookDetailResponseDto
+ */
+export const fetchBookDetailByIsbn = async (isbn) => {
+  if (!isbn || !String(isbn).trim()) {
+    throw new Error("isbn is required");
+  }
+  const res = await httpClient.get(
+    `${BASE}/detail/${encodeURIComponent(String(isbn).trim())}`
+  );
+  return res.data; // BookDetailResponseDto
 };
 
 /**

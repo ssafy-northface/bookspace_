@@ -21,7 +21,7 @@
     <div v-if="book?.description" class="space-y-2">
       <h2 class="text-xl font-semibold">책 소개</h2>
       <p class="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-        {{ book.description }}
+        {{ decodedDescription }}
       </p>
     </div>
 
@@ -36,11 +36,19 @@ import { computed } from "vue";
 const props = defineProps({
   book: {
     type: Object,
-    required: true, // BookSearchResponseDto 그대로 사용
+    required: true,
   },
 });
 
-const formattedPubDate = computed(() => {
-  return props.book?.pubDate || "";
-});
+
+const decodeHtml = (str = "") => {
+  const el = document.createElement("textarea");
+  el.innerHTML = str;
+  return el.value;
+}
+
+// html entity 디코딩 처리
+const decodedDescription = computed(()=>
+  decodeHtml(props.book?.description ?? "")
+);
 </script>

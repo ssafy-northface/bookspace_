@@ -108,8 +108,9 @@
 
 
     <!-- 특정 책에 대한 평균 평점 조회 -->
+        <!-- review가 0개면 AVG가 null 나올 수 있기 때문에 IFNULL로 처리 -->
     <select id="selectAverageRating" resultType="double">
-        SELECT AVG(review_rating)
+        SELECT IFNULL(AVG(review_rating),0)
         FROM review r
         JOIN user u ON r.user_id = u.user_id
         WHERE r.book_id = #{bookId}
@@ -121,7 +122,7 @@
         SELECT COUNT(*)
         FROM review r
         JOIN user u ON r.user_id = u.user_id
-        WHERE book_id = #{bookId}
+        WHERE r.book_id = #{bookId}
           AND u.user_status = 'active'
     </select>
 

@@ -1,6 +1,7 @@
 package com.bookspace.domain.book.converter;
 
 import com.bookspace.domain.book.dto.AladinItemResponseDto;
+import com.bookspace.domain.book.dto.BookDetailResponseDto;
 import com.bookspace.domain.book.dto.BookSearchResponseDto;
 import com.bookspace.domain.book.vo.BookVo;
 
@@ -64,6 +65,42 @@ public final class BookConverter {
         dto.setCover(item.getCover());
         dto.setCategoryName(item.getCategoryName());
         dto.setDescription(item.getDescription());
+        return dto;
+    }
+
+
+    // DB에서 조회 -> Detail DTO
+    public static BookDetailResponseDto toDetailResponseFromBookVo(BookVo vo) {
+        if (vo == null) return null;
+
+        BookDetailResponseDto dto = new BookDetailResponseDto();
+        dto.setBookId(vo.getBookId());
+        dto.setIsbn(vo.getBookIsbn());
+        dto.setTitle(vo.getBookTitle());
+        dto.setAuthor(vo.getBookAuthor());
+        dto.setPublisher(vo.getBookPublisher());
+        dto.setPubDate(vo.getBookPublicationDate());
+        dto.setCover(vo.getBookImageUrl());
+        dto.setDescription(vo.getBookDescription());
+
+        return dto;
+    }
+
+    // 알라딘 API 조회 -> Detail DTO
+    public static BookDetailResponseDto toDetailResponseFromAladinItem(
+            AladinItemResponseDto item
+    ) {
+        if (item == null) return null;
+
+        BookDetailResponseDto dto = new BookDetailResponseDto();
+        dto.setIsbn(item.getIsbn13());   // 또는 item.getIsbn() → 실제 필드명만 확인
+        dto.setTitle(item.getTitle());
+        dto.setAuthor(item.getAuthor());
+        dto.setPublisher(item.getPublisher());
+        dto.setPubDate(item.getPubDate());
+        dto.setCover(item.getCover());
+        dto.setDescription(item.getDescription());
+
         return dto;
     }
 }
