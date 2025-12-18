@@ -6,17 +6,24 @@
     </div>
 
     <!-- 찜 버튼 -->
+     <!-- 로딩 중 버튼 비활성화 -->
     <div class="flex">
       <button
         type="button"
         class="flex-1 h-10 inline-flex items-center justify-center gap-2 rounded-md font-extrabold text-base transition-colors"
-        :class="isWished ? 'bg-gray-400 text-primary-foreground cursor-default' : 'bg-primary text-primary-foreground hover:bg-primary/90'"
-        @click="$emit('toggle-wish')"
+        :disabled="isWishLoading"
+        :class="[
+          isWished
+            ? 'bg-gray-400 text-primary-foreground cursor-default'
+            : 'bg-primary text-primary-foreground hover:bg-primary/90',
+          isWishLoading ? 'opacity-60 cursor-not-allowed' : ''
+        ]"
+        @click.stop="!isWishLoading && $emit('toggle-wish')"
       >
         <span class="text-base leading-none">
           {{ isWished ? "♥" : "♡" }}
         </span>
-        {{ isWished ? "찜완료" : "찜하기" }}
+        {{ isWishLoading ? "처리중..." : (isWished ? "찜완료" : "찜하기") }}
       </button>
     </div>
 
@@ -54,6 +61,10 @@ const props = defineProps({
     required: true, // BookSearchResponseDto 그대로
   },
   isWished: {
+    type: Boolean,
+    default: false,
+  },
+  isWishLoading: {
     type: Boolean,
     default: false,
   },
