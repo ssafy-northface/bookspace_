@@ -22,15 +22,21 @@ export const createPostApi = async (payload) => {
 };
 
 /**
- *  [R] 게시글 전체 조회 (페이징)
+ *  [R] 게시글 전체 조회 & 게시글 검색(페이징)
  * @param {*} param0
  * @returns
  */
-export const fetchPosts = async ({ pageParam = 0 }) => {
+export const fetchPosts = async ({
+  pageParam = 0,
+  isbn = "",
+  sort = "latest",
+} = {}) => {
   const res = await httpClient.get("/posts", {
     params: {
       page: pageParam,
       size: 10,
+      isbn: isbn || undefined,
+      sort: sort || undefined,
     },
   });
 

@@ -1,8 +1,32 @@
+<!--
+# SearchBar (공통 컴포넌트)
+- CommunityView, BooksView 검색 UI
+- Select(검색 기준) + Input (검색 입력) + Button
+- 입력값/타입 변경 & 엔터/버튼 클릭시 300ms emit("search") 발생
+- api 호출, 검색 결과 렌더링은 부모 컴포넌트에서 수행
+
+[props]
+- initialQuery: 검색 인풋 초기값
+- initialType: 셀러터 초기값
+- showTypeSelector: 검색 기준 노출 여부 (post검색에서는 검색 기준 x -> 책 제목만임)
+- placholder: input placeholder
+
+[사용]
+<BookSearchInput
+  :initialQuery="route.query.q ?? ''"
+  :initialType="route.query.type ?? 'title'"
+  :showTypeSelector="true"
+  placeholder="책 제목/저자/출판사로 검색"
+  @search="handleSearch"
+/>
+
+-->
 <template>
   <!-- 검색기준 + 검색창  -->
   <section class="flex items-center gap-2 mb-4">
     <!-- 책제목, 저자, 출판사 선택 -->
     <select
+      v-if="showTypeSelector"
       v-model="type"
       class="h-9 rounded-md border border-input bg-background px-2 text-xs md:text-sm focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring"
     >
@@ -14,7 +38,7 @@
     <!-- 검색창 -->
     <SearchInput
       v-model="searchQuery"
-      placeholder="검색어를 입력하세요"
+      :placeholder="placeholder"
       @search="onSearch"
     />
 
@@ -33,6 +57,8 @@ import Button from "../ui/Button.vue";
 const props = defineProps({
   initialQuery: { type: String, default: "" },
   initialType: { type: String, default: "title" },
+  showTypeSelector: { type: Boolean, default: true },
+  placeholder: { type: String, default: "검색어를 입력하세요" },
 });
 
 // 부모 BooksView에게 전달할 이벤트들
