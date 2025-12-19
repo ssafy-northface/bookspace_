@@ -118,15 +118,18 @@ public class BookServiceImpl implements BookService {
         return fetchAndSaveBookByIsbnFromAladin(isbn);
     }
 
-    // 알라딘 API로만 책 조회 (3개의 파라미터)
-    // searchType에 따라 알라딘 api 조회 결과 부정확함
-    // -> 서버에서 searchType별로
-    // query와 일치하는 도서 -> query로 시작하는 도서의 순으로 최대 3권 반환
-    @Override
-    public List<BookSearchResponseDto> searchBooksFromAladin(String query, String searchType,   String sort) {
 
+    /**
+     * 알라딘 API 도서 검색
+     */
+    public List<BookSearchResponseDto> searchBooksFromAladin(
+            String query,
+            String searchType,
+            String sort
+    ) {
         final int maxResults = 100;
 
+        // 1. 알라딘 API 호출
         AladinListResponseDto apiResponse =
                 aladinClient.searchBooks(query, searchType, sort, maxResults);
 
@@ -134,81 +137,126 @@ public class BookServiceImpl implements BookService {
             return List.of();
         }
 
-        String normalizedQuery = normalize(query);
-        if (normalizedQuery.isEmpty()) {
+        // 2. 검색어 정규화
+        String normalizedQuery = normalizeQuery(query);
+        if (normalizedQuery.isBlank()) {
             return List.of();
         }
 
-        List<AladinItemResponseDto> items = apiResponse.getItems();
-
-        // 중복 제거 + 순서 유지 (equals 결과 먼저, 그 다음 startsWith 결과)
-        LinkedHashSet<AladinItemResponseDto> result = new LinkedHashSet<>();
-
-        // 1) equals 우선
-        for (AladinItemResponseDto item : items) {
-            String target = normalize(extractTarget(item, searchType));
-            if (!target.isEmpty() && target.equals(normalizedQuery)) {
-                result.add(item);
-            }
-        }
-
-        // 2) startsWith
-        for (AladinItemResponseDto item : items) {
-            String target = normalize(extractTarget(item, searchType));
-            if (!target.isEmpty() && target.startsWith(normalizedQuery)) {
-                result.add(item);
-            }
-        }
-
-        return result.stream()
-                .map(BookConverter::toSearchResponseFromAladinItem)
+        // 3. 점수 계산 → 정렬 → 응답 변환
+        return apiResponse.getItems().stream()
+                .map(item -> scoreItem(item, searchType, normalizedQuery))
+                .filter(scored -> scored.score > 0)
+                .sorted((a, b) -> Integer.compare(b.score, a.score))
+                .map(scored ->
+                        BookConverter.toSearchResponseFromAladinItem(scored.item))
                 .toList();
     }
 
     /**
-     * 비교용 정규화:
-     * - 괄호/대괄호 내용 제거: (개정판), [세트] 등
-     * - 특수문자 제거
-     * - 공백 정리
-     * - 소문자 변환
+     * 개별 아이템 점수 계산
      */
-    private String normalize(String raw) {
+    private ScoredItem scoreItem(
+            AladinItemResponseDto item,
+            String searchType,
+            String query
+    ) {
+        String rawTarget = extractTarget(item, searchType);
+        String normalizedTarget = normalizeTarget(rawTarget);
+
+        int score = SearchScorer.score(query, normalizedTarget);
+        return new ScoredItem(item, score);
+    }
+
+    /**
+     * 검색 타입별 비교 대상 추출
+     */
+    private String extractTarget(AladinItemResponseDto item, String searchType) {
+        return switch (searchType.toLowerCase()) {
+            case "author" -> item.getAuthor();
+            case "publisher" -> item.getPublisher();
+            default -> item.getTitle();
+        };
+    }
+
+
+    /**
+     * 검색어 정규화 (공백 유지)
+     */
+    private String normalizeQuery(String raw) {
+        if (raw == null) return "";
+        return raw.trim()
+                .toLowerCase()
+                .replaceAll("\\s+", " ");
+    }
+
+    /**
+     * 검색 대상 정규화 (title, author 등)
+     */
+    private String normalizeTarget(String raw) {
         if (raw == null) return "";
 
-        String s = raw.trim().toLowerCase();
+        String s = raw.toLowerCase();
 
-        // () [] 안 내용 제거
+        // 괄호/대괄호 제거 (부제, 개정판 등)
         s = s.replaceAll("\\(.*?\\)", " ");
         s = s.replaceAll("\\[.*?\\]", " ");
 
-        // 한글/영문/숫자/공백만 남김
-        s = s.replaceAll("[^\\p{IsAlphabetic}\\p{IsDigit}\\p{IsHangul}\\s]", " ");
+        // 특수문자 제거
+        s = s.replaceAll("[^\\p{IsHangul}\\p{IsAlphabetic}\\p{IsDigit}\\s]", " ");
 
-        // 공백 정규화
         return s.replaceAll("\\s+", " ").trim();
     }
 
 
     /**
-     * 검색 타입에 따라 비교 대상 문자열 추출
+     * 검색 점수 계산기
+     *
+     * - 기본 비교 + 띄어쓰기 무시 비교
+     * - 필터링 x / 랭킹
      */
-    private String extractTarget(AladinItemResponseDto item, String searchType) {
-        String raw =  switch(searchType.toLowerCase()){
-            case "title" -> item.getTitle();
-            case "author" -> item.getAuthor();
-            case "publisher" -> item.getPublisher();
-            default -> null;
-        };
+    private static class SearchScorer {
 
-        if (raw == null) return null;
+        static int score(String query, String target) {
+            if (query.isBlank() || target.isBlank()) return 0;
 
-        int idx = raw.indexOf("(");
-        if (idx > 0) {
-            raw = raw.substring(0, idx);
+            int score = 0;
+
+            //  기본 비교
+
+            if (target.equals(query)) score += 100;
+            if (target.startsWith(query)) score += 50;
+            if (target.startsWith(query + "의")) score += 45;
+            if (target.contains(query)) score += 20;
+
+            // 띄어쓰기 무시 비교
+
+            String noSpaceQuery  = query.replace(" ", "");
+            String noSpaceTarget = target.replace(" ", "");
+
+            if (noSpaceTarget.equals(noSpaceQuery)) score += 80;
+            if (noSpaceTarget.startsWith(noSpaceQuery)) score += 40;
+            if (noSpaceTarget.contains(noSpaceQuery)) score += 15;
+
+            return score;
         }
-
-        return raw.trim();
     }
+
+    /**
+     * 점수 포함 래퍼
+     */
+    private static class ScoredItem {
+        private final AladinItemResponseDto item;
+        private final int score;
+
+        private ScoredItem(AladinItemResponseDto item, int score) {
+            this.item = item;
+            this.score = score;
+        }
+    }
+
+
+
 
     /**
      * [기본 목록] 검색어 없이 알라딘에서 기본 도서 리스트 조회
