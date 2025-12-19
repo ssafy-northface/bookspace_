@@ -22,23 +22,12 @@
       >검색</Button
     >
   </section>
-
-  <!-- 검색 결과 -->
-  <section>
-    <BookSearchResults
-      :query="searchQuery"
-      :results="suggestions"
-      :loading="isLoading"
-      :error="errorMessage"
-    />
-  </section>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
 import SearchInput from "../common/SearchInput.vue";
 import Button from "../ui/Button.vue";
-import BookSearchResults from "./BookSearchResults.vue";
 
 // 초기값
 const props = defineProps({

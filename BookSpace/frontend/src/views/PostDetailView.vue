@@ -39,41 +39,25 @@
         </header>
 
         <div class="space-y-4">
+          <!-- 게시글 제목 -->
           <h1 class="text-2xl font-semibold text-foreground">
             {{ post.postTitle }}
           </h1>
 
-          <div class="space-y-3">
-            <Separator />
-            <div class="flex items-start gap-4 px-1">
-              <div class="h-40 overflow-hidden rounded-md w-28 bg-muted">
-                <img
-                  :src="post.bookImageUrl || defaultBook"
-                  alt="book cover"
-                  class="object-cover w-full h-full"
-                />
-              </div>
-              <div class="flex-1 space-y-1">
-                <p class="text-lg font-semibold text-foreground">
-                  {{ post.bookTitle || "도서 정보 없음" }}
-                </p>
-                <p class="text-sm text-muted-foreground">
-                  {{
-                    post.bookAuthor || "작성자가 도서 정보를 추가하지 않았어요."
-                  }}
-                </p>
-                <p v-if="post.isbn" class="text-xs text-muted-foreground">
-                  ISBN {{ post.isbn }}
-                </p>
-              </div>
-            </div>
-            <Separator />
-          </div>
+          <!-- 책 정보 -->
+          <PostBookInfo
+            :title="post.bookTitle"
+            :author="post.bookAuthor"
+            :isbn="post.isbn"
+            :image-url="post.bookImageUrl"
+          />
         </div>
 
+        <!-- 게시글 내용 -->
         <p class="leading-relaxed whitespace-pre-line text-foreground">
           {{ content }}
         </p>
+
         <!-- 좋아요 & 댓굴 & 조회 -->
         <div
           class="flex items-center justify-end w-full gap-3 text-sm flex- text-muted-foreground"
@@ -137,7 +121,6 @@ import { useRouter, onBeforeRouteUpdate } from "vue-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import Button from "@/components/ui/Button.vue";
 import { useToast } from "@/composables/useToast";
-import Separator from "@/components/ui/Separator.vue";
 import {
   deleteLikes,
   deletePostApi,
@@ -151,6 +134,7 @@ import { useUserStore } from "@/stores/userStore";
 import CommentsSection from "@/components/community/CommentsSection.vue";
 import UserProfileImg from "@/components/common/UserProfileImg.vue";
 import KebabMenu from "@/components/community/KebabMenu.vue";
+import PostBookInfo from "@/components/community/PostBookInfo.vue";
 
 const { toast } = useToast();
 
@@ -194,9 +178,6 @@ const formattedDate = computed(() => {
 });
 
 const content = computed(() => post.value?.postContent ?? "");
-
-const defaultProfile = "/default-profile.png";
-const defaultBook = "/default-book.png";
 
 const goBack = () => {
   router.push({
