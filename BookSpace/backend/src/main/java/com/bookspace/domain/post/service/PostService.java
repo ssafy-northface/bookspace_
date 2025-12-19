@@ -11,8 +11,8 @@ public interface PostService {
     // 게시글 등록
     void createPost(PostRequestDto requestDto, long loginUserId);
 
-    // 게시글 전체 조회 (페이지네이션 적용)
-    PostPageResponseDto getAllPosts(int page, int size, Long userId);
+    // 게시글 전체 조회 &  게시물 검색 (페이지네이션 적용) + 정렬 (sort: latest / comments)
+    PostPageResponseDto getAllPosts(int page, int size, String isbn, String sort, Long userId);
 
     // 게시글 단건 조회
     PostResponseDto getPostById(long postId, Long userId);

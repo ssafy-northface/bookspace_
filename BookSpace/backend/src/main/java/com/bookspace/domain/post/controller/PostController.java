@@ -36,12 +36,20 @@ public class PostController {
     }
 
     // 2. 전체 조회 (페이지네이션 적용)
+    /**
+     * 1) 게시물 전체 조회 & 도서 검색에 대한 게시물 필터링
+     * -  /posts?page=0&size=10 -> 전체 목록
+     * - /posts?page=0&size=10&isbn=978... -> 해당 책 게시글만
+     * 2) 게시글 검색 정렬 (sort)
+     */
     @GetMapping
     public ResponseEntity<PostPageResponseDto> getAllPosts(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(required = false) String isbn,
+                                                           @RequestParam(required = false,defaultValue = "latest") String sort,
                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
-        PostPageResponseDto response = postService.getAllPosts(page,size,userId);
+        PostPageResponseDto response = postService.getAllPosts(page,size,isbn,sort, userId);
         return ResponseEntity.ok(response);
     }
 

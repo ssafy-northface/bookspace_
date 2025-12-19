@@ -16,11 +16,12 @@ public interface PostDao {
     int insertPost(PostVo postVo);
 
     // 2. 게시글 전체 조회 (로그인 userId -> isLiked)
-    // 페이징 목록
+    // params: size, offset, userId, isbn
     List<PostResponseDto> selectAllPosts(Map<String,Object> params);
 
-    // 전체 게시물 개수
-    int countAllPosts();
+    // 전체 게시물 / 검색된 게시물 개수
+    // isbn == null ? 전체 카운트 : 필터 카운트
+    int countAllPosts(@Param("isbn") String isbn);
 
     // 3. 게시글 단건 조회 (로그인 userId -> isLiked)
     PostResponseDto selectPostById(@Param("postId") long postId, @Param("userId") Long userId);
