@@ -57,7 +57,7 @@
         </div>
         <!-- 답글 작성 버튼 -->
         <button
-          v-if="isParent && !isEditing"
+          v-if="isParent && !isEditing && isLoggedIn"
           class="text-xs text-primary hover:underline"
           type="button"
           @click="$emit('reply', comment.commentId)"
@@ -120,6 +120,8 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 const queryClient = useQueryClient();
 const { toast } = useToast();
+
+const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 // ------------ owner? ------------
 const me = computed(() => userStore.me);

@@ -1,5 +1,3 @@
-<!-- TODO SearchInput 검색 기능 -->
-<!-- TODO 스타일 수정 -->
 <template>
   <ViewHeader
     title="커뮤니티"
@@ -9,15 +7,30 @@
   />
 
   <!-- 검색인풋 + 게시글 작성 버튼 -->
-  <section
-    ref="searchAreaRef"
-    class="flex items-center justify-between gap-4 mt-6 mb-4"
-  >
-    <SearchInput placeholder="게시판 검색..." />
+  <section ref="searchAreaRef" class="mt-6 mb-4 space-y-3">
+    <div
+      class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"
+    >
+      <div class="flex-1 w-full">
+        <PostBookSelector
+          v-model:isbn="selectedIsbn"
+          title-only
+          :show-label="false"
+          placeholder="책 제목으로 게시판을 검색하세요"
+          @select="handleBookSelect"
+        />
+      </div>
 
-    <Button @click="goToCreatePost">
-      <PlusIcon class="w-5 h-5 text-white" /> 게시글 작성
-    </Button>
+      <Button @click="goToCreatePost">
+        <PlusIcon class="w-5 h-5 text-white" /> 게시글 작성
+      </Button>
+    </div>
+
+    <PostSortBar
+      v-if="isSearchMode"
+      :sort="sort"
+      @sort-change="handleSortChange"
+    />
   </section>
 
   <!-- 새 게시글 알림 -->
@@ -77,7 +90,8 @@
 
 <script setup>
 import ViewHeader from "../components/common/ViewHeader.vue";
-import SearchInput from "../components/common/SearchInput.vue";
+import PostBookSelector from "@/components/post/PostBookSelector.vue";
+import PostSortBar from "@/components/community/PostSortBar.vue";
 import Button from "../components/ui/Button.vue";
 import { PlusIcon } from "lucide-vue-next";
 import { ArrowUpIcon } from "@heroicons/vue/24/solid";
@@ -94,9 +108,16 @@ const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
 
-// 1. 쿼리에서 목록 상태 복원 (스크롤 복원 위치)
-const page = computed(() => Number(route.query.page ?? 0));
-const keyword = computed(() => route.query.keyword ?? "");
+const pickQueryString = (value) =>
+  Array.isArray(value) ? value[0] ?? "" : value ?? "";
+const normalizeSort = (value) =>
+  value === "comments" ? "comments" : "latest";
+
+// 검색/필터 상태
+const selectedIsbn = ref(pickQueryString(route.query.isbn));
+const selectedBookTitle = ref(pickQueryString(route.query.bookTitle));
+const sort = ref(normalizeSort(pickQueryString(route.query.sort)));
+const isSearchMode = computed(() => !!selectedIsbn.value);
 
 // 게시글 목록 경로: data.pages[0].content.posts
 // 2. 게시글 목록 조회
@@ -108,8 +129,21 @@ const {
   status,
   refetch,
 } = useInfiniteQuery({
-  queryKey: ["posts"],
-  queryFn: fetchPosts,
+  queryKey: computed(() => [
+    "posts",
+    {
+      isbn: selectedIsbn.value || null,
+      sort: isSearchMode.value ? sort.value : null,
+    },
+  ]),
+  queryFn: ({ pageParam = 0, queryKey }) => {
+    const [, params] = queryKey;
+    return fetchPosts({
+      pageParam,
+      isbn: params?.isbn || "",
+      sort: isSearchMode.value ? params?.sort || "latest" : undefined,
+    });
+  },
   staleTime: 0, // 항상 stale 처리  -> 최신 데이터 가져오기
   refetchOnWindowFocus: true, // 탭 전환할 때 자동 리패치
   cacheTime: 30000, // 30초 후 캐시 제거
@@ -140,8 +174,22 @@ onMounted(() => {
 
 // 최신 게시글 감지용 쿼리 (첫 페이지만 주기적으로 조회)
 const { data: latestPageData } = useQuery({
-  queryKey: ["posts", "latest"],
-  queryFn: () => fetchPosts({ pageParam: 0 }),
+  queryKey: computed(() => [
+    "posts",
+    "latest",
+    {
+      isbn: selectedIsbn.value || null,
+      sort: isSearchMode.value ? sort.value : null,
+    },
+  ]),
+  queryFn: ({ queryKey }) => {
+    const [, , params] = queryKey;
+    return fetchPosts({
+      pageParam: 0,
+      isbn: params?.isbn || "",
+      sort: isSearchMode.value ? params?.sort || "latest" : undefined,
+    });
+  },
   refetchInterval: 10000, // 10초마다 새 게시글 여부 확인
   refetchOnWindowFocus: true,
   staleTime: 0,
@@ -220,6 +268,47 @@ onUnmounted(() => {
     searchAreaObserver.unobserve(searchAreaRef.value);
   }
 });
+
+// 검색 / 필터 유틸
+const resetScrollState = () => {
+  pendingScroll.value = null;
+  hasRestoredScroll.value = false;
+  isRestoringScroll.value = false;
+  sessionStorage.removeItem("communityScroll");
+};
+
+const syncSearchQueryParams = () => {
+  router.replace({
+    query: {
+      ...route.query,
+      isbn: selectedIsbn.value || undefined,
+      bookTitle: selectedIsbn.value ? selectedBookTitle.value || undefined : undefined,
+      sort: isSearchMode.value ? sort.value || undefined : undefined,
+    },
+  });
+};
+
+const handleBookSelect = async (book) => {
+  selectedIsbn.value = book?.isbn13 ?? "";
+  selectedBookTitle.value = book?.title ?? "";
+  sort.value = normalizeSort(sort.value);
+  resetScrollState();
+  syncSearchQueryParams();
+  await nextTick();
+  await refetch();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+const handleSortChange = async (nextSort) => {
+  const normalized = normalizeSort(nextSort);
+  if (sort.value === normalized) return;
+  sort.value = normalized;
+  resetScrollState();
+  syncSearchQueryParams();
+  await nextTick();
+  await refetch();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
 
 const goToCreatePost = () => {
   if (!authStore.isLoggedIn) {

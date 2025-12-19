@@ -65,7 +65,10 @@
         @comment-deleted="handleCommentDeleted"
       >
         <!-- 답글 -->
-        <template #replyArea v-if="replyTargetId === comment.commentId">
+        <template
+          #replyArea
+          v-if="authStore.isLoggedIn && replyTargetId === comment.commentId"
+        >
           <div
             class="p-4 mt-2 space-y-3 border rounded-lg bg-muted/40 border-border"
           >
@@ -228,6 +231,7 @@ const submitReply = async () => {
 };
 
 const activateReply = (commentId) => {
+  if (!ensureAuth()) return;
   replyTargetId.value = commentId;
   replyText.value = "";
   errorMessage.value = "";
