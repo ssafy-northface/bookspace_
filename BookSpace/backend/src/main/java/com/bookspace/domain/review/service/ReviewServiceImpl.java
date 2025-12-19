@@ -28,15 +28,23 @@ public class ReviewServiceImpl implements ReviewService {
 
         String isbn = dto.getIsbn();
 
-        // 예외 처리
-        // 1. rating 범위 유효성 검사 (0~5) => 400 BAD_REQUEST
-        if (dto.getReviewRating() < 0 || dto.getReviewRating() > 5) {
-            throw new RuntimeException("Rating must be between 0 and 5.");
+        // isbn 없는 경우 예외처리
+        if (isbn == null || isbn.isBlank()) {
+            throw new RuntimeException("isbn is null or empty");
         }
 
-        // 2. 소수점 한 자리까지 허용
-        if (Math.round(dto.getReviewRating() * 10) != dto.getReviewRating() * 10) {
-            throw new RuntimeException("Rating must have at most one decimal place.");
+
+        // 평점 예외 처리
+        // 1. rating 범위 유효성 검사 (0.5~5.0) => 400 BAD_REQUEST
+        double rating = dto.getReviewRating();
+
+        if (rating < 0.5 || rating > 5.0) {
+            throw new RuntimeException("Rating must be between 0.0 and 5.0.");
+        }
+
+        // 2. 0.5 단위만 허용
+        if (Math.abs(rating * 2 - Math.round(rating * 2)) > 1e-9) {
+            throw new RuntimeException("Rating must be in 0.5 increments.");
         }
 
         // isbn 기반 DB 책 정보 확인 및 저장

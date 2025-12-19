@@ -1,6 +1,7 @@
 package com.bookspace.global.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -25,6 +26,16 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleNotFound(IllegalArgumentException ex) {
         return ErrorResponse.builder()
                 .code("NOT_FOUND")
+                .message(ex.getMessage())
+                .build();
+    }
+
+    /** 403 - Forbidden (권한 없음: 작성자 본인만 수정/삭제 가능) */
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDenied(AccessDeniedException ex) {
+        return ErrorResponse.builder()
+                .code("FORBIDDEN")
                 .message(ex.getMessage())
                 .build();
     }
