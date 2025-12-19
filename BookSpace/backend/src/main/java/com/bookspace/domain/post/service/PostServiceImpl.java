@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.bookspace.domain.book.service.BookService;
 import com.bookspace.domain.post.dto.PostPageResponseDto;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ public class PostServiceImpl implements PostService {
 
     private final PostDao postDao;
     private final BookService bookService;
-    private final ParameterNamesModule parameterNamesModule;
 
     // 게시글 작성 (isbn)
     @Override
@@ -65,25 +63,36 @@ public class PostServiceImpl implements PostService {
 
 
     /*
-    모든 게시글 조회 (페이지네이션 적용)
+    모든 게시글 조회 (isbn numm) & 게시글 검색 (isbn) - 페이지네이션
     모든 게시물 조회는 게시물 좋아요 개수, 좋아요 여부 2개가 모두 포함된 응답이 옴
     - 로그인한 유저라면, 자신이 게시물을 좋아요 눌렀는지 여부 (full heart / empty heart)
     - 로그인한 유저라면, liked값이 모두 false로 옴 -> 프론트 처리 (empty heart를 유저가 누르려고 시도했을 때 로그인 하라고 하기)
      */
     @Override
-    public PostPageResponseDto getAllPosts(int page, int size, Long userId)
+    public PostPageResponseDto getAllPosts(int page, int size, String isbn,String sort, Long userId)
     {
-
+        int safePage = Math.max(page,0);
+        int safeSize = Math.min(Math.max(size,0),30);
         int offset = page * size;
+
+        String trimmedIsbn = (isbn == null || isbn.isBlank()) ? null : isbn.trim();
+
+        String normalizedSort = (sort == null) ? "lastest":sort.trim().toLowerCase();
+        if(!normalizedSort.equals("latest")&& !normalizedSort.equals("comments")){
+            normalizedSort = "latest";
+
+        }
 
         Map<String, Object> params = new HashMap<>();
         params.put("size", size);
         params.put("offset", offset);
         params.put("userId", userId);
+        params.put("isbn", trimmedIsbn); // isbn이 있으면 넣기
+        params.put("sort", normalizedSort);
 
         List<PostResponseDto> posts = postDao.selectAllPosts(params);
 
-        int totalCount = postDao.countAllPosts();
+        int totalCount = postDao.countAllPosts(trimmedIsbn);
 
         boolean hasNext = (page + 1) * size < totalCount;
         Integer nextPage = hasNext ? page + 1 : null;
@@ -93,6 +102,7 @@ public class PostServiceImpl implements PostService {
                 new PostPageResponseDto.Content(posts, page, size, totalCount);
 
         return new PostPageResponseDto(content, hasNext, nextPage);
+
 
     }
 

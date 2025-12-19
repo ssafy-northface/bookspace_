@@ -23,62 +23,89 @@
             )
     </insert>
 
-    <!--전체 게시글 개수 조회 <- 페이지네이션에 사용 -->
+    <!--전체 게시글 / 검색된 게시글 개수 조회 (isbn -> filter count) -->
     <select id="countAllPosts" resultType="int">
-        SELECT COUNT(*) FROM post
+        SELECT COUNT(*) FROM post p
+        JOIN book b ON b.book_id = p.book_id
+        <where>
+            <if test="isbn!=null and isbn!=''">
+                b.book_isbn = #{isbn}
+            </if>
+        </where>
     </select>
 
     <!-- 2. 전체 게시물 조회: 페이지네이션 적용-->
     <select id="selectAllPosts" resultType="postResponseDto">
         SELECT
-            p.post_id,
-            p.user_id,
-            p.book_id,
-            p.post_title,
-            p.post_content,
-            p.post_date,
-            p.post_view_cnt,
-            p.post_last_modified,
+        p.post_id,
+        p.user_id,
+        p.book_id,
+        p.post_title,
+        p.post_content,
+        p.post_date,
+        p.post_view_cnt,
+        p.post_last_modified,
 
-            -- 책 정보
-            b.book_title AS bookTitle,
-            b.book_author AS bookAuthor,
-            b.book_image_url AS bookImageUrl,
+        -- 책 정보
+        b.book_title AS bookTitle,
+        b.book_author AS bookAuthor,
+        b.book_image_url AS bookImageUrl,
 
-            -- 작성자 정보
-            u.user_nickname AS userNickname,
+        -- 작성자 정보
+        u.user_nickname AS userNickname,
 
-            -- 좋아요 개수
-            (SELECT COUNT(*)
-             FROM post_like pl
-                      JOIN user u2 ON pl.user_id = u2.user_id
-             WHERE pl.post_id = p.post_id
-               AND u2.user_status = 'active') AS likeCount,
+        -- 좋아요 개수
+        (SELECT COUNT(*)
+        FROM post_like pl
+        JOIN user u2 ON pl.user_id = u2.user_id
+        WHERE pl.post_id = p.post_id
+        AND u2.user_status = 'active') AS likeCount,
 
-            -- 댓글 개수
-            (SELECT COUNT(*)
-             FROM comment c
-             WHERE c.post_id = p.post_id) AS commentCount,
+        -- 댓글 개수: JOIN 집계 결과 사용
+        COALESCE(cc.comment_count, 0) AS commentCount,
 
-            -- 로그인 유저 좋아요 여부
-            CASE
-                WHEN #{userId} IS NULL THEN FALSE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM post_like pl
-                    WHERE pl.post_id = p.post_id
-                      AND pl.user_id = #{userId}
-                ) THEN TRUE
-                ELSE FALSE
-                END AS liked
+        -- 로그인 유저 좋아요 여부
+        CASE
+        WHEN #{userId} IS NULL THEN FALSE
+        WHEN EXISTS (
+        SELECT 1
+        FROM post_like pl
+        WHERE pl.post_id = p.post_id
+        AND pl.user_id = #{userId}
+        ) THEN TRUE
+        ELSE FALSE
+        END AS liked
+
         FROM post p
-                 JOIN book b ON p.book_id = b.book_id
-                 JOIN user u ON p.user_id = u.user_id
+        JOIN book b ON p.book_id = b.book_id
+        JOIN user u ON u.user_id = p.user_id
 
-        ORDER BY p.post_date DESC
+        -- 댓글 수 집계 JOIN (정렬/표시에 같이 사용)
+        LEFT JOIN (
+        SELECT post_id, COUNT(*) AS comment_count
+        FROM comment
+        GROUP BY post_id
+        ) cc ON cc.post_id = p.post_id
+
+        WHERE 1=1
+        <if test="isbn != null and isbn != ''">
+            AND b.book_isbn = #{isbn}
+        </if>
+
+        <choose>
+            <!-- sort = comments (댓글 많은 순)-->
+            <when test="sort == 'comment' or sort == 'comments'">
+                ORDER BY cc.comment_count DESC, p.post_date DESC, p.post_id DESC
+            </when>
+            <otherwise>
+                ORDER BY p.post_date DESC, p.post_id DESC
+            </otherwise>
+        </choose>
+
         LIMIT #{size}
         OFFSET #{offset}
     </select>
+
 
 
 
