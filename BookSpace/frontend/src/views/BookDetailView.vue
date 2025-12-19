@@ -49,7 +49,7 @@
         <ReviewPostTabs v-model="activeTab" :review-count="reviewCount" :post-count="postCount">
           <!-- ReviewSection -->
           <template #review>
-            <ReviewSection />
+            <ReviewSection :book-id="book.bookId" :isbn="book.isbn"/>
           </template>
 
           <!-- PostSection -->

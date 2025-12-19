@@ -80,17 +80,18 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByBookId(bookId, sort));
     }
 
-    // 7. 특정 책의 평균 평점 조회
-    // /reviews/avg-rating?bookId=10
-    @GetMapping("/avg-rating")
-    public ResponseEntity<Double> getAverageRating(@RequestParam long bookId) {
-        return ResponseEntity.ok(reviewService.getAverageRatingByBookId(bookId));
-    }
-
-    // 8. 특정 책의 리뷰 개수 조회
-    // /reviews/count?bookId=10
-    @GetMapping("/count")
-    public ResponseEntity<Integer> getReviewCount(@RequestParam long bookId) {
-        return ResponseEntity.ok(reviewService.getReviewCountByBookId(bookId));
-    }
+    // BookService로 넘겨서 BookDetailResponseDTO쪽에서 사용
+//    // 7. 특정 책의 평균 평점 조회
+//    // /reviews/avg-rating?bookId=10
+//    @GetMapping("/avg-rating")
+//    public ResponseEntity<Double> getAverageRating(@RequestParam long bookId) {
+//        return ResponseEntity.ok(reviewService.getAverageRatingByBookId(bookId));
+//    }
+//
+//    // 8. 특정 책의 리뷰 개수 조회
+//    // /reviews/count?bookId=10
+//    @GetMapping("/count")
+//    public ResponseEntity<Integer> getReviewCount(@RequestParam long bookId) {
+//        return ResponseEntity.ok(reviewService.getReviewCountByBookId(bookId));
+//    }
 }
