@@ -98,6 +98,6 @@ const fallbackCover =
 /** 평점 표시용 텍스트 */
 const averageRatingText = computed(() => {
   const r = Number(props.averageRating || 0);
-  return `${r.toFixed(1)} (${props.reviewCount})`;
+  return `${r.toFixed(1)}`;
 });
 </script>
