@@ -1,7 +1,7 @@
 <template>
   <main class="mx-auto max-w-6xl px-4 py-6">
 
-    <div v-if="loadingDetail" class="py-10 text-sm text-muted-foreground">
+    <div v-if="loadingDetail && !book" class="py-10 text-sm text-muted-foreground">
       상세 정보를 불러오는 중...
     </div>
 
@@ -46,10 +46,14 @@
         <BookDetailInfo :book="book" />
 
         <!-- 리뷰 / 게시글 탭 -->
-        <ReviewPostTabs v-model="activeTab" :review-count="reviewCount" :post-count="postCount">
+        <ReviewPostTabs v-model="activeTab" :key="book.bookId" :review-count="reviewCount" :post-count="postCount">
           <!-- ReviewSection -->
           <template #review>
-            <ReviewSection :book-id="book.bookId" :isbn="book.isbn"/>
+            <ReviewSection 
+              :key="book.bookId" 
+              :book-id="book.bookId" 
+              :isbn="book.isbn"
+              @review-updated="load"/>
           </template>
 
           <!-- PostSection -->
@@ -106,17 +110,17 @@ const isWished = computed(() => {
   if (!book.value) return false;
   return wishStore.isWished(book.value.isbn);
 });
-const averageRating = computed(() => bookStore.bookDetail?.averageRating ?? 0.0);
-const reviewCount = computed(() => bookStore.bookDetail?.reviewCount ?? 0);
-const postCount = computed(() => bookStore.bookDetail?.postCount ?? 0);
+const averageRating = computed(() => book.value?.averageRating ?? 0.0);
+const reviewCount = computed(() => book.value?.reviewCount ?? 0);
+const postCount = computed(() => book.value?.postCount ?? 0);
 
 const loadingDetail = computed(() => bookStore.loadingDetail);
 const detailError = computed(() => bookStore.detailError);
 
-const load = () => {
+const load = async() => {
   const isbn = route.params.isbn;
   if (!isbn) return;
-  bookStore.loadBookDetail(isbn);
+  await bookStore.loadBookDetail(isbn);
 };
 
 onMounted(load);

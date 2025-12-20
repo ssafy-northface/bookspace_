@@ -1,10 +1,8 @@
 package com.bookspace.domain.review.service;
 
-import com.bookspace.domain.book.dao.BookDao;
 import com.bookspace.domain.book.service.BookService;
 import com.bookspace.domain.review.dto.ReviewRequestDto;
 import com.bookspace.domain.review.dao.ReviewDao;
-import com.bookspace.domain.review.dto.ReviewRequestDto;
 import com.bookspace.domain.review.dto.ReviewResponseDto;
 import com.bookspace.domain.review.vo.ReviewVo;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
         double rating = dto.getReviewRating();
 
         if (rating < 0.5 || rating > 5.0) {
-            throw new RuntimeException("Rating must be between 0.0 and 5.0.");
+            throw new RuntimeException("Rating must be between 0.5 and 5.0.");
         }
 
         // 2. 0.5 단위만 허용
@@ -49,6 +47,11 @@ public class ReviewServiceImpl implements ReviewService {
 
         // isbn 기반 DB 책 정보 확인 및 저장
         Long bookId = bookService.ensureBookExists(isbn);
+
+        // 1인 1리뷰 중복 방지
+        if (reviewDao.existsByUserIdAndBookId(loginUserId, bookId)) {
+            throw new RuntimeException("DUPLICATE_REVIEW");
+        }
 
         // 정상 등록 처리
         ReviewVo vo = new ReviewVo();
@@ -79,7 +82,19 @@ public class ReviewServiceImpl implements ReviewService {
             throw new AccessDeniedException("Access denied 본인의 리뷰만 수정할 수 있습니다.");
         }
 
-        // 3. 수정 실행
+        // 3. 평점 유효성 검사 (createReview와 동일 정책)
+        double rating = dto.getReviewRating();
+        // 1) rating 범위 유효성 검사
+        if (rating < 0.5 || rating > 5.0) {
+            throw new RuntimeException("Rating must be between 0.5 and 5.0.");
+        }
+
+        // 2) 0.5 단위만 허용
+        if (Math.abs(rating * 2 - Math.round(rating * 2)) > 1e-9) {
+            throw new RuntimeException("Rating must be in 0.5 increments.");
+        }
+
+        // 4. 수정 실행
         ReviewVo vo = new ReviewVo();
         vo.setReviewId(reviewId);
         vo.setReviewRating(dto.getReviewRating());

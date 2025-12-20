@@ -37,5 +37,7 @@ public interface ReviewDao {
     // 8. 리뷰 개수 (by bookId)
     Integer countReviews(@Param("bookId") Long bookId);
 
+    // 9. 유저가 해당 도서에 리뷰를 작성했는지 확인 (1인 1리뷰 검증)
+    boolean existsByUserIdAndBookId(@Param("userId") long userId, @Param("bookId") long bookId);
 
 }
