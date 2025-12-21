@@ -126,4 +126,13 @@
           AND u.user_status = 'active'
     </select>
 
+    <!--  1인 1리뷰 검증  -->
+    <select id="existsByUserIdAndBookId" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM review
+            WHERE user_id = #{userId}
+              AND book_id = #{bookId}
+        )
+    </select>
 </mapper>
