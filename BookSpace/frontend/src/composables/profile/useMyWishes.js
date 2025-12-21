@@ -3,10 +3,13 @@ import { useQuery } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/authStore";
 import wishApi from "@/api/wishApi";
 
+// 찜 토글 성공 후 해당 키 invalidate
+export const myWishesQueryKey = () => ["my-wishes"];
+
 export function useMyWishes() {
   const authStore = useAuthStore();
   return useQuery({
-    queryKey: computed(() => ["my-wishes"]),
+    queryKey: computed(() => myWishesQueryKey()),
     enabled: authStore.isLoggedIn,
     queryFn: async () => {
       const res = await wishApi.getMyWishes();

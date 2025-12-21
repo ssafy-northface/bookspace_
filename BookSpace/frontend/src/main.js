@@ -5,6 +5,7 @@ import router from "./router";
 import "./styles/global.css";
 import PrimeVue from "primevue/config";
 import { VueQueryPlugin } from "@tanstack/vue-query";
+import { queryClient } from "./plugins/vueQuery";
 
 const app = createApp(App);
 
@@ -20,16 +21,6 @@ app.use(PrimeVue, {
 });
 
 // vue query 플러그인 등록
-app.use(VueQueryPlugin, {
-  queryClientConfig: {
-    defaultOptions: {
-      queries: {
-        retry: 1, // 쿼리 실패 시 재시도 횟수
-        staleTime: 1000 * 60 * 1, // 1분 동안 fresh 데이터로 간주
-        cacheTime: 1000 * 60 * 5, // 5 동안 캐시 유지
-      },
-    },
-  },
-});
+app.use(VueQueryPlugin, { queryClient });
 
 app.mount("#app");

@@ -63,7 +63,12 @@
       maxWidth="max-w-3xl"
       @close="closeReviewModal"
     >
-      <ReviewDetailModal v-if="selectedReview" :review="selectedReview" />
+      <ReviewDetailModal
+        v-if="selectedReview"
+        :review="selectedReview"
+        @update="handleUpdateReview"
+        @delete="handleDeleteReview"
+      />
     </BaseModal>
 
     <!-- 도서 상세 모달 -->
@@ -72,7 +77,11 @@
       maxWidth="max-w-5xl"
       @close="closeBookModal"
     >
-      <BookDetailView v-if="selectedBookIsbn" :isbn="selectedBookIsbn" />
+      <BookDetailView
+        v-if="selectedBookIsbn"
+        :isbn="selectedBookIsbn"
+        @wish-updated="handleWishUpdated"
+      />
     </BaseModal>
     <ScrollTopButton />
   </div>
@@ -106,8 +115,18 @@ const nickname = computed(() => me.value?.userNickname);
 const activeTab = ref("wish");
 
 // vue-query
-const { data: wishItems, isLoading: loadingWishes } = useMyWishes(userId);
-const { data: reviewItems, isLoading: loadingReviews } = useMyReviews();
+const {
+  data: wishItems,
+  isLoading: loadingWishes,
+  refetch: refetchWishes,
+} = useMyWishes(userId);
+const {
+  data: reviewItems,
+  isLoading: loadingReviews,
+  refetch: refetchReviews,
+  updateReview,
+  deleteReview,
+} = useMyReviews();
 const { data: postItems, isLoading: loadingPosts } = useMyPosts();
 
 const safeWishItems = computed(() => wishItems.value ?? []);
@@ -127,6 +146,33 @@ const closeReviewModal = () => {
   selectedReview.value = null;
 };
 
+// 리뷰 핸들러
+
+const handleUpdateReview = async ({ reviewId, rating, content }) => {
+  try {
+    const updated = await updateReview({
+      reviewId,
+      data: { reviewRating: rating, reviewContent: content },
+    });
+    alert("수정되었습니다.");
+    closeReviewModal();
+  } catch (e) {
+    alert(e.response?.data?.message || "수정 실패");
+  }
+};
+
+const handleDeleteReview = async (review) => {
+  if (!review?.reviewId || !confirm("리뷰를 삭제할까요?")) return;
+
+  try {
+    await deleteReview(review.reviewId);
+    alert("삭제되었습니다.");
+    closeReviewModal();
+  } catch (e) {
+    alert(e.response?.data?.message || "삭제 실패");
+  }
+};
+
 // 포스트 모달 open & close
 const openPostModal = (post) => {
   selectedPostId.value = post?.postId ?? post?.id ?? null;
@@ -144,5 +190,9 @@ const openBookModal = (book) => {
 
 const closeBookModal = () => {
   selectedBookIsbn.value = null;
+};
+
+const handleWishUpdated = async () => {
+  await refetchWishes();
 };
 </script>
