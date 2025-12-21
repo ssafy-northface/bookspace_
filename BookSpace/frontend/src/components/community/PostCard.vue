@@ -1,3 +1,6 @@
+<!-- 
+# 게시글 카드 컴포넌트 
+-->
 // TODO 유저 이미지 추가 (DB, S3 연동 후) or 새싹, 책 기본 이미지로 수정
 <template>
   <div
@@ -80,7 +83,6 @@
         class="object-cover w-24 h-32 rounded"
         alt="book"
       />
-
       <p class="mt-2 text-sm font-medium text-foreground line-clamp-1">
         {{ post.bookTitle }}
       </p>
@@ -101,6 +103,7 @@ import { postLikes, deleteLikes } from "@/api/postApi";
 import { useMutation, useQueryClient } from "@tanstack/vue-query";
 import { useAuthStore } from "@/stores/authStore";
 import { useRoute, useRouter } from "vue-router";
+import { useFormattedDate } from "@/composables/useFormattedDate";
 import UserProfileImg from "@/components/common/UserProfileImg.vue";
 const { toast } = useToast();
 
@@ -109,7 +112,13 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  disableNavigation: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits(["open"]);
 
 const route = useRoute();
 const router = useRouter();
@@ -120,10 +129,8 @@ const queryClient = useQueryClient();
 const defaultBook = "/default-book.png";
 
 // 날짜 포맷
-const formattedDate = computed(() => {
-  if (!props.post.postDate) return "";
-  const date = new Date(props.post.postDate);
-  return date.toLocaleDateString("ko-KR");
+const formattedDate = useFormattedDate(props.post.postDate, {
+  dateStyle: "medium", // 게시글 카드에서는 날짜만
 });
 
 // 좋아요
@@ -138,6 +145,7 @@ const toggleLikeMutation = useMutation({
     // 현재 목록 쿼리 취소
     await queryClient.cancelQueries({ queryKey: ["posts"] });
     await queryClient.cancelQueries({ queryKey: ["posts", "latest"] });
+    await queryClient.cancelQueries({ queryKey: ["my-posts"] });
     const previous = { liked: isLiked.value, likeCount: likeCount.value };
 
     // 낙관적 업데이트
@@ -157,6 +165,7 @@ const toggleLikeMutation = useMutation({
     console.log("[LIKE] Mutation settled. Invalidating queries.");
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
+    await queryClient.invalidateQueries({ queryKey: ["my-posts"] });
   },
 });
 
@@ -196,6 +205,10 @@ const toggleLike = async () => {
 };
 
 const goToPostDetail = () => {
+  if (props.disableNavigation) {
+    emit("open", props.post);
+    return;
+  }
   // 현재 스크롤 위치를 저장해서 돌아올 때 위치 복원하기
   sessionStorage.setItem(
     "communityScroll",
@@ -213,19 +226,3 @@ const goToPostDetail = () => {
   });
 };
 </script>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

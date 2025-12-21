@@ -118,7 +118,7 @@ import ViewHeader from "@/components/common/ViewHeader.vue";
 import Button from "@/components/ui/Button.vue";
 import Input from "@/components/ui/Input.vue";
 import Textarea from "@/components/ui/Textarea.vue";
-import PostBookSelector from "@/components/post/PostBookSelector.vue";
+import PostBookSelector from "@/components/community/PostBookSelector.vue";
 import PostBookInfo from "@/components/community/PostBookInfo.vue";
 import { createPostApi, fetchPostDetail, updatePostApi } from "@/api/postApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";

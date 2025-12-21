@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full p-5 border border-border rounded-xl bg-card shadow-sm">
+  <div class="w-full p-5 border shadow-sm border-border rounded-xl bg-card">
     <!-- 상단: 닉네임, 작성일자, 평점 -->
     <div class="flex items-start justify-between gap-4">
       <div>
@@ -20,14 +20,14 @@
     </div>
 
     <!-- 리뷰 내용-->
-    <p class="mt-4 text-sm text-foreground whitespace-pre-line">
+    <p class="mt-4 text-sm whitespace-pre-line text-foreground">
       {{ review.reviewContent }}
     </p>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { useFormattedDate } from "@/composables/useFormattedDate";
 
 const props = defineProps({
   review: {
@@ -36,9 +36,7 @@ const props = defineProps({
   },
 });
 
-const formattedDate = computed(() => {
-  if (!props.review.reviewDate) return "";
-  const date = new Date(props.review.reviewDate);
-  return date.toLocaleDateString("ko-KR");
+const formattedDate = useFormattedDate(props.review.reviewDate, {
+  dateStyle: "medium",
 });
 </script>

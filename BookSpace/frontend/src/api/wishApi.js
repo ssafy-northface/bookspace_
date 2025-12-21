@@ -27,7 +27,7 @@ export const wishApi = {
    * 내 찜 목록 조회
    */
   getMyWishes() {
-    return httpClient.get("/wishes");
+    return httpClient.get("/wishes/me");
   },
 };
 
