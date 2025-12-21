@@ -226,19 +226,31 @@
     <!-- 8. 특정 사용자에 대한 게시글 조회-->
     <select id="selectPostsByUserId"
             parameterType="long"
-            resultType="postVo">
+            resultType="postResponseDto">
         SELECT
-            post_id,
-            user_id,
-            book_id,
-            post_title,
-            post_content,
-            post_date,
-            post_view_cnt,
-            post_last_modified
-        FROM post
-        WHERE user_id = #{userId}
-        ORDER BY post_date DESC
+            p.post_id,
+            p.user_id,
+            p.book_id,
+            p.post_title,
+            p.post_content,
+            p.post_date,
+            p.post_view_cnt,
+            p.post_last_modified,
+            b.book_title      AS bookTitle,
+            b.book_author     AS bookAuthor,
+            b.book_image_url  AS bookImageUrl,
+            u.user_nickname   AS userNickName, (SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = p.post_id) AS likeCount,
+
+            (SELECT COUNT(*) FROM comment c WHERE c.post_id = p.post_id) AS commentCount,
+
+            (SELECT COUNT(*) FROM post_like pl
+             WHERE pl.post_id = p.post_id AND pl.user_id = #{userId}) > 0 AS liked
+
+        FROM post p
+                 JOIN book b ON p.book_id = b.book_id
+                 JOIN user u ON p.user_id = u.user_id
+        WHERE p.user_id = #{userId}
+        ORDER BY p.post_date DESC
     </select>
 
     <!-- 9. 키워드로 게시글 조회 (제목 + 내용) -->

@@ -74,16 +74,17 @@ public class SecurityConfig {
                                 "/",
                                 "/login",
                                 "/join",
-                                "/users/**",
                                 "/auth/**",
                                 "/books/**"
                         ).permitAll() // 인증 없이 가능
+                        .requestMatchers("/users/me/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/reviews").permitAll()
                         .requestMatchers(HttpMethod.POST, "/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/reviews/**").authenticated()
+                        .requestMatchers("/wishes/me", "/posts/me", "/reviews/me").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated() // 나머지 요청은 jwt가 필요함
                 )

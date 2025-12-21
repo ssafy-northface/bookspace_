@@ -63,10 +63,10 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewById(reviewId));
     }
 
-    // 5. 리뷰 조회 (by userId)
-    @GetMapping(params = "userId")
-    // /reviews?userId=3
-    public ResponseEntity<List<ReviewResponseDto>> getReviewsByUserId(@RequestParam long userId) {
+    // 5. 리뷰 조회 (by user)
+    @GetMapping("/me")
+    public ResponseEntity<List<ReviewResponseDto>> getMyReviews(@AuthenticationPrincipal CustomUserDetails user) {
+        long userId = user.getUserId();
         return ResponseEntity.ok(reviewService.getReviewsByUserId(userId));
     }
 

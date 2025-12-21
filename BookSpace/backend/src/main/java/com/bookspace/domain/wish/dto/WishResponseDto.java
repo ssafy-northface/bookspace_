@@ -16,5 +16,6 @@ public class WishResponseDto {
     // 찜 목록 조회 시 필요한 book 정보
     private String bookTitle;
     private String bookAuthor;
+    private String bookIsbn;
     private String bookImageUrl;
 }

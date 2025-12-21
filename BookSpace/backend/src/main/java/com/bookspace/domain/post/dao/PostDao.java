@@ -38,8 +38,8 @@ public interface PostDao {
     // 7. 게시글 조회 (by bookId)
     List<PostVo> selectPostsByBookId(@Param("bookId") long bookId);
 
-    // 8. 게시글 조회 (by userId)
-    List<PostVo> selectPostsByUserId(@Param("userId") long userId);
+    // 8. 게시글 조회 (my)
+    List<PostResponseDto> selectPostsByUserId(@Param("userId") long userId);
 
     // 9. 게시글 조회 (by keyword)
     List<PostVo> selectPostsByKeyword(@Param("keyword") String keyword);

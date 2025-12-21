@@ -1,5 +1,6 @@
 package com.bookspace.domain.review.dao;
 
+import com.bookspace.domain.review.dto.ReviewResponseDto;
 import org.apache.ibatis.annotations.Mapper;
 
 import com.bookspace.domain.review.vo.ReviewVo;
@@ -23,7 +24,7 @@ public interface ReviewDao {
     int deleteReview(@Param("reviewId") Long reviewId);
 
     // 5. 리뷰 조회 (by userId)
-    List<ReviewVo> selectReviewsByUserId(@Param("userId") Long userId);
+    List<ReviewResponseDto> selectReviewsByUserId(@Param("userId") Long userId);
 
     // 6. 리뷰 조회 (by bookId) (정렬 포함)
     List<ReviewVo> selectReviewsByBookId(

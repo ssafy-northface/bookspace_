@@ -67,7 +67,7 @@ public class WishController {
     // 3. 찜한 책 목록 조회: GET /wishes
     // 타인의 찜 목록은 못 보는게 일반적
     // 굳이 url에 userId를 표기할 필요가 X
-    @GetMapping
+    @GetMapping("/me")
     public ResponseEntity<List<WishResponseDto>> getMyWishes() {
         long userId = getCurrentUserId();
         List<WishResponseDto> wishes = wishService.getWishesByUserId(userId);

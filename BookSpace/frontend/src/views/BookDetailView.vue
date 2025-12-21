@@ -1,7 +1,9 @@
 <template>
   <main class="mx-auto max-w-6xl px-4 py-6">
-
-    <div v-if="loadingDetail && !book" class="py-10 text-sm text-muted-foreground">
+    <div
+      v-if="loadingDetail && !book"
+      class="py-10 text-sm text-muted-foreground"
+    >
       상세 정보를 불러오는 중...
     </div>
 
@@ -51,14 +53,20 @@
         <BookDetailInfo :book="book" />
 
         <!-- 리뷰 / 게시글 탭 -->
-        <ReviewPostTabs v-model="activeTab" :key="book.bookId" :review-count="reviewCount" :post-count="postCount">
+        <ReviewPostTabs
+          v-model="activeTab"
+          :key="book.bookId"
+          :review-count="reviewCount"
+          :post-count="postCount"
+        >
           <!-- ReviewSection -->
           <template #review>
-            <ReviewSection 
-              :key="book.bookId" 
-              :book-id="book.bookId" 
+            <ReviewSection
+              :key="book.bookId"
+              :book-id="book.bookId"
               :isbn="book.isbn"
-              @review-updated="load"/>
+              @review-updated="load"
+            />
           </template>
 
           <!-- PostSection -->

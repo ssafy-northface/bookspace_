@@ -37,6 +37,7 @@
             w.wish_date,
             b.book_title,
             b.book_author,
+            b.book_isbn,
             b.book_image_url
         FROM wish w
         JOIN book b ON w.book_id = b.book_id

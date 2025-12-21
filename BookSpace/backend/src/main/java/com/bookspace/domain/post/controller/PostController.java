@@ -93,8 +93,9 @@ public class PostController {
     }
 
     // 7. userId로 조회
-    @GetMapping(params = "userId")
-    public ResponseEntity<List<PostResponseDto>> getPostsByUserId(long userId) {
+    @GetMapping("/me")
+    public ResponseEntity<List<PostResponseDto>> getMyPosts(@AuthenticationPrincipal CustomUserDetails user) {
+        long userId = user.getUserId();
         return ResponseEntity.ok(postService.getPostsByUserId(userId));
     }
 

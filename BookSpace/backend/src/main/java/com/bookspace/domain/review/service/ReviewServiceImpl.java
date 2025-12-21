@@ -148,10 +148,8 @@ public class ReviewServiceImpl implements ReviewService {
     // 5. 특정 사용자의 리뷰 목록 조회 (by userId)
     @Override
     public List<ReviewResponseDto> getReviewsByUserId(long userId) {
-        List<ReviewVo> reviewVoList = reviewDao.selectReviewsByUserId(userId);
-        return reviewVoList.stream()
-                .map(this::convertToResponseDto)
-                .toList();
+        List<ReviewResponseDto> results = reviewDao.selectReviewsByUserId(userId);
+        return results;
     }
 
 
