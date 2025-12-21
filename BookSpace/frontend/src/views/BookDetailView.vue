@@ -1,5 +1,5 @@
 <template>
-  <main class="max-w-6xl px-4 py-6 mx-auto">
+  <main class="mx-auto max-w-6xl px-4 py-6">
     <div
       v-if="loadingDetail && !book"
       class="py-10 text-sm text-muted-foreground"
@@ -129,8 +129,16 @@ const postCount = computed(() => book.value?.postCount ?? 0);
 const loadingDetail = computed(() => bookStore.loadingDetail);
 const detailError = computed(() => bookStore.detailError);
 
-const load = async () => {
-  const isbn = route.params.isbn;
+const props = defineProps({
+  isbn: {
+    type: [String, Number],
+    default: null,
+  },
+});
+
+const resolvedIsbn = computed(() => props.isbn ?? route.params.isbn);
+
+const load = (isbn) => {
   if (!isbn) return;
   await bookStore.loadBookDetail(isbn);
 };
