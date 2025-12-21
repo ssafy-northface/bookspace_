@@ -1,6 +1,6 @@
 <template>
   <header
-    class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    class="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur"
   >
     <div class="container flex items-center justify-between h-16">
       <!-- 왼쪽 로고 + 내비게이션 -->
@@ -34,32 +34,26 @@
       </div>
       <!-- 오른쪽 버튼들 -->
       <div class="flex items-center gap-4">
-        <!-- 검색 아이콘 (로그인 여부와 상관없이 항상 노출) -->
-        <RouterLink
-          to="/search"
-          class="items-center hidden transition md:flex hover:text-blue-600"
-        >
-          <MagnifyingGlassIcon class="w-5 h-5" />
-        </RouterLink>
-
         <!-- 로그인 상태 -->
         <template v-if="isLoggedIn">
-          <!-- 프로필 아이콘 + 닉네임 -->
+          <!--닉네임 -->
+          <span>{{ displayName }}님</span>
+
+          <!-- profile (mypage) -->
           <RouterLink
             to="/profile"
-            class="flex items-center gap-2 text-sm font-medium transition-colors hover:text-blue-600"
+            class="items-center hidden transition md:flex hover:text-blue-600"
           >
-            <!-- <UserIcon class="w-5 h-5" /> -->
-            <span>{{ displayName }}님</span>
+            <UserCircleIcon class="w-5 h-5" />
           </RouterLink>
 
           <!-- 로그아웃 버튼 -->
           <button
             type="button"
-            class="hidden md:flex text-sm font-medium px-3 py-1.5 rounded-md hover:bg-accent transition"
+            class="items-center hidden transition md:flex hover:text-blue-600"
             @click="handleLogout"
           >
-            <PowerIcon class="w-8 h-5" />
+            <PowerIcon class="w-5 h-5" />
           </button>
         </template>
 
@@ -93,10 +87,8 @@
 
 <script setup>
 import { useRouter, RouterLink } from "vue-router";
-// Heroicons import
 import {
-  MagnifyingGlassIcon, // 검색
-  UserIcon,
+  UserCircleIcon,
   Bars3Icon, // 햄버거메뉴
   PowerIcon, //로그아웃
 } from "@heroicons/vue/24/outline";
@@ -110,7 +102,6 @@ const userStore = useUserStore();
 const router = useRouter();
 
 const { me } = storeToRefs(userStore);
-console.log(me.value);
 
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 

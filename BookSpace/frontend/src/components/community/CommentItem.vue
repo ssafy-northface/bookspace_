@@ -120,7 +120,7 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 const queryClient = useQueryClient();
 const { toast } = useToast();
-
+import { useFormattedDate } from "@/composables/useFormattedDate";
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 // ------------ owner? ------------
@@ -151,15 +151,7 @@ watch(
   }
 );
 
-// 날짜
-const formattedDate = computed(() => {
-  if (!props.comment.commentDate) return "";
-  const date = new Date(props.comment.commentDate);
-  return date.toLocaleString("ko-KR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-});
+const formattedDate = useFormattedDate(props.comment.commentDate);
 
 const isParent = computed(() => props.comment.parentCommentId === null);
 

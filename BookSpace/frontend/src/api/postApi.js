@@ -29,13 +29,16 @@ export const createPostApi = async (payload) => {
 export const fetchPosts = async ({
   pageParam = 0,
   isbn = "",
+  userId = "",
   sort = "latest",
+  size = 10,
 } = {}) => {
   const res = await httpClient.get("/posts", {
     params: {
       page: pageParam,
-      size: 10,
+      size: size || 10,
       isbn: isbn || undefined,
+      userId: userId || undefined,
       sort: sort || undefined,
     },
   });
@@ -50,6 +53,14 @@ export const fetchPosts = async ({
     nextPage: responseData.nextPage, // 다음 페이지 번호 (백엔드에서 제공)
     hasNext: responseData.hasNext, // 다음 페이지 존재 여부 (백엔드에서 제공)
   };
+};
+
+/**
+ * [R] 나의 게시글 조회 (profile -> myosts)
+ */
+export const fetchMyPostsApi = async () => {
+  const res = await httpClient.get("/posts/me");
+  return res.data;
 };
 
 /**

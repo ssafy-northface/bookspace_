@@ -1,6 +1,5 @@
 <template>
-  <main class="mx-auto max-w-6xl px-4 py-6">
-
+  <main class="max-w-6xl px-4 py-6 mx-auto">
     <div v-if="loadingDetail" class="py-10 text-sm text-muted-foreground">
       상세 정보를 불러오는 중...
     </div>
@@ -11,13 +10,18 @@
       <p class="mt-2 text-base text-muted-foreground">
         ISBN이 잘못되었거나 삭제된 도서일 수 있어요.
       </p>
-      <div class="mt-6 flex justify-center gap-2">
-        <button class="h-9 rounded-md border px-4 py-1.5" @click="$router.back()">이전으로</button>
+      <div class="flex justify-center gap-2 mt-6">
+        <button
+          class="h-9 rounded-md border px-4 py-1.5"
+          @click="$router.back()"
+        >
+          이전으로
+        </button>
         <button
           class="h-9 rounded-md bg-primary px-4 py-1.5 text-primary-foreground"
           @click="$router.push('/books')"
         >
-        도서 목록으로
+          도서 목록으로
         </button>
       </div>
     </div>
@@ -29,14 +33,14 @@
     <div v-else-if="book" class="grid gap-6 md:grid-cols-[240px_1fr]">
       <!-- LEFT -->
       <aside class="lg:sticky lg:top-6 h-fit">
-        <BookSideCard 
-          :book="book" 
+        <BookSideCard
+          :book="book"
           :is-wished="isWished"
           :is-wish-loading="false"
-          :average-rating="averageRating" 
-          :review-count="reviewCount" 
-          :post-count="postCount" 
-          @toggle-wish="toggleWish" 
+          :average-rating="averageRating"
+          :review-count="reviewCount"
+          :post-count="postCount"
+          @toggle-wish="toggleWish"
         />
       </aside>
 
@@ -46,10 +50,14 @@
         <BookDetailInfo :book="book" />
 
         <!-- 리뷰 / 게시글 탭 -->
-        <ReviewPostTabs v-model="activeTab" :review-count="reviewCount" :post-count="postCount">
+        <ReviewPostTabs
+          v-model="activeTab"
+          :review-count="reviewCount"
+          :post-count="postCount"
+        >
           <!-- ReviewSection -->
           <template #review>
-            <ReviewSection :book-id="book.bookId" :isbn="book.isbn"/>
+            <ReviewSection :book-id="book.bookId" :isbn="book.isbn" />
           </template>
 
           <!-- PostSection -->
@@ -80,7 +88,6 @@ import ReviewPostTabs from "../components/bookDetail/ReviewPostTabs.vue";
 import ReviewSection from "@/components/review/ReviewSection.vue";
 import PostSection from "@/components/postInBookDetail/PostSection.vue";
 
-
 const activeTab = ref("review");
 
 const route = useRoute();
@@ -88,7 +95,7 @@ const bookStore = useBookStore();
 const wishStore = useWishStore();
 const authStore = useAuthStore();
 
-const book = computed(()=> bookStore.bookDetail);
+const book = computed(() => bookStore.bookDetail);
 
 // 도서 상세 로딩 후 wishStore 초기 세팅 추가
 watch(
@@ -106,30 +113,46 @@ const isWished = computed(() => {
   if (!book.value) return false;
   return wishStore.isWished(book.value.isbn);
 });
-const averageRating = computed(() => bookStore.bookDetail?.averageRating ?? 0.0);
+const averageRating = computed(
+  () => bookStore.bookDetail?.averageRating ?? 0.0
+);
 const reviewCount = computed(() => bookStore.bookDetail?.reviewCount ?? 0);
 const postCount = computed(() => bookStore.bookDetail?.postCount ?? 0);
 
 const loadingDetail = computed(() => bookStore.loadingDetail);
 const detailError = computed(() => bookStore.detailError);
 
-const load = () => {
-  const isbn = route.params.isbn;
+const props = defineProps({
+  isbn: {
+    type: [String, Number],
+    default: null,
+  },
+});
+
+const resolvedIsbn = computed(() => props.isbn ?? route.params.isbn);
+
+const load = (isbn) => {
   if (!isbn) return;
   bookStore.loadBookDetail(isbn);
 };
 
-onMounted(load);
-// 같은 화면에서 isbn만 바뀌는 경우 대비
-watch(() => route.params.isbn, load);
+onMounted(() => load(resolvedIsbn.value));
+
+watch(
+  () => resolvedIsbn.value,
+  (isbn) => load(isbn),
+  { immediate: true }
+);
 
 // 찜 버튼 클릭 핸들러
 // 비로그인 유저는 차단 후 안내 메시지
 async function toggleWish() {
-
   console.log("[toggleWish] clicked");
-  console.log("[toggleWish] isbn/bookId =", book.value?.isbn, book.value?.bookId);
-
+  console.log(
+    "[toggleWish] isbn/bookId =",
+    book.value?.isbn,
+    book.value?.bookId
+  );
 
   if (!book.value) return;
 
@@ -143,8 +166,7 @@ async function toggleWish() {
   const isbn = book.value.isbn;
   // 현재 찜 상태 저장
   const wasWished = wishStore.isWished(isbn);
-  
-  
+
   try {
     await wishStore.toggleWish({
       isbn,
@@ -158,17 +180,14 @@ async function toggleWish() {
     if (!wasWished) {
       await bookStore.loadBookDetail(isbn);
       // 재조회 후 wishStore 상태 다시 동기화
-       wishStore.setIsWished(isbn, book.value.isWished);
+      wishStore.setIsWished(isbn, book.value.isWished);
     }
-
-  
-
   } catch (e) {
     console.error(e);
     //  실패하면 원래 상태로 복구
-    wishStore.setIsWished(isbn,wasWished);
+    wishStore.setIsWished(isbn, wasWished);
     alert("찜 처리 중 오류가 발생했습니다");
     // toast("찜 처리 중 오류가 발생했습니다");
   }
-};
+}
 </script>

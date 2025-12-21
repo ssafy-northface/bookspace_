@@ -76,25 +76,16 @@
     </div>
 
     <!-- 상단 이동 플로팅 버튼 -->
-    <button
-      v-if="showScrollTopButton"
-      type="button"
-      aria-label="상단으로 이동"
-      @click="scrollToTop"
-      class="fixed z-40 flex items-center justify-center w-12 h-12 text-white rounded-full bottom-24 right-6 sm:right-8 sm:bottom-28 bg-primary"
-    >
-      <ArrowUpIcon class="w-6 h-6" />
-    </button>
+    <ScrollTopButton />
   </section>
 </template>
 
 <script setup>
 import ViewHeader from "../components/common/ViewHeader.vue";
-import PostBookSelector from "@/components/post/PostBookSelector.vue";
+import PostBookSelector from "@/components/community/PostBookSelector.vue";
 import PostSortBar from "@/components/community/PostSortBar.vue";
 import Button from "../components/ui/Button.vue";
 import { PlusIcon } from "lucide-vue-next";
-import { ArrowUpIcon } from "@heroicons/vue/24/solid";
 import PostCard from "@/components/community/PostCard";
 import { useInfiniteQuery, useQuery } from "@tanstack/vue-query";
 import { fetchPosts } from "../api/postApi.js";
@@ -102,6 +93,7 @@ import { computed, onMounted, ref, onUnmounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
 import { useAuthStore } from "@/stores/authStore";
+import ScrollTopButton from "@/components/common/ScrollTopButton.vue";
 
 const authStore = useAuthStore();
 const route = useRoute();
@@ -110,8 +102,7 @@ const { toast } = useToast();
 
 const pickQueryString = (value) =>
   Array.isArray(value) ? value[0] ?? "" : value ?? "";
-const normalizeSort = (value) =>
-  value === "comments" ? "comments" : "latest";
+const normalizeSort = (value) => (value === "comments" ? "comments" : "latest");
 
 // 검색/필터 상태
 const selectedIsbn = ref(pickQueryString(route.query.isbn));
@@ -225,9 +216,6 @@ const searchAreaRef = ref(null);
 let searchAreaObserver = null;
 const showNewButton = ref(false);
 
-// 검색 박스 체크
-const showScrollTopButton = ref(false);
-
 // IntersectionObserver 설정
 onMounted(() => {
   observer = new IntersectionObserver(
@@ -249,7 +237,6 @@ onMounted(() => {
     ([entry]) => {
       const hidden = !entry.isIntersecting;
       showNewButton.value = hidden;
-      showScrollTopButton.value = hidden;
     },
     { threshold: 0 }
   );
@@ -282,7 +269,9 @@ const syncSearchQueryParams = () => {
     query: {
       ...route.query,
       isbn: selectedIsbn.value || undefined,
-      bookTitle: selectedIsbn.value ? selectedBookTitle.value || undefined : undefined,
+      bookTitle: selectedIsbn.value
+        ? selectedBookTitle.value || undefined
+        : undefined,
       sort: isSearchMode.value ? sort.value || undefined : undefined,
     },
   });
@@ -328,11 +317,6 @@ const goToCreatePost = () => {
 // 새 게시글 보기 버튼 클릭 시 최신 데이터로 갱신 + 상단 이동
 const showLatestPosts = async () => {
   await refetch();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-// 상단 이동
-const scrollToTop = () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 

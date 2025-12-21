@@ -1,6 +1,9 @@
 <template>
   <section class="max-w-5xl mx-auto mt-6 space-y-6">
-    <div class="flex items-center justify-between gap-4">
+    <div
+      v-if="showBackButton"
+      class="flex items-center justify-between gap-4"
+    >
       <Button variant="ghost" class="gap-2 px-3" @click="goBack">
         <ArrowLeft class="w-4 h-4" />
         목록으로
@@ -143,7 +146,12 @@ const props = defineProps({
     type: [String, Number],
     required: true,
   },
+  showBackButton: {
+    type: Boolean,
+    default: true,
+  },
 });
+const emit = defineEmits(["close"]);
 
 const router = useRouter();
 const queryClient = useQueryClient();
@@ -180,6 +188,10 @@ const formattedDate = computed(() => {
 const content = computed(() => post.value?.postContent ?? "");
 
 const goBack = () => {
+  if (!props.showBackButton) {
+    emit("close");
+    return;
+  }
   router.push({
     name: "community",
     query: router.currentRoute.value.query,
@@ -189,7 +201,7 @@ const goBack = () => {
 const syncPostToLists = (nextPost) => {
   if (!nextPost) return;
 
-  const updateCache = (queryKey) => {
+  const updatePaged = (queryKey) => {
     const cache = queryClient.getQueryData(queryKey);
     if (!cache?.pages) return;
 
@@ -203,8 +215,18 @@ const syncPostToLists = (nextPost) => {
     queryClient.setQueryData(queryKey, { ...cache, pages: updatedPages });
   };
 
-  updateCache(["posts"]);
-  updateCache(["posts", "latest"]);
+  // 커뮤니티 목록
+  updatePaged(["posts"]);
+  updatePaged(["posts", "latest"]);
+
+  // 내 게시글 목록 (배열 형태)
+  const myPosts = queryClient.getQueryData(["my-posts"]);
+  if (Array.isArray(myPosts)) {
+    const updated = myPosts.map((p) =>
+      String(p.postId) === String(nextPost.postId) ? { ...p, ...nextPost } : p
+    );
+    queryClient.setQueryData(["my-posts"], updated);
+  }
 };
 
 const updatePostInLists = (nextLiked) => {
@@ -228,18 +250,37 @@ const updatePostInLists = (nextLiked) => {
     return cache;
   };
 
+  const updateMyPosts = () => {
+    const cache = queryClient.getQueryData(["my-posts"]);
+    if (!Array.isArray(cache)) return cache;
+    const updated = cache.map((p) => {
+      if (String(p.postId) !== String(props.postId)) return p;
+      const nextCount = Math.max(
+        0,
+        (p.likeCount ?? 0) + (nextLiked ? 1 : -1)
+      );
+      return { ...p, liked: nextLiked, likeCount: nextCount };
+    });
+    queryClient.setQueryData(["my-posts"], updated);
+    return cache;
+  };
+
   const previousPosts = updateCache(["posts"]);
   const previousLatest = updateCache(["posts", "latest"]);
+  const previousMyPosts = updateMyPosts();
 
-  return { previousPosts, previousLatest };
+  return { previousPosts, previousLatest, previousMyPosts };
 };
 
-const rollbackPostInLists = (previousPosts, previousLatest) => {
+const rollbackPostInLists = (previousPosts, previousLatest, previousMyPosts) => {
   if (previousPosts) {
     queryClient.setQueryData(["posts"], previousPosts);
   }
   if (previousLatest) {
     queryClient.setQueryData(["posts", "latest"], previousLatest);
+  }
+  if (previousMyPosts) {
+    queryClient.setQueryData(["my-posts"], previousMyPosts);
   }
 };
 
@@ -250,6 +291,7 @@ const toggleLikeMutation = useMutation({
     await queryClient.cancelQueries({ queryKey: ["post", props.postId] });
     await queryClient.cancelQueries({ queryKey: ["posts"] });
     await queryClient.cancelQueries({ queryKey: ["posts", "latest"] });
+    await queryClient.cancelQueries({ queryKey: ["my-posts"] });
     const previous = queryClient.getQueryData(["post", props.postId]);
 
     queryClient.setQueryData(["post", props.postId], (old) => {
@@ -269,12 +311,17 @@ const toggleLikeMutation = useMutation({
     if (ctx?.previous) {
       queryClient.setQueryData(["post", props.postId], ctx.previous);
     }
-    rollbackPostInLists(ctx?.previousPosts, ctx?.previousLatest);
+    rollbackPostInLists(
+      ctx?.previousPosts,
+      ctx?.previousLatest,
+      ctx?.previousMyPosts
+    );
   },
   onSettled: () => {
     queryClient.invalidateQueries({ queryKey: ["post", props.postId] });
     queryClient.invalidateQueries({ queryKey: ["posts"] });
     queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
+    queryClient.invalidateQueries({ queryKey: ["my-posts"] });
   },
 });
 
@@ -311,6 +358,7 @@ const deletePostMutation = useMutation({
   onSuccess: async () => {
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
+    await queryClient.invalidateQueries({ queryKey: ["my-posts"] });
     router.push({ name: "community" });
   },
 });

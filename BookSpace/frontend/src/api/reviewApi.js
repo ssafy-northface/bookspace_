@@ -8,7 +8,6 @@ import httpClient from "./httpClient";
  * - 리뷰 작성은 isbn 기반
  */
 
-
 /**
  * 리뷰 목록 조회 (도서 기준)
  * GET /reviews?bookId=10&sort=latest
@@ -22,7 +21,7 @@ export const getReviewsByBookIdApi = (bookId, sort = "latest") => {
 };
 
 /**
- * 리뷰 목록 조회 (by userId))
+ * 리뷰 목록 조회 (by user))
  * GET /reviews?userId=3&sort=latest
  */
 export const getReviewsByUserIdApi = (userId, sort = "latest") => {
@@ -34,13 +33,22 @@ export const getReviewsByUserIdApi = (userId, sort = "latest") => {
 };
 
 /**
+ * 로그인 유저 리뷰 목록 조회 (profile -> myReviews)
+ * GET / reviews/me
+ * @param {*} reviewId
+ * @returns
+ */
+export const fetchMyReviewsApi = () => {
+  return httpClient.get("/reviews/me").then((res) => res.data);
+};
+
+/**
  * 리뷰 단건 조회
  * GET /reviews/{reviewId}
  */
 export const getReviewByIdApi = (reviewId) => {
   return httpClient.get(`/reviews/${reviewId}`).then((res) => res.data);
 };
-
 
 /**
  * 리뷰 작성
@@ -67,7 +75,5 @@ export const updateReviewApi = (reviewId, payload) => {
  * DELETE /reviews/{reviewId}
  */
 export const deleteReviewApi = (reviewId) => {
-  return httpClient
-    .delete(`/reviews/${reviewId}`)
-    .then((res) => res.data);
+  return httpClient.delete(`/reviews/${reviewId}`).then((res) => res.data);
 };

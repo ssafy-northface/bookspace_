@@ -1,6 +1,10 @@
 // src/stores/bookStore.js
 import { defineStore } from "pinia";
-import { fetchDefaultBooks, searchBooks, fetchBookDetailByIsbn } from "@/api/bookApi";
+import {
+  fetchDefaultBooks,
+  searchBooks,
+  fetchBookDetailByIsbn,
+} from "@/api/bookApi";
 
 export const useBookStore = defineStore("book", {
   state: () => ({
@@ -12,7 +16,7 @@ export const useBookStore = defineStore("book", {
     // 화면 상태 유지용
     lastQuery: "",
     lastSearchType: "title", // title|author|publisher|isbn
-    lastSort: "latest",      // latest|popular|accuracy
+    lastSort: "latest", // latest|popular|accuracy
     lastDefaultType: "bestseller", // bestseller|new
     hasSearched: false,
 
@@ -41,8 +45,7 @@ export const useBookStore = defineStore("book", {
         this.books = Array.isArray(data) ? data : [];
       } catch (e) {
         this.error =
-          e?.response?.data?.message ||
-          "기본 도서 목록을 불러오지 못했습니다.";
+          e?.response?.data?.message || "기본 도서 목록을 불러오지 못했습니다.";
         this.books = [];
       } finally {
         this.loading = false;
@@ -62,9 +65,7 @@ export const useBookStore = defineStore("book", {
         const data = await searchBooks({ query, type, sort });
         this.books = Array.isArray(data) ? data : [];
       } catch (e) {
-        this.error =
-          e?.response?.data?.message ||
-          "도서 검색에 실패했습니다.";
+        this.error = e?.response?.data?.message || "도서 검색에 실패했습니다.";
         this.books = [];
       } finally {
         this.loading = false;
@@ -87,16 +88,15 @@ export const useBookStore = defineStore("book", {
       } catch (e) {
         const status = e?.response?.status;
 
-    if (status === 404) {
-      
-      this.detailError = "NOT_FOUND";
-    } else {
-      this.detailError =
-        e?.response?.data?.message ||
-        "도서 상세 정보를 불러오지 못했습니다.";
-    }
+        if (status === 404) {
+          this.detailError = "NOT_FOUND";
+        } else {
+          this.detailError =
+            e?.response?.data?.message ||
+            "도서 상세 정보를 불러오지 못했습니다.";
+        }
 
-    this.bookDetail = null;
+        this.bookDetail = null;
       } finally {
         this.loadingDetail = false;
       }
