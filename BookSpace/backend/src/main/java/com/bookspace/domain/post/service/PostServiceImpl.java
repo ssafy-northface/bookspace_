@@ -203,10 +203,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponseDto> getPostsByUserId(long userId) {
-        List<PostVo> postVoList = postDao.selectPostsByUserId(userId);
-        return postVoList.stream()
-                .map(this::convertToResponseDto)
-                .toList();
+        List<PostResponseDto> results = postDao.selectPostsByUserId(userId);
+        return results;
     }
 
     @Override

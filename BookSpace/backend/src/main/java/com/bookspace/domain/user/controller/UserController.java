@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,8 +46,13 @@ public class UserController {
 
 
     // 3. 회원 정보 조회 (by userId)
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserResponseDto> getUserById(@PathVariable long userId) {
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getMe(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new AccessDeniedException("Unauthorized");
+        }
+
+        long userId = userDetails.getUserId();
         UserResponseDto response = userService.getUserById(userId);
         return ResponseEntity.ok(response);
     }
