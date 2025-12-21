@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import wishApi from "@/api/wishApi";
+import { queryClient } from "../plugins/vueQuery";
+import { myWishesQueryKey } from "../composables/profile/useMyWishes";
 
 /**
  * Wish(찜) Store
@@ -70,6 +72,8 @@ export const useWishStore = defineStore("wish", {
           }
           await wishApi.removeWish(bookId);
         }
+        // 찜 토글 후 내 찜 목록 쿼리 무효화 -> 최신화
+        queryClient.invalidateQueries({ queryKey: myWishesQueryKey() });
       } catch (err) {
         // 3. 실패 시 롤백
         this.isWishedByIsbn[isbn] = prev;

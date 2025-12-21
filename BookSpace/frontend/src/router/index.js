@@ -72,7 +72,11 @@ const router = createRouter({
   ],
 });
 
-// 전역 가드 추가: 인증이 필요한 페이지 접근 제어
+/* 
+전역 가드 추가: 인증이 필요한 페이지 접근 제어
+- meta: {requiresAuth:true} // 로그인 여부 체크
+- 페이지 단위 로그인 요구 처리 (기능 단위 로그인 요구 처리는 composables > useRequireAuth)
+*/
 router.beforeEach((to) => {
   const authStore = useAuthStore();
 

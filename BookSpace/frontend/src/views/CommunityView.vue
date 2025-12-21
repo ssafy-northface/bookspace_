@@ -92,13 +92,13 @@ import { fetchPosts } from "../api/postApi.js";
 import { computed, onMounted, ref, onUnmounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
-import { useAuthStore } from "@/stores/authStore";
+import useRequireAuth from "@/composables/useRequireAuth";
 import ScrollTopButton from "@/components/common/ScrollTopButton.vue";
 
-const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const { toast } = useToast();
+const { requireAuth } = useRequireAuth();
 
 const pickQueryString = (value) =>
   Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -299,20 +299,15 @@ const handleSortChange = async (nextSort) => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
-const goToCreatePost = () => {
-  if (!authStore.isLoggedIn) {
+const goToCreatePost = requireAuth(() => router.push({ name: "postCreate" }), {
+  redirect: { name: "postCreate" },
+  loginMessage: null,
+  onBlocked: () =>
     toast({
       title: "로그인이 필요한 서비스입니다.",
       description: "게시글을 작성하려면 먼저 로그인해주세요.",
-    });
-    router.push({
-      name: "signin",
-      query: { redirect: router.resolve({ name: "postCreate" }).path },
-    });
-    return;
-  }
-  router.push({ name: "postCreate" });
-};
+    }),
+});
 
 // 새 게시글 보기 버튼 클릭 시 최신 데이터로 갱신 + 상단 이동
 const showLatestPosts = async () => {
