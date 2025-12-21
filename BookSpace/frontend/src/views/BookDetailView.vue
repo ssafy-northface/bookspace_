@@ -1,5 +1,5 @@
 <template>
-  <main class="mx-auto max-w-6xl px-4 py-6">
+  <main class="max-w-6xl px-4 py-6 mx-auto">
     <div
       v-if="loadingDetail && !book"
       class="py-10 text-sm text-muted-foreground"
@@ -138,12 +138,10 @@ const props = defineProps({
 
 const resolvedIsbn = computed(() => props.isbn ?? route.params.isbn);
 
-const load = (isbn) => {
+const load = async (isbn) => {
   if (!isbn) return;
   await bookStore.loadBookDetail(isbn);
 };
-
-onMounted(() => load(resolvedIsbn.value));
 
 watch(
   () => resolvedIsbn.value,
