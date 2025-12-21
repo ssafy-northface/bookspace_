@@ -71,7 +71,11 @@
 
           <!-- PostSection -->
           <template #post>
-            <PostSection />
+            <PostSection 
+              :isbn="book.isbn" 
+              :book-id="book.bookId"
+              @post-updated="load"
+            />
           </template>
         </ReviewPostTabs>
       </section>

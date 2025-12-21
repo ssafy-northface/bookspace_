@@ -9,7 +9,7 @@
       <div class="relative z-10 w-[560px] max-w-[92vw] rounded-xl bg-background border shadow-xl" @click.stop>
         <!-- header -->
         <div class="flex items-center justify-between px-6 py-4">
-          <h3 class="text-lg font-semibold text-foreground">토론 게시글 작성</h3>
+          <h3 class="text-lg font-semibold text-foreground">게시글 작성</h3>
 
           <button type="button" class="rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-muted transition" aria-label="닫기" @click="close">✕</button>
         </div>
@@ -39,7 +39,7 @@
 
           <button
             type="button"
-            class="w-full h-11 rounded-md font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 bg-muted-foreground/60"
+            class="h-10 w-full rounded-md bg-gray-400 text-base font-semibold text-white disabled:opacity-60"
             :class="canSubmit ? 'bg-primary hover:bg-primary/90' : ''"
             :disabled="!canSubmit"
             @click="submit"
@@ -62,11 +62,17 @@ const content = ref("");
 
 const canSubmit = computed(() => title.value.length > 0 && content.value.length > 0);
 
-const close = () => emit("close");
+const close = () => {
+  title.value = "";
+  content.value = "";
+  emit("close");
+};
 
 const submit = () => {
   if (!canSubmit.value) return;
   emit("submit", { title: title.value, content: content.value });
+  title.value = "";
+  content.value = "";
 };
 
 // 모달 뜰 때 키보드 이벤트(ESC) 잘 먹게 포커스
