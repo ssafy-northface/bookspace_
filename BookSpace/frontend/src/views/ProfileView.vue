@@ -6,7 +6,12 @@
       size="lg"
     />
 
-    <ProfileSection v-if="me" :userId="userId" :nickname="nickname" />
+    <ProfileSection
+      v-if="me"
+      :userId="userId"
+      :nickname="nickname"
+      @open-settings="openSettingsModal"
+    />
 
     <section
       class="p-4 border shadow-sm rounded-2xl border-border bg-card md:p-6"
@@ -83,6 +88,17 @@
         @wish-updated="handleWishUpdated"
       />
     </BaseModal>
+
+    <!-- 비밀번호 확인 모달 -->
+    <PasswordConfirmModal
+      :visible="showPasswordModal"
+      :password="password"
+      :error-message="passwordError"
+      :loading="verifyingPassword"
+      @update:password="(val) => (password = val)"
+      @submit="verifyPassword"
+      @close="closePasswordModal"
+    />
     <ScrollTopButton />
   </div>
 </template>
@@ -90,6 +106,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
+import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/userStore";
 import { useMyWishes } from "@/composables/profile/useMyWishes";
 import { useMyReviews } from "@/composables/profile/useMyReviews";
@@ -105,9 +122,12 @@ import PostDetailView from "./PostDetailView.vue";
 import ReviewDetailModal from "@/components/review/ReviewDetailModal.vue";
 import ScrollTopButton from "@/components/common/ScrollTopButton";
 import BookDetailView from "./BookDetailView.vue";
+import PasswordConfirmModal from "@/components/Profile/PasswordConfirmModal.vue";
+import { loginApi } from "@/api/authApi";
 
 const userStore = useUserStore();
 const { me } = storeToRefs(userStore);
+const router = useRouter();
 
 const userId = computed(() => me.value?.userId);
 const nickname = computed(() => me.value?.userNickname);
@@ -136,6 +156,10 @@ const safePostItems = computed(() => postItems.value ?? []);
 const selectedPostId = ref(null);
 const selectedReview = ref(null);
 const selectedBookIsbn = ref(null);
+const showPasswordModal = ref(false);
+const password = ref("");
+const passwordError = ref("");
+const verifyingPassword = ref(false);
 
 // 리뷰 모달 open & close
 const openReviewModal = (review) => {
@@ -194,5 +218,42 @@ const closeBookModal = () => {
 
 const handleWishUpdated = async () => {
   await refetchWishes();
+};
+
+const openSettingsModal = () => {
+  password.value = "";
+  passwordError.value = "";
+  showPasswordModal.value = true;
+};
+
+const closePasswordModal = () => {
+  showPasswordModal.value = false;
+  password.value = "";
+  passwordError.value = "";
+};
+
+const verifyPassword = async () => {
+  if (verifyingPassword.value) return;
+  passwordError.value = "";
+  const loginId =
+    me.value?.userLoginId ?? me.value?.loginId ?? me.value?.username;
+  if (!loginId) {
+    passwordError.value = "로그인 정보를 확인할 수 없습니다.";
+    return;
+  }
+  if (!password.value) {
+    passwordError.value = "비밀번호를 입력해주세요.";
+    return;
+  }
+  try {
+    verifyingPassword.value = true;
+    await loginApi({ userLoginId: loginId, userPw: password.value });
+    closePasswordModal();
+    router.push({ name: "profileEdit" });
+  } catch (e) {
+    passwordError.value = "비밀번호가 올바르지 않습니다.";
+  } finally {
+    verifyingPassword.value = false;
+  }
 };
 </script>
