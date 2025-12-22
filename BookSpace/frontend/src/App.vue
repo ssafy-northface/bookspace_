@@ -14,10 +14,15 @@ import Toaster from "./components/ui/Toaster.vue";
 import { onMounted } from "vue";
 import { useAuthStore } from "./stores/authStore";
 import { useUserStore } from "./stores/userStore";
+import { useDarkMode } from "./composables/useDarkMode";
 
 // pinina 스토어 사용
 const authStore = useAuthStore();
 const userStore = useUserStore();
+
+// 다크모드 초기화
+const { initTheme } = useDarkMode();
+initTheme();
 
 // 앱이 처음 로드되거나 새로고침됐을 떄 한 번 실행
 onMounted(async () => {

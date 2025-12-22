@@ -76,6 +76,17 @@
           </RouterLink>
         </template>
 
+        <!-- 다크모드 토글 -->
+        <button
+          type="button"
+          class="p-2 rounded-md hover:bg-accent transition-colors"
+          @click="toggleDarkMode"
+          :aria-label="isDark ? '라이트 모드로 전환' : '다크 모드로 전환'"
+        >
+          <SunIcon v-if="isDark" class="w-5 h-5" />
+          <MoonIcon v-else class="w-5 h-5" />
+        </button>
+
         <!-- 모바일 메뉴 버튼 (햄버거) -->
         <button
           class="text-sm font-medium md:hidden hover:text-primary"
@@ -143,6 +154,17 @@
               <span>회원가입</span>
             </RouterLink>
           </template>
+
+          <!-- 다크모드 토글 (모바일) -->
+          <button
+            type="button"
+            class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-muted text-left"
+            @click="toggleDarkMode"
+          >
+            <span>{{ isDark ? "라이트 모드" : "다크 모드" }}</span>
+            <SunIcon v-if="isDark" class="w-5 h-5" />
+            <MoonIcon v-else class="w-5 h-5" />
+          </button>
         </div>
       </div>
     </Sheet>
@@ -155,18 +177,22 @@ import {
   UserCircleIcon,
   Bars3Icon, // 햄버거메뉴
   PowerIcon, //로그아웃
+  SunIcon, // 라이트모드 아이콘
+  MoonIcon, // 다크모드 아이콘
 } from "@heroicons/vue/24/outline";
 import { computed, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
 import { storeToRefs } from "pinia";
 import Sheet from "@/components/ui/Sheet.vue";
+import { useDarkMode } from "@/composables/useDarkMode";
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const router = useRouter();
 
 const { me } = storeToRefs(userStore);
+const { isDark, toggleDarkMode } = useDarkMode();
 
 const mobileMenuOpen = ref(false);
 
