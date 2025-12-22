@@ -75,7 +75,8 @@ public class SecurityConfig {
                                 "/login",
                                 "/join",
                                 "/auth/**",
-                                "/books/**"
+                                "/books/**",
+                                "/users/**"
                         ).permitAll() // 인증 없이 가능
                         .requestMatchers("/users/me/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()
