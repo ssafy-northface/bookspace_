@@ -77,11 +77,75 @@
         </template>
 
         <!-- 모바일 메뉴 버튼 (햄버거) -->
-        <button class="text-sm font-medium md:hidden hover:text-primary">
+        <button
+          class="text-sm font-medium md:hidden hover:text-primary"
+          @click="mobileMenuOpen = true"
+          type="button"
+        >
           <Bars3Icon class="w-5 h-5" />
         </button>
       </div>
     </div>
+    <Sheet
+      v-model="mobileMenuOpen"
+      side="right"
+      title="메뉴"
+      :close-button="true"
+    >
+      <div class="space-y-4">
+        <div class="space-y-1">
+          <p class="text-sm text-muted-foreground">탐색</p>
+          <div class="flex flex-col gap-2">
+            <RouterLink
+              v-for="link in navLinks"
+              :key="link.to"
+              :to="link.to"
+              class="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              @click="mobileMenuOpen = false"
+            >
+              <span>{{ link.label }}</span>
+            </RouterLink>
+          </div>
+        </div>
+
+        <div class="border-t border-border pt-4 space-y-2">
+          <template v-if="isLoggedIn">
+            <RouterLink
+              to="/profile"
+              class="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              @click="mobileMenuOpen = false"
+            >
+              <span>마이페이지</span>
+              <UserCircleIcon class="w-5 h-5" />
+            </RouterLink>
+            <button
+              type="button"
+              class="flex w-full items-center justify-between rounded-md px-3 py-2 text-sm font-semibold hover:bg-muted text-left"
+              @click="handleLogoutAndClose"
+            >
+              <span>로그아웃</span>
+              <PowerIcon class="w-5 h-5" />
+            </button>
+          </template>
+          <template v-else>
+            <RouterLink
+              to="/signin"
+              class="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              @click="mobileMenuOpen = false"
+            >
+              <span>로그인</span>
+            </RouterLink>
+            <RouterLink
+              to="/signup"
+              class="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+              @click="mobileMenuOpen = false"
+            >
+              <span>회원가입</span>
+            </RouterLink>
+          </template>
+        </div>
+      </div>
+    </Sheet>
   </header>
 </template>
 
@@ -92,10 +156,11 @@ import {
   Bars3Icon, // 햄버거메뉴
   PowerIcon, //로그아웃
 } from "@heroicons/vue/24/outline";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import { useUserStore } from "@/stores/userStore";
 import { storeToRefs } from "pinia";
+import Sheet from "@/components/ui/Sheet.vue";
 
 const authStore = useAuthStore();
 const userStore = useUserStore();
@@ -103,15 +168,28 @@ const router = useRouter();
 
 const { me } = storeToRefs(userStore);
 
+const mobileMenuOpen = ref(false);
+
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 const displayName = computed(() => {
   if (!me.value) return "";
-  return me.value.userNickname || me.Value.userName || "";
+  return me.value.userNickname || me.value.userName || "";
 });
+
+const navLinks = [
+  { to: "/books", label: "도서 목록" },
+  { to: "/community", label: "커뮤니티" },
+  { to: "/ai-recommend", label: "AI 추천" },
+];
 
 const handleLogout = () => {
   authStore.logout();
   router.push("/");
+};
+
+const handleLogoutAndClose = () => {
+  mobileMenuOpen.value = false;
+  handleLogout();
 };
 </script>

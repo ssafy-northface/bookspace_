@@ -12,6 +12,7 @@ import BookDetailView from "@/views/BookDetailView";
 import CommunityView from "@/views/CommunityView";
 import PostDetailView from "@/views/PostDetailView";
 import ProfileView from "@/views/ProfileView";
+import ProfileEditView from "@/views/ProfileEditView";
 import PostCreateUpdateView from "@/views/PostCreateUpdateView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
@@ -62,6 +63,12 @@ const router = createRouter({
           path: "/profile",
           name: "profile",
           component: ProfileView,
+          meta: { requiresAuth: true },
+        },
+        {
+          path: "/profile/edit",
+          name: "profileEdit",
+          component: ProfileEditView,
           meta: { requiresAuth: true },
         },
       ],

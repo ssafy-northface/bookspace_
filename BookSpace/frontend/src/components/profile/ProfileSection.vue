@@ -10,9 +10,9 @@
     />
 
     <div
-      class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+      class="relative flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap"
     >
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 min-w-0">
         <UserProfileImg :name="displayName" size-class="w-16 h-16" />
         <div>
           <p class="text-sm text-muted-foreground">{{ subtitle }}</p>
@@ -21,6 +21,14 @@
           </h2>
         </div>
       </div>
+      <button
+        type="button"
+        class="inline-flex items-center justify-center w-10 h-10 text-sm font-semibold transition border rounded-lg border-border bg-background hover:bg-muted"
+        @click="$emit('open-settings')"
+        aria-label="계정 설정"
+      >
+        <SettingsIcon class="w-4 h-4" />
+      </button>
     </div>
   </section>
 </template>
@@ -28,6 +36,9 @@
 <script setup>
 import { computed } from "vue";
 import UserProfileImg from "@/components/common/UserProfileImg.vue";
+import { SettingsIcon } from "lucide-vue-next";
+
+defineEmits(["open-settings"]);
 
 const props = defineProps({
   userId: {
