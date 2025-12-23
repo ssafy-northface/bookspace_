@@ -10,5 +10,10 @@ public class ApiResponseDto {
     public boolean is_valid;
     public String user_emotion;
     public String comfort_message;
-    public List<String> book_titles;
+    public List<AiRecommendationItemDto> books; // ✅ 변경
+
+    public static class AiRecommendationItemDto {
+        public String title;
+        public String reason;
+    }
 }
