@@ -1,30 +1,39 @@
 package com.bookspace.domain.aiRecommendation.dto;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class AiRecommendationResponseDto {
 
-    // API 연결 테스트용
-    public String content;
+    // 추천 성공 여부
+    private boolean isValid;
 
-    public boolean is_valid;
-    public String user_emotion;
-    public String comfort_message;
-    public List<BookItem> recommendations;
+    // 감정 분석/공감 문구 (AI 결과를 그대로 내려주면 UX 좋아짐)
+    private String userEmotion;
+    private String comfortMessage;
 
-    // 추후 JSON 파싱용 필드
+    // 최종 확정된 도서 카드 (최대 3권)
+    private List<BookItem> recommendations;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
     public static class BookItem {
-        // GPT가 주는 값
-        public String isbn13;
-        public String theme;
-        public String description; // 추천 이유
 
-        // isbn13 기반으로 BookService.getBookDetail로 채울 값 (db 우선 조회 -> 알라딘 API 호출)
-        public Long bookId;  // DB에 있으면, 없으면 null
-        public String title;
-        public String author;
-        public String publisher;
-        public String cover;
-        public Double averageRating; // DB 없으면 0.0 (BookDetailResponseDto 기준)
+        private Long bookId;
+
+        private String isbn13;
+        private String title;
+        private String author;
+        private String publisher;
+        private String cover;
+
+        private Double averageRating; // DB에 있는 책이면 평점, 없으면 0.0
     }
 }
