@@ -1,109 +1,129 @@
 package com.bookspace.domain.aiRecommendation.service;
 
 import com.bookspace.domain.aiRecommendation.aiClient.OpenAiClient;
-import com.bookspace.domain.aiRecommendation.dto.AiRecommendationRequestDto;
 import com.bookspace.domain.aiRecommendation.dto.AiRecommendationResponseDto;
+import com.bookspace.domain.aiRecommendation.dto.ApiRequestDto;
+import com.bookspace.domain.aiRecommendation.dto.ApiResponseDto;
 import com.bookspace.domain.aiRecommendation.service.AiRecommendationService;
 import com.bookspace.domain.book.dto.BookDetailResponseDto;
+import com.bookspace.domain.book.dto.BookSearchResponseDto;
 import com.bookspace.domain.book.service.BookService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AiRecommendationServiceImpl implements AiRecommendationService {
 
-    @Autowired
-    private OpenAiClient openAiClient;
-
-    @Autowired
-    private BookService bookService;
+    private final OpenAiClient openAiClient;
+    private final BookService bookService;
 
     @Override
-    public AiRecommendationResponseDto getRecommendedBooks(AiRecommendationRequestDto requestDto) {
+    public AiRecommendationResponseDto getRecommendedBooks(ApiRequestDto requestDto) {
 
-        String userRequest = requestDto.getUserRequest();
+        String userRequest = requestDto != null ? requestDto.getUserRequest() : null;
 
         // 0) 입력 방어
         if (userRequest == null || userRequest.isBlank()) {
-            AiRecommendationResponseDto fail = new AiRecommendationResponseDto();
-            fail.is_valid = false;
-            fail.user_emotion = null;
-            fail.comfort_message = "도서 추천을 받으려면 지금 감정/상황을 한 문장으로 적어주세요 🙂";
-            fail.recommendations = List.of();
-            fail.content = null;
-            return fail;
+            return buildFailResponse(
+                    "도서 추천을 받으려면 지금 감정이나 상황을 한 문장으로 적어주세요 🙂"
+            );
         }
 
-        // 1) OpenAI 호출: JSON 강제 결과를 DTO로 수신
-        AiRecommendationResponseDto aiDto = openAiClient.requestJson(userRequest);
+        // 1) OpenAI 호출 (제목 3개 + 감정/위로 메시지)
+        ApiResponseDto apiDto = openAiClient.requestJson(userRequest);
 
-        // 2) 정책: ISBN 0개일 때만 실패 처리
-        if (aiDto == null || aiDto.recommendations == null || aiDto.recommendations.isEmpty()) {
-            AiRecommendationResponseDto fail = new AiRecommendationResponseDto();
-            fail.is_valid = false;
-            fail.user_emotion = null;
-            fail.comfort_message =
-                    "지금 마음에 맞는 책을 찾기 어려웠어요. 감정이나 상황을 조금만 더 구체적으로 말해줄래요? 🙂";
-            fail.recommendations = List.of();
-            fail.content = (aiDto != null ? aiDto.content : null);
-            return fail;
+        if (apiDto == null || apiDto.book_titles == null || apiDto.book_titles.isEmpty()) {
+            return buildFailResponse(
+                    "지금 마음에 맞는 책을 찾기 어려웠어요. 감정이나 상황을 조금만 더 구체적으로 말해줄래요? 🙂"
+            );
         }
 
-        // 3) ISBN 기반으로 도서 상세 조회하여 BookItem에 병합 (최대 3권)
-        int limit = Math.min(3, aiDto.recommendations.size());
-        List<AiRecommendationResponseDto.BookItem> mergedList = new ArrayList<>();
+        // 2) 제목 → 검색 → isbn13 → 상세 조회
+        List<AiRecommendationResponseDto.BookItem> items = new ArrayList<>();
 
-        for (int i = 0; i < limit; i++) {
-            AiRecommendationResponseDto.BookItem aiItem = aiDto.recommendations.get(i);
-            if (aiItem == null || aiItem.isbn13 == null || aiItem.isbn13.isBlank()) continue;
+        for (String title : apiDto.book_titles) {
+            if (title == null || title.isBlank()) continue;
 
-            BookDetailResponseDto detail = null;
+            String isbn13 = resolveIsbn13ByTitle(title);
+            if (isbn13 == null) continue;
+
+            BookDetailResponseDto detail;
             try {
-                detail = bookService.getBookDetail(aiItem.isbn13);
+                detail = bookService.getBookDetail(isbn13);
             } catch (Exception e) {
-                // 조회 실패 시에도 AI 추천(이유)은 살릴지 정책 선택 가능
-                // 여기서는 "AI 추천은 유지 + 도서정보는 비움"으로 처리
+                continue;
             }
 
-            AiRecommendationResponseDto.BookItem merged = new AiRecommendationResponseDto.BookItem();
+            AiRecommendationResponseDto.BookItem item =
+                    new AiRecommendationResponseDto.BookItem();
 
-            // ✅ GPT 제공값 유지
-            merged.isbn13 = aiItem.isbn13;
-            merged.theme = aiItem.theme;
-            merged.description = aiItem.description;
+            item.setBookId(detail.getBookId());                // ⭐ Long (없으면 null)
+            item.setIsbn13(detail.getIsbn());
+            item.setTitle(detail.getTitle());
+            item.setAuthor(detail.getAuthor());
+            item.setPublisher(detail.getPublisher());
+            item.setCover(detail.getCover());
+            item.setAverageRating(
+                    detail.getAverageRating() != null ? detail.getAverageRating() : 0.0
+            );
 
-            // ✅ 도서 정보 보강 (조회 성공 시)
-            if (detail != null) {
-                merged.bookId = detail.getBookId();
-                merged.title = detail.getTitle();
-                merged.author = detail.getAuthor();
-                merged.publisher = detail.getPublisher();
-                merged.cover = detail.getCover();
-                merged.averageRating = detail.getAverageRating(); // DB 없으면 0.0 들어올 것
-                // isbn은 detail.getIsbn()이 있을 수 있으니 정규화 원하면 아래처럼
-                if (detail.getIsbn() != null && !detail.getIsbn().isBlank()) {
-                    merged.isbn13 = detail.getIsbn();
-                }
-            } else {
-                // 조회 실패면 최소한 null 처리(프론트 안정성)
-                merged.bookId = null;
-                merged.title = null;
-                merged.author = null;
-                merged.publisher = null;
-                merged.cover = null;
-                merged.averageRating = 0.0;
-            }
-
-            mergedList.add(merged);
+            items.add(item);
+            if (items.size() == 3) break;
         }
 
-        // 4) 최종 반환: comfort_message + emotion은 aiDto 그대로, 추천 리스트만 교체
-        aiDto.recommendations = mergedList;
-        aiDto.is_valid = !mergedList.isEmpty(); // AI가 true라도 결과가 비면 false로
+        // 3) 최종 응답
+        AiRecommendationResponseDto res = new AiRecommendationResponseDto();
+        res.setUserEmotion(apiDto.user_emotion);
+        res.setComfortMessage(apiDto.comfort_message);
+        res.setRecommendations(items);
 
-        return aiDto;
+        if (items.isEmpty()) {
+            res.setValid(false);
+            res.setUserEmotion(null);
+            res.setComfortMessage(
+                    "추천 도서 제목은 받았지만 실제 도서를 찾지 못했어요. 감정이나 상황을 조금만 더 구체적으로 말해줄래요? 🙂"
+            );
+        } else {
+            res.setValid(true);
+        }
+
+        return res;
+    }
+
+    /**
+     * GPT 제목 → DB/알라딘 검색 → 가장 적합한 isbn13 1개 반환
+     */
+    private String resolveIsbn13ByTitle(String title) {
+        String normalized = normalizeTitle(title);
+
+        List<BookSearchResponseDto> results;
+        try {
+            results = bookService.searchBooks(normalized, "title");
+        } catch (Exception e) {
+            return null;
+        }
+
+        if (results == null || results.isEmpty()) return null;
+        return results.get(0).getIsbn13();
+    }
+
+    private String normalizeTitle(String raw) {
+        if (raw == null) return "";
+        return raw.replaceAll("\\(.*?\\)|\\[.*?\\]", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private AiRecommendationResponseDto buildFailResponse(String message) {
+        AiRecommendationResponseDto fail = new AiRecommendationResponseDto();
+        fail.setValid(false);
+        fail.setUserEmotion(null);
+        fail.setComfortMessage(message);
+        fail.setRecommendations(List.of());
+        return fail;
     }
 }
