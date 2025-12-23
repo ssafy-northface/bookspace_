@@ -26,8 +26,9 @@ public class AiRecommendationResponseDto {
     @NoArgsConstructor
     public static class BookItem {
 
-        private Long bookId;
+        private String reason;
 
+        private Long bookId;
         private String isbn13;
         private String title;
         private String author;
