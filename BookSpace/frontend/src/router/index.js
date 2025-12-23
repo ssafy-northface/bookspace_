@@ -27,7 +27,7 @@ const router = createRouter({
       children: [
         // home
         { path: "", name: "home", component: HomeView },
-      
+
         // books
         { path: "/books", name: "books", component: BooksView },
         // book detail
@@ -53,12 +53,12 @@ const router = createRouter({
           component: PostDetailView,
           props: true,
         },
-          // ai recommend
+        // ai recommend
         {
           path: "ai-recommend",
           name: "aiRecommend",
           component: AiRecommendView,
-          meta: {noFooter:true}, // 푸터 숨기기
+          meta: { requiresAuth: true, noFooter: true }, // 로그인 필요, 푸터 숨기기
         },
         // profile - 로그인 필요
         {
@@ -75,7 +75,7 @@ const router = createRouter({
         },
       ],
     },
-   
+
     //  layout(헤더, 푸터) 적용 없는 페이지
     { path: "/signin", name: "signin", component: SignInView },
     { path: "/signup", name: "signup", component: SignupView },

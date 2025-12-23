@@ -14,24 +14,23 @@
 </template>
 
 <script setup>
-
 const props = defineProps({
   questions: {
     type: Array,
     default: () => [
-      '오늘 기분에 맞는 책을 추천해줘',
-      '최근 베스트셀러 알려줘',
-      '자기계발서 추천해줘',
-      '감동적인 소설 찾아줘'
-    ]
+      "오늘 기분에 맞는 책을 추천해줘",
+      "최근 베스트셀러 알려줘",
+      "자기계발서 추천해줘",
+      "감동적인 소설 찾아줘",
+    ],
   },
   visible: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
-defineEmits(['select'])
+defineEmits(["select"]);
 </script>
 
 <style scoped>
@@ -52,11 +51,21 @@ defineEmits(['select'])
 
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  display: none !important;
 }
 </style>
