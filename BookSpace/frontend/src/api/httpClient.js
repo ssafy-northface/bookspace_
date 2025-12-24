@@ -2,8 +2,10 @@
 import axios from "axios";
 
 const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: false, // 필요 시 true
+  // 프록시 사용: /api로 요청하면 Vite가 localhost:8080으로 전달
+  // ngrok 배포 시 CORS, Mixed Content 문제 해결
+  baseURL: "/api",
+  withCredentials: false,
 });
 
 // 요청 인터셉터
