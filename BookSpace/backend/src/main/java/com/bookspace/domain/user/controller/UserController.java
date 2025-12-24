@@ -4,6 +4,9 @@ import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
 import com.bookspace.domain.user.dto.UserResponseDto;
 import com.bookspace.domain.user.dto.UserUpdateRequestDto;
+import com.bookspace.domain.user.dto.VerifyUserRequestDto;
+import com.bookspace.domain.user.dto.VerifyUserResponseDto;
+import com.bookspace.domain.user.dto.ResetPasswordRequestDto;
 import com.bookspace.domain.user.service.UserService;
 import com.bookspace.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -148,5 +151,18 @@ public class UserController {
 //        return ResponseEntity.ok(!exists);
 //    }
 
+    // 10. 비밀번호 찾기 - 본인 확인
+    @PostMapping("/verify")
+    public ResponseEntity<VerifyUserResponseDto> verifyUser(@RequestBody VerifyUserRequestDto dto) {
+        boolean verified = userService.verifyUser(dto.getUserLoginId(), dto.getUserEmail());
+        return ResponseEntity.ok(new VerifyUserResponseDto(verified));
+    }
+
+    // 11. 비밀번호 재설정
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDto dto) {
+        userService.resetPassword(dto.getUserLoginId(), dto.getUserEmail(), dto.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
 
 }

@@ -3,10 +3,10 @@
     <!-- Header -->
     <header class="bg-background border-b border-border">
       <div
-        class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto"
+        class="flex items-center justify-between px-4 h-full max-w-2xl mx-auto"
       >
         <BackButton />
-        <h1 class="text-lg font-semibold text-foreground">AI 도서 추천</h1>
+        <h1 class="text-lg font-semibold text-foreground">AI 책봇</h1>
         <div class="w-9"></div>
       </div>
     </header>

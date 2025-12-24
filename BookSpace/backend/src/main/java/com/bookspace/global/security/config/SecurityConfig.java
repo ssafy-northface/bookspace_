@@ -84,7 +84,8 @@ public class SecurityConfig {
                                 "/join",
                                 "/auth/**",
                                 "/books/**",
-                                "/users/**"
+                                "/users/**",
+                                "/email/**"  // 이메일 인증
                         ).permitAll() // 인증 없이 가능
                         .requestMatchers("/users/me/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()

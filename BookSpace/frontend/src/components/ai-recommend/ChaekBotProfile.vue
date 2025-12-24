@@ -1,13 +1,12 @@
 <template>
   <div 
     :class="containerClass"
-    class="mx-auto mb-4 rounded-full bg-foreground flex items-center justify-center shadow-lg overflow-hidden"
+    class="mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center shadow-lg overflow-hidden"
   >
     <img 
-      src="/images/chaekbot.png" 
+      src="/images/chaekbot.gif" 
       alt="책봇"
-      :style="imageStyle"
-      class="object-contain"
+      class="w-[85%] h-[85%] object-cover rounded-full"
     >
   </div>
 </template>
@@ -23,19 +22,15 @@ const props = defineProps({
   }
 })
 
-// Size mappings
+// Size mappings - 원형에 딱 맞게
 const sizeMap = {
-  sm: { container: 'w-10 h-10', imageScale: 0.7 },
-  md: { container: 'w-16 h-16', imageScale: 0.7 },
-  lg: { container: 'w-20 h-20', imageScale: 0.7 },
-  xl: { container: 'w-24 h-24', imageScale: 0.7 }
+  sm: 'w-10 h-10',
+  md: 'w-16 h-16',
+  lg: 'w-20 h-20',
+  xl: 'w-24 h-24'
 }
 
-const containerClass = computed(() => sizeMap[props.size].container)
-const imageStyle = computed(() => ({
-  width: `${sizeMap[props.size].imageScale * 100}%`,
-  height: `${sizeMap[props.size].imageScale * 100}%`
-}))
+const containerClass = computed(() => sizeMap[props.size])
 </script>
 
 <style scoped>
