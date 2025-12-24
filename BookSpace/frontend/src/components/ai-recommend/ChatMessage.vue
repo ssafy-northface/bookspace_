@@ -155,13 +155,5 @@ const formatTime = (date) => {
   }
 }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+/* 스크롤바 스타일은 이제 global.css에서 전역으로 처리됩니다 */
 </style>

@@ -113,23 +113,4 @@ defineExpose({
 </script>
 
 <style scoped>
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-.scrollbar-hide::-webkit-scrollbar-track {
-  display: none !important;
-}
-
-.scrollbar-hide::-webkit-scrollbar-thumb {
-  display: none !important;
-}
 </style>

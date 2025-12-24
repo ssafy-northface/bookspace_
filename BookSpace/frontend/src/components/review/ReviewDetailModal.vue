@@ -20,7 +20,7 @@
           {{ formattedDate }}
         </p>
         <div
-          class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-amber-700"
+          class="inline-flex items-center gap-2 rounded-full bg-cardpx-3 py-1 text-amber-700"
         >
           <span class="text-base leading-none">★</span>
           <span class="text-base font-semibold">

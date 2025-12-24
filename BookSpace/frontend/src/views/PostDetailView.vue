@@ -158,15 +158,27 @@ const queryClient = useQueryClient();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
+// 최초 로드 여부를 추적 (postId당 한 번만 조회수 증가)
+const hasInitiallyLoaded = ref(false);
+
 const { data, isLoading, isError, refetch } = useQuery({
   queryKey: ["post", props.postId],
-  queryFn: () => fetchPostDetail(props.postId),
+  queryFn: () => {
+    // 최초 로드가 아니면 조회수 증가 스킵
+    const skipViewCount = hasInitiallyLoaded.value;
+    if (!hasInitiallyLoaded.value) {
+      hasInitiallyLoaded.value = true;
+    }
+    return fetchPostDetail(props.postId, skipViewCount);
+  },
   enabled: !!props.postId,
-  staleTime: 0,
+  staleTime: 1000 * 60 * 5, // 5분간 fresh 상태 유지
+  refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 refetch 방지
+  refetchOnMount: false, // 컴포넌트 마운트 시 자동 refetch 방지 (캐시 있으면 사용)
+  refetchOnReconnect: false, // 네트워크 재연결 시 자동 refetch 방지
 });
 
 const post = computed(() => data.value);
-const viewAdjusted = ref(false);
 const likeCount = computed(() => post.value?.likeCount ?? 0);
 const isLiked = computed(() => !!post.value?.liked);
 const me = computed(() => userStore.me);
@@ -317,8 +329,11 @@ const toggleLikeMutation = useMutation({
       ctx?.previousMyPosts
     );
   },
-  onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ["post", props.postId] });
+  onSettled: async () => {
+    // 좋아요 토글 후 상세 쿼리 refetch (skipViewCount=true이므로 조회수는 증가 안 함)
+    await refetch();
+    
+    // 목록 쿼리들도 invalidate
     queryClient.invalidateQueries({ queryKey: ["posts"] });
     queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
     queryClient.invalidateQueries({ queryKey: ["my-posts"] });
@@ -368,7 +383,20 @@ const deletePost = async () => {
   await deletePostMutation.mutateAsync();
 };
 
+// postId가 변경될 때 플래그 초기화 및 캐시 무효화 (새로운 게시글로 이동 시)
+watch(
+  () => props.postId,
+  async () => {
+    hasInitiallyLoaded.value = false;
+    // 캐시 무효화하여 최신 데이터 강제 refetch (skipViewCount=false로 조회수 증가)
+    await queryClient.invalidateQueries({ queryKey: ["post", props.postId] });
+  }
+);
+
 onMounted(async () => {
+  // 마운트 시 캐시 무효화하여 최신 데이터 강제 refetch (skipViewCount=false로 조회수 증가)
+  await queryClient.invalidateQueries({ queryKey: ["post", props.postId] });
+  
   if (authStore.isLoggedIn && !me.value) {
     try {
       await userStore.fetchMyInfo();
@@ -376,28 +404,18 @@ onMounted(async () => {
       console.error("[POST] failed to fetch my info", err);
     }
   }
-  viewAdjusted.value = false;
 });
 
-onActivated(() => {
-  viewAdjusted.value = false;
+onActivated(async () => {
+  // Keep Alive로 인한 재활성화 시 플래그 초기화 및 캐시 무효화
+  hasInitiallyLoaded.value = false;
+  await queryClient.invalidateQueries({ queryKey: ["post", props.postId] });
 });
 
-watch(
-  () => post.value?.postViewCnt,
-  (val) => {
-    if (!post.value || viewAdjusted.value) return;
-    const nextCount = (val ?? 0) + 1;
-    const nextPost = { ...post.value, postViewCnt: nextCount };
-    queryClient.setQueryData(["post", props.postId], nextPost);
-    syncPostToLists(nextPost);
-    viewAdjusted.value = true;
-  },
-  { immediate: true }
-);
-
-onBeforeRouteUpdate(() => {
-  viewAdjusted.value = false;
+onBeforeRouteUpdate(async () => {
+  // 라우트 변경 전 플래그 초기화
+  hasInitiallyLoaded.value = false;
+  // 캐시 무효화는 watch에서 처리됨
 });
 
 /**
