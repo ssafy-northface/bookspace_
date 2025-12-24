@@ -80,7 +80,11 @@ const router = createRouter({
     //  layout(헤더, 푸터) 적용 없는 페이지
     { path: "/signin", name: "signin", component: SignInView },
     { path: "/signup", name: "signup", component: SignupView },
-    { path: "/forgot-password", name: "forgotPassword", component: ForgotPasswordView },
+    {
+      path: "/forgot-password",
+      name: "forgotPassword",
+      component: ForgotPasswordView,
+    },
   ],
 });
 

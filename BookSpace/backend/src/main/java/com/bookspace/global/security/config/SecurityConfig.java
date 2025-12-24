@@ -41,13 +41,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // setAllowedOriginPatterns로 와일드카드 패턴 허용 (ngrok 등)
-        config.setAllowedOriginPatterns(List.of(
+                // setAllowedOriginPatterns로 와일드카드 패턴 허용 (ngrok 등)
+              config.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
                 "http://localhost:4173",
                 "https://*.ngrok-free.app",
                 "https://*.ngrok-free.dev"
-        ));
+         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Refresh-Token"));
@@ -68,7 +68,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtTokenProvider,customUserDetailsService);
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 연결
+                .cors(cors->{})// cors 활성화
                 .csrf(csrf -> csrf.disable()) // 브라우저 기본 폼 요청 공격 방어 (주로 세션에서 사용됨)
                 .formLogin(form -> form.disable()) // 기본 폼 (/login) 비활성화 -> (/auth/login)
                 .httpBasic(basic -> basic.disable()) // 헤더에 id/pw 실어 보내는 basic 방식 비활성화
@@ -76,8 +76,6 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션 사용 X
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // CORS preflight 요청 허용
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/",
                                 "/login",
@@ -85,7 +83,7 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/books/**",
                                 "/users/**",
-                                "/email/**"  // 이메일 인증
+                                "/email/**"
                         ).permitAll() // 인증 없이 가능
                         .requestMatchers("/users/me/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/posts/**").permitAll()
@@ -104,3 +102,4 @@ public class SecurityConfig {
         return http.build();
     }
 }
+

@@ -23,7 +23,13 @@ public class EmailVerificationController {
     public ResponseEntity<EmailVerificationResponseDto> sendVerificationCode(
             @RequestBody EmailVerificationRequestDto dto) {
         try {
-            emailVerificationService.sendVerificationCode(dto.getEmail());
+            if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(new EmailVerificationResponseDto(
+                        false,
+                        "이메일 주소를 입력해주세요."
+                ));
+            }
+            emailVerificationService.sendVerificationCode(dto.getEmail().trim());
             return ResponseEntity.ok(new EmailVerificationResponseDto(
                     true,
                     "인증 코드가 이메일로 발송되었습니다."
@@ -31,7 +37,7 @@ public class EmailVerificationController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new EmailVerificationResponseDto(
                     false,
-                    "이메일 발송에 실패했습니다. 이메일 주소를 확인해주세요."
+                    e.getMessage() != null ? e.getMessage() : "이메일 발송에 실패했습니다. 이메일 주소를 확인해주세요."
             ));
         }
     }

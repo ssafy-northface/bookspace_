@@ -80,6 +80,26 @@
         WHERE user_login_id = #{userLoginId}
     </select>
 
+    <!-- 4-1. 회원 정보 조회 (by userEmail) -->
+    <select id="selectUserByEmail" resultType="com.bookspace.domain.user.vo.UserVo">
+        SELECT
+            user_id,
+            user_login_id,
+            user_name,
+            user_nickname,
+            user_pw,
+            user_birth_date,
+            user_phone,
+            user_email,
+            user_regist_date,
+            deleted_at,
+            user_status,
+            user_role
+        FROM user
+        WHERE user_email = #{userEmail}
+          AND user_status = 'active'
+    </select>
+
     <!-- 5. 회원 탈퇴 (soft delete) -->
     <update id="softDeleteUser">
         UPDATE user

@@ -77,7 +77,7 @@
       </div>
     </div>
     <!-- 오른쪽: 책 정보 -->
-    <div class="flex flex-col items-center text-center w-28">
+    <div class="flex flex-col items-center text-center w-28 flex-shrink-0">
       <img
         :src="post.bookImageUrl || defaultBook"
         class="object-cover w-24 h-32 rounded"
@@ -147,7 +147,7 @@ const toggleLikeMutation = useMutation({
     await queryClient.cancelQueries({ queryKey: ["posts", "latest"] });
     await queryClient.cancelQueries({ queryKey: ["my-posts"] });
     await queryClient.cancelQueries({ queryKey: ["post", props.post.postId] });
-    
+
     const previous = { liked: isLiked.value, likeCount: likeCount.value };
 
     // 목록 캐시 낙관적 업데이트
@@ -158,7 +158,10 @@ const toggleLikeMutation = useMutation({
       const updatedPages = cache.pages.map((page) => {
         const updatedPosts = page.posts?.map((p) => {
           if (String(p.postId) !== String(props.post.postId)) return p;
-          const nextCount = Math.max(0, (p.likeCount ?? 0) + (nextLiked ? 1 : -1));
+          const nextCount = Math.max(
+            0,
+            (p.likeCount ?? 0) + (nextLiked ? 1 : -1)
+          );
           return { ...p, liked: nextLiked, likeCount: nextCount };
         });
         return { ...page, posts: updatedPosts };
@@ -173,7 +176,10 @@ const toggleLikeMutation = useMutation({
       if (!Array.isArray(cache)) return cache;
       const updated = cache.map((p) => {
         if (String(p.postId) !== String(props.post.postId)) return p;
-        const nextCount = Math.max(0, (p.likeCount ?? 0) + (nextLiked ? 1 : -1));
+        const nextCount = Math.max(
+          0,
+          (p.likeCount ?? 0) + (nextLiked ? 1 : -1)
+        );
         return { ...p, liked: nextLiked, likeCount: nextCount };
       });
       queryClient.setQueryData(["my-posts"], updated);
@@ -184,11 +190,14 @@ const toggleLikeMutation = useMutation({
     const updateDetailCache = () => {
       const cache = queryClient.getQueryData(["post", props.post.postId]);
       if (!cache) return cache;
-      const nextCount = Math.max(0, (cache.likeCount ?? 0) + (nextLiked ? 1 : -1));
-      queryClient.setQueryData(["post", props.post.postId], { 
-        ...cache, 
-        liked: nextLiked, 
-        likeCount: nextCount 
+      const nextCount = Math.max(
+        0,
+        (cache.likeCount ?? 0) + (nextLiked ? 1 : -1)
+      );
+      queryClient.setQueryData(["post", props.post.postId], {
+        ...cache,
+        liked: nextLiked,
+        likeCount: nextCount,
       });
       return cache;
     };
@@ -198,7 +207,13 @@ const toggleLikeMutation = useMutation({
     const previousMyPosts = updateMyPosts();
     const previousDetail = updateDetailCache();
 
-    return { previous, previousPosts, previousLatest, previousMyPosts, previousDetail };
+    return {
+      previous,
+      previousPosts,
+      previousLatest,
+      previousMyPosts,
+      previousDetail,
+    };
   },
   onSuccess: async (data, nextLiked) => {
     console.log("[LIKE] Mutation succeeded. Updating with server data.");

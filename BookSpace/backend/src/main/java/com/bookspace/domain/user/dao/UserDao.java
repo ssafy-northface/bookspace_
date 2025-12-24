@@ -19,6 +19,9 @@ public interface UserDao {
     // 4. 회원 정보 조회 (by userLoginId)
     UserVo selectUserByLoginId(@Param("userLoginId") String userLoginId);
 
+    // 4-1. 회원 정보 조회 (by userEmail)
+    UserVo selectUserByEmail(@Param("userEmail") String userEmail);
+
     // 5. 회원 탈퇴 (soft delete)
     int softDeleteUser(@Param("userId") long userId);
 
