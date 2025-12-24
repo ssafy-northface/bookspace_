@@ -1,76 +1,87 @@
 <template>
   <div class="ai-recommend-view">
     <!-- Header -->
-    <header class="fixed top-16 left-0 right-0 z-10">
-      <div class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto">
+    <header class="bg-background border-b border-border">
+      <div
+        class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto"
+      >
         <BackButton />
         <h1 class="text-lg font-semibold text-foreground">AI 도서 추천</h1>
-        <div class="w-9"></div> <!-- Spacer for centering -->
+        <div class="w-9"></div>
       </div>
     </header>
 
     <!-- Chat Container -->
-    <main class="pt-32 pb-32 overflow-y-auto scrollbar-hide" style="height: calc(100vh - 64px);">
+    <main class="chat-container" :style="{ bottom: `${footerHeight}px` }">
       <div class="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <!-- Welcome Message -->
-        <div v-if="messages.length === 0" 
-             :class="[
-               'transition-all duration-500 ease-in-out py-12',
-               isInputActive ? 'flex items-start gap-3' : 'text-center'
-             ]">
-          <!-- Robot Profile -->
-          <div :class="[
-            'transition-all duration-500 ease-in-out',
-            isInputActive ? 'flex-shrink-0' : 'inline-block'
-          ]">
+        <!-- 인사말 메세지 -->
+        <div
+          v-if="messages.length === 0"
+          :class="[
+            'transition-all duration-500 ease-in-out py-12',
+            isInputActive ? 'flex items-start gap-3' : 'text-center',
+          ]"
+        >
+          <!-- 책봇 프로필 -->
+          <div
+            :class="[
+              'transition-all duration-500 ease-in-out',
+              isInputActive ? 'flex-shrink-0' : 'inline-block',
+            ]"
+          >
             <ChaekBotProfile :size="isInputActive ? 'md' : 'xl'" />
           </div>
-          
-          <!-- Welcome Text / Chat Bubble -->
-          <div :class="[
-            'transition-all duration-500 ease-in-out',
-            isInputActive ? 'flex-1 opacity-100 translate-x-0' : 'opacity-100 translate-x-0'
-          ]">
-            <!-- Chat Bubble (when typing) -->
-            <div v-if="isInputActive" 
-                 class="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm animate-fade-in">
+
+          <!-- 인사말 메세지 -->
+          <div
+            :class="[
+              'transition-all duration-500 ease-in-out',
+              isInputActive
+                ? 'flex-1 opacity-100 translate-x-0'
+                : 'opacity-100 translate-x-0',
+            ]"
+          >
+            <div
+              v-if="isInputActive"
+              class="bg-muted rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm animate-fade-in"
+            >
               <p class="text-sm text-foreground leading-relaxed">
-                안녕하세요! 👋<br>
-                책봇이 당신의 현재 감정에 맞는 책을 추천해드립니다.<br>
+                안녕하세요! 👋<br />
+                책봇이 당신의 현재 감정에 맞는 책을 추천해드립니다.<br />
                 어떤 책을 찾고 계신가요?
               </p>
             </div>
-            
-            <!-- Centered Welcome (default) -->
+
+            <!-- 채팅 시작 메세지 -->
             <div v-else class="animate-fade-in">
               <h2 class="text-xl font-bold foreground mb-2">안녕하세요! 👋</h2>
               <p class="text-sm foreground mb-6">
-                책봇이 당신의 현재 감정에 맞는 책을 추천해드립니다.<br>
+                책봇이 당신의 현재 감정에 맞는 책을 추천해드립니다.<br />
                 어떤 책을 찾고 계신가요?
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Messages -->
+        <!-- 채팅 메세지 -->
         <ChatMessage
           v-for="(message, index) in messages"
           :key="index"
           :message="message"
         />
 
-        <!-- Typing Indicator -->
+        <!-- 타이핑 indicator -->
         <TypingIndicator v-if="isTyping" />
 
-        <!-- Scroll anchor -->
+        <!-- 스크롤 앵커 -->
         <div ref="scrollAnchor"></div>
       </div>
     </main>
 
-    <!-- Bottom Input Area -->
-    <footer class="fixed bottom-0 left-0 right-0">
+    <!-- 하단 입력 영역 -->
+    <footer ref="footerRef" class="bg-background border-t border-border">
       <div class="max-w-2xl mx-auto">
-        <!-- Suggested Questions -->
+        <!-- 추천 질문 -->
         <div class="px-4 pt-3">
           <SuggestedQuestions
             :visible="showSuggestions"
@@ -93,259 +104,249 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
-import ChatMessage from '@/components/ai-recommend/ChatMessage.vue'
-import ChatInput from '@/components/ai-recommend/ChatInput.vue'
-import SuggestedQuestions from '@/components/ai-recommend/SuggestedQuestions.vue'
-import TypingIndicator from '@/components/ai-recommend/TypingIndicator.vue'
-import BackButton from '@/components/common/BackButton.vue'
-import ChaekBotProfile from '@/components/ai-recommend/ChaekBotProfile.vue'
+import { ref, nextTick, onMounted, onUpdated, watch } from "vue";
+import { useRouter } from "vue-router";
+import ChatMessage from "@/components/ai-recommend/ChatMessage.vue";
+import ChatInput from "@/components/ai-recommend/ChatInput.vue";
+import SuggestedQuestions from "@/components/ai-recommend/SuggestedQuestions.vue";
+import TypingIndicator from "@/components/ai-recommend/TypingIndicator.vue";
+import BackButton from "@/components/common/BackButton.vue";
+import ChaekBotProfile from "@/components/ai-recommend/ChaekBotProfile.vue";
+import { getAiRecommendation } from "@/api/aiRecommendationApi";
+import { useToast } from "@/composables/useToast";
+
+const router = useRouter();
+const { toast } = useToast();
 
 // State
-const messages = ref([])
-const isTyping = ref(false)
-const showSuggestions = ref(true)
-const scrollAnchor = ref(null)
-const isInputActive = ref(false)
+const messages = ref([]);
+const isTyping = ref(false);
+const showSuggestions = ref(true);
+const scrollAnchor = ref(null);
+const isInputActive = ref(false);
+const footerRef = ref(null);
+const footerHeight = ref(120); // 기본 높이 (px)
 
 const suggestedQuestions = [
-  '오늘 기분에 맞는 책을 추천해줘',
-  '최근 베스트셀러 알려줘',
-  '자기계발서 추천해줘',
-  '감동적인 소설 찾아줘'
-]
+  "지금 우울한 기분이야. 우울한 기분을 좀 다루는 책 추천해줘",
+  "힘들 때 읽을 만한 힘이 되는 책 추천해줘",
+  "감동적인 소설 찾아줘",
+];
 
 // Methods
 
 const scrollToBottom = () => {
   nextTick(() => {
-    scrollAnchor.value?.scrollIntoView({ behavior: 'smooth' })
-  })
-}
+    scrollAnchor.value?.scrollIntoView({ behavior: "smooth" });
+  });
+};
+
+/**
+ * Backend 응답을 ChatMessage 형식으로 변환
+ */
+const transformApiResponse = (apiResponse) => {
+  let content = "";
+
+  // 감정 분석 메시지와 위로 메시지 조합
+  if (apiResponse.userEmotion) {
+    content += `${apiResponse.userEmotion}\n\n`;
+  }
+
+  if (apiResponse.comfortMessage) {
+    content += apiResponse.comfortMessage;
+  }
+
+  // 책 추천이 없으면 에러 메시지만 표시
+  if (
+    !apiResponse.valid ||
+    !apiResponse.recommendations ||
+    apiResponse.recommendations.length === 0
+  ) {
+    if (apiResponse.comfortMessage) {
+      content = apiResponse.comfortMessage;
+    } else {
+      content =
+        "도서 추천을 받으려면 지금 감정이나 상황을 한 문장으로 적어주세요 🙂";
+    }
+    return {
+      content,
+      bookRecommendations: null,
+    };
+  }
+
+  // 책 추천 목록을 ChatMessage 형식으로 변환
+  const bookRecommendations = apiResponse.recommendations.map((book) => ({
+    bookId: book.bookId,
+    isbn13: book.isbn13,
+    title: book.title,
+    author: book.author || "저자 정보 없음",
+    cover: book.cover,
+    rating: book.averageRating ? book.averageRating.toFixed(1) : "0.0",
+    publisher: book.publisher || "",
+    metadata: book.reason || "", // reason을 metadata로 사용
+    reviews: "독자", // Backend에서 제공하지 않으므로 기본값
+    genre: "", // Backend에서 제공하지 않으므로 빈 값
+  }));
+
+  return {
+    content,
+    bookRecommendations,
+  };
+};
 
 const handleSendMessage = async (content) => {
-  if (!content.trim()) return
+  if (!content.trim()) return;
 
   // Hide suggestions after first message
-  showSuggestions.value = false
+  showSuggestions.value = false;
 
   // Add user message
   messages.value.push({
-    type: 'user',
+    type: "user",
     content: content,
-    timestamp: new Date()
-  })
+    timestamp: new Date(),
+  });
 
-  scrollToBottom()
+  scrollToBottom();
 
   // Show typing indicator
-  isTyping.value = true
+  isTyping.value = true;
 
-  // Simulate AI response (replace with actual API call)
-  setTimeout(() => {
-    const aiResponse = generateMockResponse(content)
+  try {
+    // API 호출
+    const apiResponse = await getAiRecommendation(content);
+
+    // 응답을 ChatMessage 형식으로 변환
+    const transformedResponse = transformApiResponse(apiResponse);
+
+    // AI 메시지 추가
     messages.value.push({
-      type: 'ai',
-      content: aiResponse.content,
+      type: "ai",
+      content: transformedResponse.content,
       timestamp: new Date(),
-      bookRecommendations: aiResponse.bookRecommendations
-    })
+      bookRecommendations: transformedResponse.bookRecommendations,
+    });
 
-    isTyping.value = false
-    scrollToBottom()
-  }, 1500)
-}
+    scrollToBottom();
+  } catch (error) {
+    console.error("AI 추천 요청 실패:", error);
+
+    // 에러 메시지 표시
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "도서 추천을 받는 중 오류가 발생했습니다. 다시 시도해주세요.";
+
+    messages.value.push({
+      type: "ai",
+      content: errorMessage,
+      timestamp: new Date(),
+      bookRecommendations: null,
+    });
+
+    toast({
+      title: "오류",
+      description: errorMessage,
+      variant: "destructive",
+    });
+    scrollToBottom();
+  } finally {
+    isTyping.value = false;
+  }
+};
 
 const handleSuggestedQuestion = (question) => {
-  handleSendMessage(question)
-}
+  handleSendMessage(question);
+};
 
-const generateMockResponse = (userMessage) => {
-  // Mock AI responses based on keywords
-  const responses = {
-    default: {
-      content: '좋은 질문이네요! 당신의 취향을 더 잘 파악하기 위해 몇 가지 질문을 드려도 될까요? 어떤 장르를 선호하시나요?',
-      bookRecommendations: null
-    },
-    베스트셀러: {
-      content: '최근 베스트셀러 중에서 추천드립니다. 이 책들은 많은 독자들에게 사랑받고 있어요!',
-      bookRecommendations: [
-        {
-          title: '트렌드 코리아 2025',
-          author: '김난도 외',
-          cover: 'https://image.aladin.co.kr/product/34561/23/cover500/k012939638_1.jpg',
-          rating: '4.5',
-          metadata: '경제/경영',
-          publisher: '미래의창',
-          reviews: '독자(125)',
-          genre: '경제'
-        },
-        {
-          title: '역행자',
-          author: '자청',
-          cover: 'https://image.aladin.co.kr/product/29066/58/cover500/k332838812_1.jpg',
-          rating: '4.3',
-          metadata: '자기계발',
-          publisher: '웅진지식하우스',
-          reviews: '독자(89)',
-          genre: '자기계발'
-        },
-        {
-          title: '불편한 편의점',
-          author: '김호연',
-          cover: 'https://image.aladin.co.kr/product/26909/5/cover500/k702636467_1.jpg',
-          rating: '4.7',
-          metadata: '소설',
-          publisher: '나무옆의자',
-          reviews: '독자(203)',
-          genre: '문학'
-        }
-      ]
-    },
-    자기계발: {
-      content: '자기계발서를 찾으시는군요! 이 책들은 실용적인 조언과 함께 삶의 방향을 제시해줍니다.',
-      bookRecommendations: [
-        {
-          title: '아주 작은 습관의 힘',
-          author: '제임스 클리어',
-          cover: 'https://image.aladin.co.kr/product/18847/5/cover500/k392635564_1.jpg',
-          rating: '4.6',
-          metadata: '자기계발',
-          publisher: '비즈니스북스',
-          reviews: '독자(312)',
-          genre: '자기계발'
-        },
-        {
-          title: '데일 카네기 인간관계론',
-          author: '데일 카네기',
-          cover: 'https://image.aladin.co.kr/product/1/53/cover500/8935610348_1.jpg',
-          rating: '4.5',
-          metadata: '자기계발',
-          publisher: '현대지성',
-          reviews: '독자(178)',
-          genre: '자기계발'
-        }
-      ]
-    },
-    소설: {
-      content: '감동적인 소설을 추천드립니다. 이 작품들은 인간의 감정을 섬세하게 그려낸 수작입니다.',
-      bookRecommendations: [
-        {
-          title: '달러구트 꿈 백화점',
-          author: '이미예',
-          cover: 'https://image.aladin.co.kr/product/24389/4/cover500/k702636467_1.jpg',
-          rating: '4.8',
-          metadata: '소설',
-          publisher: '팩토리나인',
-          reviews: '독자(456)',
-          genre: '문학'
-        },
-        {
-          title: '미드나잇 라이브러리',
-          author: '매트 헤이그',
-          cover: 'https://image.aladin.co.kr/product/26909/5/cover500/k702636467_1.jpg',
-          rating: '4.6',
-          metadata: '소설',
-          publisher: '인플루엔셜',
-          reviews: '독자(234)',
-          genre: '문학'
-        }
-      ]
-    },
-    기분: {
-      content: '차가운 겨울, 따뜻한 경제 지혜로 하루를 돌아볼 수 있는 책들을 추천드려요.',
-      bookRecommendations: [
-        {
-          title: '나대의 사랑법',
-          author: '이진우',
-          cover: 'https://image.aladin.co.kr/product/34561/23/cover500/k012939638_1.jpg',
-          rating: '4.0',
-          metadata: '에세이',
-          publisher: '우미노스',
-          reviews: '독자(45)',
-          genre: '문학'
-        },
-        {
-          title: '나는 왜 나를 힘들게 하는가',
-          author: '프리드리히 니체',
-          cover: 'https://image.aladin.co.kr/product/29066/58/cover500/k332838812_1.jpg',
-          rating: '4.2',
-          metadata: '철학',
-          publisher: '스리체어스',
-          reviews: '독자(67)',
-          genre: '인문'
-        },
-        {
-          title: '혼자일 수 없다면 누구와도 수 없다',
-          author: '프리드리히 니체',
-          cover: 'https://image.aladin.co.kr/product/26909/5/cover500/k702636467_1.jpg',
-          rating: '5.0',
-          metadata: '철학',
-          publisher: '문학동네',
-          reviews: '독자(92)',
-          genre: '인문'
-        },
-        {
-          title: '나혜, 내 문장을 사랑하는 법',
-          author: '수경담',
-          cover: 'https://image.aladin.co.kr/product/18847/5/cover500/k392635564_1.jpg',
-          rating: '5.0',
-          metadata: '에세이',
-          publisher: '위즈덤하우스',
-          reviews: '독자(123)',
-          genre: '문학'
-        },
-        {
-          title: '위버멘쉬',
-          author: '프리드리히 니체',
-          cover: 'https://image.aladin.co.kr/product/1/53/cover500/8935610348_1.jpg',
-          rating: '3.0',
-          metadata: '철학',
-          publisher: '민음사',
-          reviews: '독자(34)',
-          genre: '인문'
-        }
-      ]
-    }
+// Footer 높이 계산 함수
+const updateFooterHeight = () => {
+  if (footerRef.value) {
+    footerHeight.value = footerRef.value.offsetHeight;
   }
+};
 
-  // Find matching response
-  for (const [keyword, response] of Object.entries(responses)) {
-    if (userMessage.includes(keyword)) {
-      return response
-    }
-  }
-
-  return responses.default
-}
+// showSuggestions 변경 시 footer 높이 재계산
+watch(showSuggestions, () => {
+  nextTick(() => {
+    updateFooterHeight();
+  });
+});
 
 // Lifecycle
 onMounted(() => {
+  // Footer 높이 초기 계산
+  nextTick(() => {
+    updateFooterHeight();
+  });
+
   // Optional: Add initial AI greeting
   // messages.value.push({
   //   type: 'ai',
   //   content: '안녕하세요! 어떤 책을 찾고 계신가요?',
   //   timestamp: new Date()
   // })
-})
+});
+
+onUpdated(() => {
+  // 컴포넌트 업데이트 시 footer 높이 재계산
+  updateFooterHeight();
+});
 </script>
 
 <style scoped>
 .ai-recommend-view {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* AppHeader는 64px (h-16), 로컬 헤더는 56px */
+header {
+  position: fixed;
+  top: 64px; /* AppHeader 높이 */
+  left: 0;
+  right: 0;
+  height: 56px;
+  z-index: 10;
+}
+
+/* 채팅 컨테이너: 헤더 아래부터 인풋 위까지 스크롤 가능 영역 */
+.chat-container {
+  position: fixed;
+  top: 120px; /* AppHeader(64px) + 로컬 헤더(56px) */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Footer는 fixed로 배치되며 높이는 동적으로 계산됨 */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
 }
 
 /* Hide scrollbar but keep functionality */
-.scrollbar-hide {
+.chat-container {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.chat-container::-webkit-scrollbar {
   display: none;
 }
 
-/* Fade-in animation */
+/* Fade-in */
 @keyframes fadeIn {
   from {
     opacity: 0;

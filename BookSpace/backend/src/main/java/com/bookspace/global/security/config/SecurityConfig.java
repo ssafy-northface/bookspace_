@@ -86,7 +86,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/reviews/**").authenticated()
                         .requestMatchers("/wishes/me", "/posts/me", "/reviews/me").authenticated()
-                        .requestMatchers("/api/recommendation/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/recommend").authenticated()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated() // 나머지 요청은 jwt가 필요함
                 )
