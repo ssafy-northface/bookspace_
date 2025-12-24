@@ -46,4 +46,10 @@ public interface UserService {
 
     // 13. 비밀번호 재설정
     void resetPassword(String userLoginId, String userEmail, String newPassword);
+
+    // 14. 비밀번호 찾기 - 재설정 링크 또는 코드 발송 (가입 시 이메일 인증 완료 여부에 따라)
+    String sendPasswordResetCodeOrLink(String userLoginId, String userEmail);
+
+    // 15. 재설정 링크를 통한 비밀번호 재설정
+    void resetPasswordByToken(String token, String newPassword);
 }

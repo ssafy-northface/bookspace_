@@ -3,10 +3,10 @@
     <!-- Header -->
     <header class="bg-background border-b border-border">
       <div
-        class="flex items-center justify-between px-4 h-full max-w-2xl mx-auto"
+        class="flex items-center justify-between px-4 py-3 max-w-2xl mx-auto"
       >
         <BackButton />
-        <h1 class="text-lg font-semibold text-foreground">AI 책봇</h1>
+        <h1 class="text-lg font-semibold text-foreground">AI 도서 추천</h1>
         <div class="w-9"></div>
       </div>
     </header>
@@ -105,7 +105,7 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onUpdated, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import ChatMessage from "@/components/ai-recommend/ChatMessage.vue";
 import ChatInput from "@/components/ai-recommend/ChatInput.vue";
 import SuggestedQuestions from "@/components/ai-recommend/SuggestedQuestions.vue";
@@ -116,9 +116,7 @@ import { getAiRecommendation } from "@/api/aiRecommendationApi";
 import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
-const route = useRoute();
 const { toast } = useToast();
-const chatInputRef = ref(null);
 
 // State
 const messages = ref([]);
@@ -150,9 +148,9 @@ const transformApiResponse = (apiResponse) => {
   let content = "";
 
   // 감정 분석 메시지와 위로 메시지 조합
-  // if (apiResponse.userEmotion) {
-  //   content += `${apiResponse.userEmotion}\n\n`;
-  // }
+  if (apiResponse.userEmotion) {
+    content += `${apiResponse.userEmotion}\n\n`;
+  }
 
   if (apiResponse.comfortMessage) {
     content += apiResponse.comfortMessage;
@@ -282,15 +280,12 @@ onMounted(() => {
     updateFooterHeight();
   });
 
-  // URL에서 prompt query 파라미터가 있으면 자동으로 메시지 전송
-  const promptFromQuery = route.query.prompt;
-  if (promptFromQuery && typeof promptFromQuery === 'string' && promptFromQuery.trim()) {
-    // 컴포넌트가 완전히 준비된 후 메시지 전송 (100ms 딜레이)
-    setTimeout(() => {
-      isInputActive.value = true;
-      handleSendMessage(promptFromQuery.trim());
-    }, 100);
-  }
+  // Optional: Add initial AI greeting
+  // messages.value.push({
+  //   type: 'ai',
+  //   content: '안녕하세요! 어떤 책을 찾고 계신가요?',
+  //   timestamp: new Date()
+  // })
 });
 
 onUpdated(() => {

@@ -1,6 +1,6 @@
 <template>
   <div class="chat-input-container">
-    <div class="flex items-end gap-3 p-4">
+    <div class="flex items-end gap-2 p-4 border-t border-border">
       <!-- 입력 필드 -->
       <div class="flex-1">
         <textarea
@@ -13,7 +13,7 @@
           :placeholder="placeholder"
           :disabled="disabled"
           rows="1"
-          class="w-full resize-none rounded-2xl border-2 border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 py-3 text-sm text-card-foreground outline-none transition-all duration-200 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-muted-foreground min-h-[44px] max-h-32 overflow-y-auto scrollbar-hide shadow-sm"
+          class="w-full resize-none rounded-3xl border border-input bg-accent px-5 py-3 text-sm text-foreground outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-muted-foreground min-h-[44px] max-h-32 overflow-y-auto scrollbar-hide"
         ></textarea>
       </div>
 
@@ -21,11 +21,11 @@
       <button
         @click="handleSend"
         :disabled="!canSend"
-        class="flex-shrink-0 w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+        class="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center transition shadow-sm"
       >
         <svg
-          class="w-5 h-5 text-white"
-          :class="{ 'text-gray-100': !canSend }"
+          class="w-4 h-4 text-gray-800"
+          :class="{ 'text-gray-500': !canSend }"
           fill="none"
           stroke="currentColor"
           stroke-width="2"
@@ -113,4 +113,23 @@ defineExpose({
 </script>
 
 <style scoped>
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar-track {
+  display: none !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar-thumb {
+  display: none !important;
+}
 </style>

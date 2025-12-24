@@ -7,6 +7,7 @@ import com.bookspace.domain.user.dto.UserUpdateRequestDto;
 import com.bookspace.domain.user.dto.VerifyUserRequestDto;
 import com.bookspace.domain.user.dto.VerifyUserResponseDto;
 import com.bookspace.domain.user.dto.ResetPasswordRequestDto;
+import com.bookspace.domain.user.dto.ResetPasswordByTokenRequestDto;
 import com.bookspace.domain.user.service.UserService;
 import com.bookspace.global.security.userdetails.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -95,26 +96,31 @@ public class UserController {
     @GetMapping("/check")
     public ResponseEntity<Boolean> checkDuplicate(
             @RequestParam String type, @RequestParam String value) {
-
-        // switch expression 문법 사용
-        boolean exists = switch (type.toLowerCase()) {
-            case "loginid" -> userService.existsUserByLoginId(value);
-            case "nickname" -> userService.existsUserByNickname(value);
-            case "email" -> {
-                // 이메일 형식 간단 검증 (안전장치)
-                if (!value.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-                    throw new IllegalArgumentException("Invalid email format: " + value);
+        try {
+            // switch expression 문법 사용
+            boolean exists = switch (type.toLowerCase()) {
+                case "loginid" -> userService.existsUserByLoginId(value);
+                case "nickname" -> userService.existsUserByNickname(value);
+                case "email" -> {
+                    // 이메일 형식 간단 검증 (안전장치)
+                    // @ 기호가 있고, 그 뒤에 도메인이 있는지만 확인
+                    if (value == null || value.trim().isEmpty() || !value.contains("@") || value.split("@").length != 2) {
+                        throw new RuntimeException("Invalid email format: " + value);
+                    }
+                    // yield : switch expression 안에서 값을 반환(return) 하는 최신 키워드
+                    yield userService.existsUserByEmail(value.trim());
                 }
-                // yield : switch expression 안에서 값을 반환(return) 하는 최신 키워드
-                yield userService.existsUserByEmail(value);
-            }
-            // loginid, nickname, email이 아닌 type이 들어왔을때 발생 메시지
-            default -> throw new IllegalArgumentException("Invalid type: " + type);
-        };
+                // loginid, nickname, email이 아닌 type이 들어왔을때 발생 메시지
+                default -> throw new RuntimeException("Invalid type: " + type);
+            };
 
-        // true = 사용 가능(중복 아님)
-        // false = 이미 존재
-        return ResponseEntity.ok(!exists);
+            // true = 사용 가능(중복 아님)
+            // false = 이미 존재
+            return ResponseEntity.ok(!exists);
+        } catch (Exception e) {
+            // 예외 발생 시 500 에러 대신 400 에러 반환
+            return ResponseEntity.badRequest().build();
+        }
     }
 
 
@@ -151,17 +157,37 @@ public class UserController {
 //        return ResponseEntity.ok(!exists);
 //    }
 
-    // 10. 비밀번호 찾기 - 본인 확인
+    // 10. 비밀번호 찾기 - 본인 확인 및 재설정 링크/코드 발송
     @PostMapping("/verify")
     public ResponseEntity<VerifyUserResponseDto> verifyUser(@RequestBody VerifyUserRequestDto dto) {
-        boolean verified = userService.verifyUser(dto.getUserLoginId(), dto.getUserEmail());
-        return ResponseEntity.ok(new VerifyUserResponseDto(verified));
+        try {
+            String resetLink = userService.sendPasswordResetCodeOrLink(dto.getUserLoginId(), dto.getUserEmail());
+            VerifyUserResponseDto response = new VerifyUserResponseDto();
+            response.setVerified(true);
+            response.setResetLink(resetLink);
+            response.setLinkSent(resetLink != null);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            // 본인 확인 실패
+            VerifyUserResponseDto response = new VerifyUserResponseDto();
+            response.setVerified(false);
+            response.setResetLink(null);
+            response.setLinkSent(false);
+            return ResponseEntity.ok(response);
+        }
     }
 
-    // 11. 비밀번호 재설정
+    // 11. 비밀번호 재설정 (코드 인증 후)
     @PostMapping("/reset-password")
     public ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordRequestDto dto) {
         userService.resetPassword(dto.getUserLoginId(), dto.getUserEmail(), dto.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    // 12. 비밀번호 재설정 (링크 토큰 사용)
+    @PostMapping("/reset-password-by-token")
+    public ResponseEntity<Void> resetPasswordByToken(@RequestBody ResetPasswordByTokenRequestDto dto) {
+        userService.resetPasswordByToken(dto.getToken(), dto.getNewPassword());
         return ResponseEntity.ok().build();
     }
 

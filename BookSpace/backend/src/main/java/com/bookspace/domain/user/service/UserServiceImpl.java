@@ -1,5 +1,6 @@
 package com.bookspace.domain.user.service;
 
+import com.bookspace.domain.email.service.EmailVerificationService;
 import com.bookspace.domain.user.dao.UserDao;
 import com.bookspace.domain.user.dto.SignInRequestDto;
 import com.bookspace.domain.user.dto.SignupRequestDto;
@@ -20,6 +21,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationService emailVerificationService;
 
     // 1. 회원가입
     @Override
@@ -51,6 +53,9 @@ public class UserServiceImpl implements UserService {
         if (result != 1) {
             throw new IllegalStateException("Failed to create user.");
         }
+
+        // 가입 시 이메일 인증 완료를 영구적으로 저장
+        emailVerificationService.markEmailAsPermanentlyVerified(dto.getUserEmail());
 
         // insert 시 useGeneratedKeys 로 userId 세팅됨
         return convertToResponseDto(userVo);
@@ -230,6 +235,50 @@ public class UserServiceImpl implements UserService {
         return userEmail.equalsIgnoreCase(userVo.getUserEmail());
     }
 
+    // 14. 비밀번호 찾기 - 재설정 링크 또는 코드 발송
+    @Override
+    public String sendPasswordResetCodeOrLink(String userLoginId, String userEmail) {
+        // 본인 확인
+        if (!verifyUser(userLoginId, userEmail)) {
+            throw new IllegalArgumentException("사용자 정보가 일치하지 않습니다.");
+        }
+
+        // 가입 시 이메일 인증 완료 여부 확인
+        if (emailVerificationService.isEmailPermanentlyVerified(userEmail)) {
+            // 재설정 링크 발송
+            return emailVerificationService.sendPasswordResetLink(userEmail);
+        } else {
+            // 인증 코드 발송
+            emailVerificationService.sendVerificationCode(userEmail);
+            return null; // 링크가 아닌 코드 발송
+        }
+    }
+
+    // 15. 재설정 링크를 통한 비밀번호 재설정
+    @Override
+    @Transactional
+    public void resetPasswordByToken(String token, String newPassword) {
+        // 토큰 검증
+        String email = emailVerificationService.verifyResetToken(token);
+        if (email == null) {
+            throw new IllegalArgumentException("유효하지 않거나 만료된 재설정 링크입니다.");
+        }
+
+        // 이메일로 사용자 조회
+        UserVo userVo = userDao.selectUserByEmail(email);
+        if (userVo == null) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        }
+
+        // 비밀번호 암호화 후 업데이트
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        int result = userDao.updatePassword(userVo.getUserLoginId(), encodedPassword);
+
+        if (result != 1) {
+            throw new IllegalStateException("비밀번호 변경에 실패했습니다.");
+        }
+    }
+
     // 13. 비밀번호 재설정
     @Override
     @Transactional
@@ -239,6 +288,11 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("사용자 정보가 일치하지 않습니다.");
         }
 
+        // 이메일 인증 확인
+        if (!emailVerificationService.isEmailVerified(userEmail)) {
+            throw new IllegalStateException("이메일 인증이 완료되지 않았습니다. 이메일 인증을 먼저 완료해주세요.");
+        }
+
         // 비밀번호 암호화 후 업데이트
         String encodedPassword = passwordEncoder.encode(newPassword);
         int result = userDao.updatePassword(userLoginId, encodedPassword);
@@ -246,6 +300,9 @@ public class UserServiceImpl implements UserService {
         if (result != 1) {
             throw new IllegalStateException("비밀번호 변경에 실패했습니다.");
         }
+
+        // 비밀번호 재설정 완료 후 이메일 인증 상태 정리
+        emailVerificationService.clearVerification(userEmail);
     }
 
     // DTO 변환

@@ -43,8 +43,18 @@ export const verifyUserApi = (payload) => {
   return httpClient.post("/users/verify", payload).then((res) => res.data);
 };
 
-// 11. 비밀번호 재설정
+// 11. 비밀번호 재설정 (코드 인증 후)
 export const resetPasswordApi = (payload) => {
   // payload: { userLoginId, userEmail, newPassword }
-  return httpClient.post("/users/reset-password", payload).then((res) => res.data);
+  return httpClient
+    .post("/users/reset-password", payload)
+    .then((res) => res.data);
+};
+
+// 12. 비밀번호 재설정 (링크 토큰 사용)
+export const resetPasswordByTokenApi = (payload) => {
+  // payload: { token, newPassword }
+  return httpClient
+    .post("/users/reset-password-by-token", payload)
+    .then((res) => res.data);
 };

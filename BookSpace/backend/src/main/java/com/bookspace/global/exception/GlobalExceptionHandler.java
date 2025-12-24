@@ -67,4 +67,16 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    /** 500 - Internal Server Error (예상치 못한 예외) */
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleException(Exception ex) {
+        // 로그에 전체 스택 트레이스 기록
+        ex.printStackTrace();
+        return ErrorResponse.builder()
+                .code("INTERNAL_SERVER_ERROR")
+                .message(ex.getMessage() != null ? ex.getMessage() : "서버 내부 오류가 발생했습니다.")
+                .build();
+    }
+
 }
