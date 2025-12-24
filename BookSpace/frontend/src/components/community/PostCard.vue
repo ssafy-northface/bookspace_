@@ -133,9 +133,9 @@ const formattedDate = useFormattedDate(props.post.postDate, {
   dateStyle: "medium", // 게시글 카드에서는 날짜만
 });
 
-// 좋아요
-const likeCount = ref(props.post.likeCount ?? 0);
-const isLiked = ref(!!props.post.liked);
+// 좋아요 (computed로 변경하여 캐시와 즉시 동기화)
+const likeCount = computed(() => props.post.likeCount ?? 0);
+const isLiked = computed(() => !!props.post.liked);
 
 // 좋아요 토글 (낙관적 업데이트)
 const toggleLikeMutation = useMutation({
@@ -146,23 +146,84 @@ const toggleLikeMutation = useMutation({
     await queryClient.cancelQueries({ queryKey: ["posts"] });
     await queryClient.cancelQueries({ queryKey: ["posts", "latest"] });
     await queryClient.cancelQueries({ queryKey: ["my-posts"] });
+    await queryClient.cancelQueries({ queryKey: ["post", props.post.postId] });
+    
     const previous = { liked: isLiked.value, likeCount: likeCount.value };
 
-    // 낙관적 업데이트
-    isLiked.value = nextLiked;
-    likeCount.value = Math.max(0, likeCount.value + (nextLiked ? 1 : -1));
-    return previous;
+    // 목록 캐시 낙관적 업데이트
+    const updateCache = (queryKey) => {
+      const cache = queryClient.getQueryData(queryKey);
+      if (!cache?.pages) return cache;
+
+      const updatedPages = cache.pages.map((page) => {
+        const updatedPosts = page.posts?.map((p) => {
+          if (String(p.postId) !== String(props.post.postId)) return p;
+          const nextCount = Math.max(0, (p.likeCount ?? 0) + (nextLiked ? 1 : -1));
+          return { ...p, liked: nextLiked, likeCount: nextCount };
+        });
+        return { ...page, posts: updatedPosts };
+      });
+
+      queryClient.setQueryData(queryKey, { ...cache, pages: updatedPages });
+      return cache;
+    };
+
+    const updateMyPosts = () => {
+      const cache = queryClient.getQueryData(["my-posts"]);
+      if (!Array.isArray(cache)) return cache;
+      const updated = cache.map((p) => {
+        if (String(p.postId) !== String(props.post.postId)) return p;
+        const nextCount = Math.max(0, (p.likeCount ?? 0) + (nextLiked ? 1 : -1));
+        return { ...p, liked: nextLiked, likeCount: nextCount };
+      });
+      queryClient.setQueryData(["my-posts"], updated);
+      return cache;
+    };
+
+    // 상세 페이지 캐시 낙관적 업데이트
+    const updateDetailCache = () => {
+      const cache = queryClient.getQueryData(["post", props.post.postId]);
+      if (!cache) return cache;
+      const nextCount = Math.max(0, (cache.likeCount ?? 0) + (nextLiked ? 1 : -1));
+      queryClient.setQueryData(["post", props.post.postId], { 
+        ...cache, 
+        liked: nextLiked, 
+        likeCount: nextCount 
+      });
+      return cache;
+    };
+
+    const previousPosts = updateCache(["posts"]);
+    const previousLatest = updateCache(["posts", "latest"]);
+    const previousMyPosts = updateMyPosts();
+    const previousDetail = updateDetailCache();
+
+    return { previous, previousPosts, previousLatest, previousMyPosts, previousDetail };
+  },
+  onSuccess: async (data, nextLiked) => {
+    console.log("[LIKE] Mutation succeeded. Updating with server data.");
+    // 서버 응답을 받아 정확한 값으로 업데이트
+    // 하지만 상세 페이지 캐시는 stale로 만들지 않음 (invalidate하지 않음)
   },
   onError: (_err, _vars, ctx) => {
     console.error("[LIKE] Mutation failed. Rolling back.", _err);
-    // 실패 시 롤백
-    if (ctx) {
-      isLiked.value = ctx.liked;
-      likeCount.value = ctx.likeCount;
+    // 실패 시 모든 캐시 롤백ㄴㄴ
+    if (ctx?.previousPosts) {
+      queryClient.setQueryData(["posts"], ctx.previousPosts);
+    }
+    if (ctx?.previousLatest) {
+      queryClient.setQueryData(["posts", "latest"], ctx.previousLatest);
+    }
+    if (ctx?.previousMyPosts) {
+      queryClient.setQueryData(["my-posts"], ctx.previousMyPosts);
+    }
+    if (ctx?.previousDetail) {
+      queryClient.setQueryData(["post", props.post.postId], ctx.previousDetail);
     }
   },
   onSettled: async () => {
-    console.log("[LIKE] Mutation settled. Invalidating queries.");
+    console.log("[LIKE] Mutation settled. Invalidating list queries only.");
+    // 목록 쿼리만 invalidate (상세 페이지는 제외하여 stale 상태로 만들지 않음)
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
     await queryClient.invalidateQueries({ queryKey: ["my-posts"] });
@@ -170,14 +231,6 @@ const toggleLikeMutation = useMutation({
 });
 
 const isToggling = computed(() => toggleLikeMutation.isPending.value);
-watch(
-  () => [props.post.likeCount, props.post.liked],
-  ([count, liked]) => {
-    likeCount.value = count ?? 0;
-    isLiked.value = !!liked;
-  },
-  { immediate: true }
-);
 
 const toggleLike = async () => {
   if (!authStore.isLoggedIn) {

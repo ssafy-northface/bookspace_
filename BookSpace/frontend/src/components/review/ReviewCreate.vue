@@ -90,11 +90,13 @@ import { computed, nextTick, ref, watch } from "vue";
 import { useReviewStore } from "@/stores/reviewStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useBookStore } from "@/stores/bookStore";
+import { useQueryClient } from "@tanstack/vue-query";
 import StarRating from "../ui/StarRating.vue";
 
 const authStore = useAuthStore();
 const reviewStore = useReviewStore();
 const bookStore = useBookStore();
+const queryClient = useQueryClient();
 
 const isLoggedIn = computed(()=> authStore.isLoggedIn);
 
@@ -220,9 +222,12 @@ async function submitReview(payloadContent) {
       // 책 상세 정보 갱신 (평점, 리뷰 개수 업데이트)
       // await bookStore.loadBookDetail(props.isbn);
 
+      // 마이페이지 리뷰 목록 캐시 무효화 (즉시 반영을 위해)
+      await queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
+
       alert("리뷰가 수정되었습니다.");
 
-      // 부모에게 “저장 완료” 알림 (부모가 edit 모드 종료 + 목록 재조회)
+      // 부모에게 "저장 완료" 알림 (부모가 edit 모드 종료 + 목록 재조회)
       emit("saved");
       return;
     }
@@ -244,11 +249,14 @@ async function submitReview(payloadContent) {
     // 책 상세 정보 갱신 (평점, 리뷰 개수 업데이트)
     await bookStore.loadBookDetail(props.isbn);
 
+    // 마이페이지 리뷰 목록 캐시 무효화 (즉시 반영을 위해)
+    await queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
+
     // 공통 초기화
     content.value = "";
     rating.value = 0;
 
-    // 부모에게 “저장 완료” 알림
+    // 부모에게 "저장 완료" 알림
     emit("saved");
 
     await nextTick();
@@ -268,6 +276,8 @@ async function submitReview(payloadContent) {
     } else if (status === 400 && msg === "DUPLICATE_REVIEW") {
       // 중복 리뷰인 경우
       alert("이미 이 도서에 작성한 리뷰가 있습니다. 작성한 리뷰를 확인해주세요.");
+      // 마이페이지 리뷰 목록 캐시 무효화 (기존 리뷰 확인을 위해)
+      await queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
       emit("saved"); // 목록 갱신 트리거 (부모에서 fetch)
     } else {
       alert(msg ?? (isEditMode.value ? "리뷰 수정에 실패했습니다" : "리뷰 등록에 실패했습니다"));

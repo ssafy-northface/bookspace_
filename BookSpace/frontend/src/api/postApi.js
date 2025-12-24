@@ -68,8 +68,9 @@ export const fetchMyPostsApi = async () => {
  * @param {*} postId
  * @returns
  */
-export const fetchPostDetail = async (postId) => {
-  const res = await httpClient.get(`/posts/${postId}`);
+export const fetchPostDetail = async (postId, skipViewCount = false) => {
+  const headers = skipViewCount ? { "X-Skip-View-Count": "true" } : {};
+  const res = await httpClient.get(`/posts/${postId}`, { headers });
   return res.data;
 };
 

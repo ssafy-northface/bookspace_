@@ -56,7 +56,7 @@
               </p>
             </div>
             <div
-              class="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-600"
+              class="flex items-center gap-1 px-3 py-1  bg-card text-amber-600"
             >
               <span class="text-lg leading-none">★</span>
               <span class="text-lg font-semibold text-foreground">

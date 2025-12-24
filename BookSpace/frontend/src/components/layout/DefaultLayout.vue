@@ -6,7 +6,7 @@ import AppFooter from "@/components/common/AppFooter.vue";
 <template>
   <AppHeader />
   <main class="container flex-1 py-8">
-    <RouterView :key="$route.fullPath" />
+    <RouterView />
   </main>
   <AppFooter v-if="!$route.meta.noFooter" />
 </template>
