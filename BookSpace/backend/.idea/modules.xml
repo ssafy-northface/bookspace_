@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/bookspace.main.iml" filepath="$PROJECT_DIR$/.idea/modules/bookspace.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/bookspace.test.iml" filepath="$PROJECT_DIR$/.idea/modules/bookspace.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.bookspace.bookspace.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.bookspace.bookspace.main.iml" />
     </modules>
   </component>
 </project>
