@@ -44,7 +44,7 @@ public class PostController {
      */
     @GetMapping
     public ResponseEntity<PostPageResponseDto> getAllPosts(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "10") int size,
                                                            @RequestParam(required = false) String isbn,
                                                            @RequestParam(required = false,defaultValue = "latest") String sort,
                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -55,9 +55,11 @@ public class PostController {
 
     // 3. 단건 조회
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponseDto> getPost(@PathVariable long postId, @AuthenticationPrincipal CustomUserDetails user  ) {
+    public ResponseEntity<PostResponseDto> getPostById(@PathVariable long postId, @AuthenticationPrincipal CustomUserDetails user,
+        @RequestHeader(value="X-Skip-View-Count", required = false) String skipViewCount) {
         Long userId = (user!=null)?user.getUserId():null;
-        PostResponseDto response = postService.getPostById(postId, userId);
+        boolean shouldIncreaseView = !"true".equals(skipViewCount);
+        PostResponseDto response = postService.getPostById(postId, userId, shouldIncreaseView);
         return ResponseEntity.ok(response);
     }
 

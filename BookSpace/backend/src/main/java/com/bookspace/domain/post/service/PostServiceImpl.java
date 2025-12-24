@@ -108,7 +108,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostResponseDto getPostById(long postId, Long userId) {
+    public PostResponseDto getPostById(long postId, Long userId, boolean shouldIncreaseView) {
 
         PostResponseDto responseDto = postDao.selectPostById(postId,userId);
 
@@ -116,7 +116,12 @@ public class PostServiceImpl implements PostService {
             throw new IllegalArgumentException("Post not found with id: " + postId);
         }
 
-        postDao.increaseViewCount(postId);
+        if(shouldIncreaseView){
+            postDao.increaseViewCount(postId);
+            // 증가된 조회수를 응답에 반영 (사용자에게 즉시 보여주기 위해)
+            responseDto.setPostViewCnt(responseDto.getPostViewCnt() + 1);
+        }
+
         return responseDto;
     }
 

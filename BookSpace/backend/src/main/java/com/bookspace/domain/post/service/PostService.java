@@ -15,7 +15,7 @@ public interface PostService {
     PostPageResponseDto getAllPosts(int page, int size, String isbn, String sort, Long userId);
 
     // 게시글 단건 조회
-    PostResponseDto getPostById(long postId, Long userId);
+    PostResponseDto getPostById(long postId, Long userId, boolean shouldIncreaseView);
 
     // 게시글 수정
     void updatePost(long postId, PostRequestDto requestDto, long loginUserId);
