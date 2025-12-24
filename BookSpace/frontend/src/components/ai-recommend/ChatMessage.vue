@@ -16,16 +16,20 @@
       <!-- Message Content -->
       <div class="flex-1">
         <div
-          class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm"
+          class="relative bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 border border-blue-200 dark:border-blue-500/30 rounded-2xl rounded-tl-sm px-5 py-4 shadow-sm"
         >
-          <p class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+          <!-- AI 배지 -->
+          <span class="absolute -top-2 left-3 px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-medium rounded-full">
+            책봇
+          </span>
+          <p class="text-sm text-card-foreground leading-relaxed whitespace-pre-wrap mt-1">
             {{ message.content }}
           </p>
 
           <!-- Book Recommendations List (if exists) -->
           <div
             v-if="
-              message.bookRecommendations &&
+              message.bookRecommendations &&  
               message.bookRecommendations.length > 0
             "
             class="mt-4 space-y-3"
@@ -33,7 +37,7 @@
             <div
               v-for="(book, index) in message.bookRecommendations"
               :key="index"
-              class="flex gap-4 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition"
+              class="flex gap-4 cursor-pointer hover:bg-muted p-3 rounded-lg transition"
               @click="handleBookClick(book)"
             >
               <!-- Book Cover -->
@@ -45,19 +49,19 @@
 
               <!-- Book Info -->
               <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-bold text-gray-900 line-clamp-2 mb-1">
+                <h3 class="text-sm font-bold text-card-foreground line-clamp-2 mb-1">
                   {{ book.title }}
                 </h3>
-                <p class="text-xs text-gray-600 mb-2">{{ book.author }}</p>
+                <p class="text-xs text-muted-foreground mb-2">{{ book.author }}</p>
 
                 <!-- Publisher and Genre -->
-                <p class="text-xs text-gray-500 mb-2">
+                <p class="text-xs text-muted-foreground mb-2">
                   {{ book.publisher || "문학동네" }} •
                   {{ book.metadata || "소설" }}
                 </p>
 
                 <!-- Rating -->
-                <div class="flex items-center gap-1 text-xs text-gray-500">
+                <div class="flex items-center gap-1 text-xs text-muted-foreground">
                   <svg
                     class="w-3 h-3 text-yellow-400 fill-current"
                     viewBox="0 0 20 20"
@@ -76,7 +80,7 @@
             </div>
           </div>
         </div>
-        <div class="text-xs text-gray-400 mt-1 ml-1">
+        <div class="text-xs text-muted-foreground mt-1 ml-1">
           {{ formatTime(message.timestamp) }}
         </div>
       </div>
@@ -86,13 +90,13 @@
     <div v-else class="flex justify-end">
       <div class="max-w-[85%]">
         <div
-          class="bg-yellow-400 rounded-2xl rounded-tr-sm px-5 py-4 shadow-sm"
+          class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl rounded-tr-sm px-5 py-4 shadow-sm"
         >
-          <p class="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+          <p class="text-sm text-white leading-relaxed whitespace-pre-wrap">
             {{ message.content }}
           </p>
         </div>
-        <div class="text-xs text-gray-400 mt-1 mr-1 text-right">
+        <div class="text-xs text-muted-foreground mt-1 mr-1 text-right">
           {{ formatTime(message.timestamp) }}
         </div>
       </div>

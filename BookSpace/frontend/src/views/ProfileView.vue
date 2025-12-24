@@ -99,7 +99,6 @@
       @submit="verifyPassword"
       @close="closePasswordModal"
     />
-    <ScrollTopButton />
   </div>
 </template>
 
@@ -120,7 +119,6 @@ import MyPostList from "@/components/Profile/MyPostList.vue";
 import BaseModal from "@/components/common/BaseModal.vue";
 import PostDetailView from "./PostDetailView.vue";
 import ReviewDetailModal from "@/components/review/ReviewDetailModal.vue";
-import ScrollTopButton from "@/components/common/ScrollTopButton";
 import BookDetailView from "./BookDetailView.vue";
 import PasswordConfirmModal from "@/components/Profile/PasswordConfirmModal.vue";
 import { loginApi } from "@/api/authApi";

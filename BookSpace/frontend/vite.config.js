@@ -16,10 +16,7 @@ export default defineConfig({
     host: true, // 외부 접속 허용
     port: 5173, // 포트 고정
     strictPort: true, // 포트 중복 시 실행 안 함
-    allowedHosts: [".ngrok-free.app", ".ngrok-free.dev"], // ngrok 호스트 허용
-    hmr: {
-      clientPort: 443, // ngrok https에서 HMR 작동하도록 설정
-    },
+    allowedHosts: "all", // 모든 호스트 허용 (ngrok 등)
     // 프록시 설정: /api 요청을 백엔드로 전달 (CORS, Mixed Content 문제 해결)
     proxy: {
       "/api": {

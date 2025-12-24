@@ -38,3 +38,29 @@ gms:
     base-url: https://gms.ssafy.io/gmsapi
     openai:
       model: gpt-4.1-mini
+
+# 이메일 설정
+# 개발: Ethereal Email (https://ethereal.email) 사용 - 무료 테스트용
+# 프로덕션: Gmail SMTP 사용
+spring.mail:
+  host: ${MAIL_HOST:smtp.ethereal.email}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME}
+  password: ${MAIL_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+          required: true
+        connectiontimeout: 5000
+        timeout: 5000
+        writetimeout: 5000
+
+# 앱 설정
+app:
+  email:
+    # 개발 모드: true면 실제 이메일 발송 안 함 (콘솔에 인증 코드 출력)
+    # 프로덕션에서는 false로 변경
+    dev-mode: ${EMAIL_DEV_MODE:true}

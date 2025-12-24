@@ -16,6 +16,7 @@ import ProfileEditView from "@/views/ProfileEditView";
 import PostCreateUpdateView from "@/views/PostCreateUpdateView";
 import SignInView from "../views/SignInView";
 import SignupView from "@/views/SignupView";
+import ForgotPasswordView from "@/views/ForgotPasswordView";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -79,6 +80,7 @@ const router = createRouter({
     //  layout(헤더, 푸터) 적용 없는 페이지
     { path: "/signin", name: "signin", component: SignInView },
     { path: "/signup", name: "signup", component: SignupView },
+    { path: "/forgot-password", name: "forgotPassword", component: ForgotPasswordView },
   ],
 });
 

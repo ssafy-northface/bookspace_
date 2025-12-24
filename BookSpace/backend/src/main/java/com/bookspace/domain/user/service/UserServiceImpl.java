@@ -212,6 +212,42 @@ public class UserServiceImpl implements UserService {
         return convertToResponseDto(userVo);
     }
 
+    // 12. 비밀번호 찾기 - 본인 확인
+    @Override
+    public boolean verifyUser(String userLoginId, String userEmail) {
+        UserVo userVo = userDao.selectUserByLoginId(userLoginId);
+
+        if (userVo == null) {
+            return false;
+        }
+
+        // 탈퇴한 회원은 제외
+        if (!"active".equals(userVo.getUserStatus())) {
+            return false;
+        }
+
+        // 이메일 일치 여부 확인
+        return userEmail.equalsIgnoreCase(userVo.getUserEmail());
+    }
+
+    // 13. 비밀번호 재설정
+    @Override
+    @Transactional
+    public void resetPassword(String userLoginId, String userEmail, String newPassword) {
+        // 본인 확인 다시 수행 (보안)
+        if (!verifyUser(userLoginId, userEmail)) {
+            throw new IllegalArgumentException("사용자 정보가 일치하지 않습니다.");
+        }
+
+        // 비밀번호 암호화 후 업데이트
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        int result = userDao.updatePassword(userLoginId, encodedPassword);
+
+        if (result != 1) {
+            throw new IllegalStateException("비밀번호 변경에 실패했습니다.");
+        }
+    }
+
     // DTO 변환
     private UserResponseDto convertToResponseDto(UserVo userVo) {
         UserResponseDto dto = new UserResponseDto();

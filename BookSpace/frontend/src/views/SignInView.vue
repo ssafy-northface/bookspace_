@@ -43,8 +43,18 @@
         </Button>
       </form>
 
+      <!-- 비밀번호 찾기 링크 -->
+      <p class="mt-4 text-sm text-center">
+        <RouterLink
+          to="/forgot-password"
+          class="text-muted-foreground hover:text-primary hover:underline"
+        >
+          비밀번호를 잊으셨나요?
+        </RouterLink>
+      </p>
+
       <!-- 회원가입 링크 -->
-      <p class="mt-6 text-sm text-center text-muted-foreground">
+      <p class="mt-4 text-sm text-center text-muted-foreground">
         계정이 없으신가요?
         <RouterLink
           to="/signup"

@@ -37,4 +37,7 @@ public interface UserDao {
     // 10. 14일 지난 만료회원 자동 삭제
     int deleteExpiredInactiveUsers();
 
+    // 11. 비밀번호 업데이트
+    int updatePassword(@Param("userLoginId") String userLoginId, @Param("newPassword") String newPassword);
+
 }

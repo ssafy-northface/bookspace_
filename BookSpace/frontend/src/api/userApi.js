@@ -36,3 +36,15 @@ export const checkDuplicateApi = (type, value) => {
     })
     .then((res) => res.data); // true = 사용 가능, false = 이미 존재
 };
+
+// 10. 비밀번호 찾기 - 본인 확인
+export const verifyUserApi = (payload) => {
+  // payload: { userLoginId, userEmail }
+  return httpClient.post("/users/verify", payload).then((res) => res.data);
+};
+
+// 11. 비밀번호 재설정
+export const resetPasswordApi = (payload) => {
+  // payload: { userLoginId, userEmail, newPassword }
+  return httpClient.post("/users/reset-password", payload).then((res) => res.data);
+};

@@ -75,8 +75,6 @@
       더 이상 게시글이 없습니다.
     </div>
 
-    <!-- 상단 이동 플로팅 버튼 -->
-    <ScrollTopButton />
   </section>
 </template>
 
@@ -93,7 +91,6 @@ import { computed, onMounted, ref, onUnmounted, watch, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useToast } from "@/composables/useToast";
 import useRequireAuth from "@/composables/useRequireAuth";
-import ScrollTopButton from "@/components/common/ScrollTopButton.vue";
 
 const route = useRoute();
 const router = useRouter();

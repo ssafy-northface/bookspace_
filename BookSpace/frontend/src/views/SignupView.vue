@@ -52,14 +52,54 @@
           placeholder="이름"
         />
 
-        <!-- 이메일 -->
-        <ValidatedInput
-          v-model="email"
-          :v$="v$.email"
-          type="email"
-          field="email"
-          placeholder="이메일"
-        />
+        <!-- 이메일 + 인증 -->
+        <div class="space-y-2">
+          <!-- 이메일 입력 + 인증번호 받기 버튼 -->
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <ValidatedInput
+                v-model="email"
+                :v$="v$.email"
+                type="email"
+                field="email"
+                placeholder="이메일"
+                :disabled="isEmailVerified"
+              />
+            </div>
+            <button
+              type="button"
+              @click="sendVerificationCode"
+              :disabled="!isEmailValid || isSendingCode || isEmailVerified"
+              class="px-4 py-3 text-sm font-medium text-white bg-blue-500 rounded-xl hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            >
+              {{ isSendingCode ? '발송 중...' : isEmailVerified ? '인증완료' : '인증번호 받기' }}
+            </button>
+          </div>
+
+          <!-- 인증번호 입력 (코드 발송 후 표시) -->
+          <div v-if="isCodeSent && !isEmailVerified" class="flex gap-2">
+            <input
+              v-model="verificationCode"
+              type="text"
+              maxlength="6"
+              placeholder="인증번호 6자리 입력"
+              class="flex-1 px-4 py-3 text-sm border-2 border-gray-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="verifyCode"
+              :disabled="verificationCode.length !== 6 || isVerifying"
+              class="px-4 py-3 text-sm font-medium text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              {{ isVerifying ? '확인 중...' : '확인' }}
+            </button>
+          </div>
+
+          <!-- 인증 상태 메시지 -->
+          <p v-if="emailVerificationMessage" :class="isEmailVerified ? 'text-emerald-500' : 'text-blue-500'" class="text-sm">
+            {{ emailVerificationMessage }}
+          </p>
+        </div>
 
         <!-- 닉네임 -->
         <ValidatedInput
@@ -123,13 +163,78 @@ const phone = ref("");
 const birth = ref("");
 const isSubmitting = ref(false);
 
+// 이메일 인증 상태
+const verificationCode = ref("");
+const isCodeSent = ref(false);
+const isSendingCode = ref(false);
+const isVerifying = ref(false);
+const isEmailVerified = ref(false);
+const emailVerificationMessage = ref("");
+
 const userStore = useUserStore();
 const router = useRouter();
+
+// 이메일 유효성 검사 (인증번호 받기 버튼 활성화용)
+// 반드시 @ 뒤에 도메인이 있어야 함 (예: user@gmail.com)
+const isEmailValid = computed(() => {
+  const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+  return emailRegex.test(email.value);
+});
+
+// 인증번호 발송
+const sendVerificationCode = async () => {
+  if (isSendingCode.value || !isEmailValid.value) return;
+
+  isSendingCode.value = true;
+  emailVerificationMessage.value = "";
+
+  try {
+    const result = await sendVerificationCodeApi(email.value);
+    if (result.success) {
+      isCodeSent.value = true;
+      emailVerificationMessage.value = "인증번호가 이메일로 발송되었습니다. (5분 내 입력)";
+    } else {
+      emailVerificationMessage.value = result.message;
+    }
+  } catch (err) {
+    emailVerificationMessage.value = err.response?.data?.message || "인증번호 발송에 실패했습니다.";
+  } finally {
+    isSendingCode.value = false;
+  }
+};
+
+// 인증번호 확인
+const verifyCode = async () => {
+  if (isVerifying.value || verificationCode.value.length !== 6) return;
+
+  isVerifying.value = true;
+
+  try {
+    const result = await verifyCodeApi(email.value, verificationCode.value);
+    if (result.success) {
+      isEmailVerified.value = true;
+      emailVerificationMessage.value = "✓ 이메일 인증이 완료되었습니다.";
+    } else {
+      emailVerificationMessage.value = result.message;
+    }
+  } catch (err) {
+    emailVerificationMessage.value = err.response?.data?.message || "인증번호가 일치하지 않습니다.";
+  } finally {
+    isVerifying.value = false;
+  }
+};
 
 // 중복 체크용 함수 정의
 const dupCheck = (type) =>
     helpers.withAsync(async (value) => {
       if(!value) return true;
+      
+      // 이메일 타입인 경우, 형식이 유효할 때만 중복 체크
+      if (type === "email") {
+        const emailRegex = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+        if (!emailRegex.test(value)) return true; // 형식 검사 먼저 통과 필요
+      }
+      
       try {
         return await userStore.checkDuplicate(type, value);
       } catch {
@@ -186,6 +291,12 @@ const signup = async () => {
   // 이미 요청 중이면 또 요청 안보내기
   if (isSubmitting.value) return;
 
+  // 이메일 인증 확인
+  if (!isEmailVerified.value) {
+    alert("이메일 인증을 완료해주세요.");
+    return;
+  }
+
   // 유효성 검사
   const valid = await v$.value.$validate();
   if (!valid) {
@@ -225,7 +336,7 @@ const signup = async () => {
 };
 
 
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import ValidatedInput from "@/components/ui/ValidatedInput.vue";
 import Button from "@/components/ui/Button.vue";
@@ -240,4 +351,5 @@ import {
   helpers,
 } from "@vuelidate/validators";
 import { useUserStore } from "../stores/userStore";
+import { sendVerificationCodeApi, verifyCodeApi } from "@/api/emailApi";
 </script>

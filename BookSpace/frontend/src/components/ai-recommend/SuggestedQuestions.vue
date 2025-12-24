@@ -5,7 +5,7 @@
         v-for="(question, index) in questions"
         :key="index"
         @click="$emit('select', question)"
-        class="flex-shrink-0 px-4 py-2 bg-card border border-border rounded-full text-sm text-foreground hover:bg-accent hover:border-border transition shadow-sm whitespace-nowrap"
+        class="flex-shrink-0 px-4 py-2.5 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 border border-blue-300 dark:border-blue-500/50 rounded-full text-sm text-blue-600 dark:text-blue-400 font-medium hover:from-blue-500 hover:to-purple-600 hover:text-white hover:border-transparent transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
       >
         {{ question }}
       </button>

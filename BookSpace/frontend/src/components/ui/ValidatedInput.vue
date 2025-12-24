@@ -27,20 +27,50 @@
 -->
 
 <template>
-  <div class="space-y-1">
-    <InputText
-      v-model="model"
-      :type="type"
-      :placeholder="placeholder"
-      :class="computedClasses"
-      @blur="onBlur"
-      v-bind="attrs"
-    />
+  <div class="relative">
+    <!-- 일반 HTML input 사용 (PrimeVue 스타일 문제 해결) -->
+    <div class="relative">
+      <input
+        v-model="model"
+        :type="inputType"
+        :placeholder="placeholder"
+        :class="[inputClasses, isPasswordType ? 'pr-12' : '']"
+        @blur="onBlur"
+        v-bind="attrs"
+      />
 
-    <!-- 에러 메시지 -->
-    <p v-if="error" class="text-sm text-red-500">
-      {{ errorMessage }}
-    </p>
+      <!-- 비밀번호 보기/숨기기 토글 버튼 -->
+      <button
+        v-if="isPasswordType"
+        type="button"
+        @click="togglePasswordVisibility"
+        class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+        tabindex="-1"
+      >
+        <!-- 눈 열림 아이콘 (비밀번호 보이는 상태) -->
+        <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+        </svg>
+        <!-- 눈 닫힘 아이콘 (비밀번호 숨김 상태) -->
+        <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 에러 메시지 영역 (고정 높이로 레이아웃 유지) -->
+    <div class="h-6 mt-1">
+      <p 
+        v-if="error" 
+        class="flex items-center gap-1.5 text-sm text-red-500 dark:text-red-400 font-medium"
+      >
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -87,6 +117,25 @@ const model = computed({
   get: () => props.modelValue, // 부모값 읽기
   set: (val) => emit("update:modelValue", val), // 부모로 값 전달
 });
+
+// 비밀번호 표시 여부
+const showPassword = ref(false);
+
+// 비밀번호 타입 여부 체크
+const isPasswordType = computed(() => props.type === "password");
+
+// 실제 input type (비밀번호 표시 토글에 따라 변경)
+const inputType = computed(() => {
+  if (isPasswordType.value) {
+    return showPassword.value ? "text" : "password";
+  }
+  return props.type;
+});
+
+// 비밀번호 표시/숨김 토글
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value;
+};
 
 // 에러 여부
 const error = computed(() => props.v$.$error);
@@ -152,24 +201,59 @@ const errorMessage = computed(() => {
 // blur 이벤트에서 유효성 검사 시작
 const onBlur = () => props.v$.$touch();
 
-// TODO error 스타일 수정
-const computedClasses = computed(() => {
-  return [
-    "w-full rounded-md px-3 py-2 text-sm transition",
-    "placeholder:text-[color:var(--muted-foreground)]",
-    "bg-[var(--background)] text-[var(--foreground)]",
-    "focus-visible:ring-[3px] focus-visible:ring-[color:var(--ring)]/50",
-
-    // 기본 border
-    "border border-[color:var(--border)]",
-
-    // 에러 border
-    // error.value ? "!border-red-500 !text-red-600" : "",
-
-    props.class,
+// 인풋 스타일 계산
+const inputClasses = computed(() => {
+  // 기본 스타일
+  const base = [
+    // 레이아웃
+    "w-full px-4 py-3",
+    // 폰트
+    "text-sm font-normal",
+    // 라운드
+    "rounded-xl",
+    // 트랜지션
+    "transition-all duration-200 ease-out",
+    // 배경 & 텍스트 (라이트/다크 모드)
+    "bg-white dark:bg-slate-800",
+    "text-gray-900 dark:text-gray-100",
+    // 플레이스홀더
+    "placeholder:text-gray-400 dark:placeholder:text-gray-500",
+    // 포커스 시 아웃라인 제거
+    "outline-none",
+    // 그림자
+    "shadow-sm",
   ];
+
+  // 상태별 border 스타일
+  if (error.value) {
+    // 에러 상태
+    base.push(
+      "border-2 border-red-400 dark:border-red-500",
+      "bg-red-50/50 dark:bg-red-900/20",
+      "focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:focus:ring-red-900/30"
+    );
+  } else if (props.v$.$dirty && !props.v$.$invalid) {
+    // 유효성 통과 상태
+    base.push(
+      "border-2 border-emerald-400 dark:border-emerald-500",
+      "bg-emerald-50/50 dark:bg-emerald-900/20",
+      "focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:focus:ring-emerald-900/30"
+    );
+  } else {
+    // 기본 상태
+    base.push(
+      "border-2 border-gray-200 dark:border-slate-600",
+      "hover:border-gray-300 dark:hover:border-slate-500",
+      "focus:border-blue-500 dark:focus:border-blue-400",
+      "focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30"
+    );
+  }
+
+  // 추가 클래스
+  if (props.class) base.push(props.class);
+  
+  return base;
 });
 
-import { computed, useAttrs } from "vue";
-import InputText from "primevue/inputtext";
+import { ref, computed, useAttrs } from "vue";
 </script>
