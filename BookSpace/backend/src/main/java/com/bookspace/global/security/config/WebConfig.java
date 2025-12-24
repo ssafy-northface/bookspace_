@@ -16,8 +16,12 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addMapping("/**")
                 .allowedOriginPatterns(
-                        "*"
-                       // "http://localhost:3000", // 프론트
+                        // ngrok 무료 도메인
+                        "http://localhost:5173",
+                        "https://*.ngrok-free.app",
+                        "http://localhost:4173",
+                        "https://*.ngrok-free.dev"
+
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
