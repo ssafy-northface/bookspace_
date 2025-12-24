@@ -148,9 +148,9 @@ const transformApiResponse = (apiResponse) => {
   let content = "";
 
   // 감정 분석 메시지와 위로 메시지 조합
-  if (apiResponse.userEmotion) {
-    content += `${apiResponse.userEmotion}\n\n`;
-  }
+  // if (apiResponse.userEmotion) {
+  //   content += `${apiResponse.userEmotion}\n\n`;
+  // }
 
   if (apiResponse.comfortMessage) {
     content += apiResponse.comfortMessage;

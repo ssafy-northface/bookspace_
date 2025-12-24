@@ -37,4 +37,4 @@ gms:
     provider-key: ${GMS_PROVIDER_KEY}
     base-url: https://gms.ssafy.io/gmsapi
     openai:
-      model: gpt-5-mini
+      model: gpt-4.1-mini
