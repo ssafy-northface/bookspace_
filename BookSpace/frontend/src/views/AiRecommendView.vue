@@ -105,7 +105,7 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onUpdated, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import ChatMessage from "@/components/ai-recommend/ChatMessage.vue";
 import ChatInput from "@/components/ai-recommend/ChatInput.vue";
 import SuggestedQuestions from "@/components/ai-recommend/SuggestedQuestions.vue";
@@ -116,7 +116,9 @@ import { getAiRecommendation } from "@/api/aiRecommendationApi";
 import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
+const route = useRoute();
 const { toast } = useToast();
+const chatInputRef = ref(null);
 
 // State
 const messages = ref([]);
@@ -280,12 +282,15 @@ onMounted(() => {
     updateFooterHeight();
   });
 
-  // Optional: Add initial AI greeting
-  // messages.value.push({
-  //   type: 'ai',
-  //   content: '안녕하세요! 어떤 책을 찾고 계신가요?',
-  //   timestamp: new Date()
-  // })
+  // URL에서 prompt query 파라미터가 있으면 자동으로 메시지 전송
+  const promptFromQuery = route.query.prompt;
+  if (promptFromQuery && typeof promptFromQuery === 'string' && promptFromQuery.trim()) {
+    // 컴포넌트가 완전히 준비된 후 메시지 전송 (100ms 딜레이)
+    setTimeout(() => {
+      isInputActive.value = true;
+      handleSendMessage(promptFromQuery.trim());
+    }, 100);
+  }
 });
 
 onUpdated(() => {
