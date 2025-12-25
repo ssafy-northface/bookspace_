@@ -115,10 +115,7 @@
 </template>
 
 <script setup>
-import { useRouter } from "vue-router";
 import ChaekBotProfile from "./ChaekBotProfile.vue";
-
-const router = useRouter();
 
 const props = defineProps({
   message: {
@@ -134,14 +131,11 @@ const props = defineProps({
   },
 });
 
+const emit = defineEmits(["book-click"]);
+
 const handleBookClick = (book) => {
-  // isbn13 또는 bookId로 도서 상세 페이지로 이동
-  if (book.isbn13) {
-    router.push(`/books/${book.isbn13}`);
-  } else if (book.bookId) {
-    // bookId만 있는 경우는 나중에 처리 가능
-    console.log("Book clicked:", book);
-  }
+  // 부모 컴포넌트(AiRecommendView)로 이벤트 전달
+  emit("book-click", book);
 };
 
 const formatTime = (date) => {
