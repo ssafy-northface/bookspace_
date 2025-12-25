@@ -3,7 +3,10 @@
   <div
     v-if="component === 'Card'"
     data-slot="card"
-    :class="['card-root flex flex-col gap-6 border py-6 shadow-sm rounded-xl', className]"
+    :class="[
+      'card-root flex flex-col gap-6 border py-6 shadow-sm rounded-xl',
+      className,
+    ]"
     v-bind="$attrs"
   >
     <slot />
@@ -16,7 +19,7 @@
     :class="[
       'card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6',
       'has-[div[data-slot=card-action]]:grid-cols-[1fr_auto]',
-      className
+      className,
     ]"
     v-bind="$attrs"
   >
@@ -49,7 +52,7 @@
     data-slot="card-action"
     :class="[
       'card-action col-start-2 row-span-2 row-start-1 self-start justify-self-end',
-      className
+      className,
     ]"
     v-bind="$attrs"
   >
@@ -105,7 +108,7 @@ export default {
 
 <style scoped>
 .card-root {
-  /* ✅ 라이트/다크모드 모두 global.css의 CSS 변수에 따라 자동 전환 */
+  /* 라이트/다크모드 모두 global.css의 CSS 변수에 따라 자동 전환 */
   background-color: var(--card);
   color: var(--card-foreground);
   border-color: var(--border);

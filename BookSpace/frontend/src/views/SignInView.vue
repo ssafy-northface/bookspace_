@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref } from "vue";
+import { nextTick, ref, onMounted } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import AppLogo from "@/components/common/AppLogo.vue";
 import ValidatedInput from "@/components/ui/ValidatedInput.vue";
@@ -76,12 +76,26 @@ import Button from "@/components/ui/Button.vue";
 import useVuelidate from "@vuelidate/core";
 import { required } from "@vuelidate/validators";
 import { useAuthStore } from "../stores/authStore";
+import { useToast } from "@/composables/useToast";
 
 const route = useRoute();
 
 // 상태
 const loginId = ref("");
 const password = ref("");
+
+// 로그인 필요 메시지 확인 (useRequireAuth에서 설정한 경우)
+onMounted(() => {
+  const loginMessage = sessionStorage.getItem('loginRequiredMessage');
+  if (loginMessage) {
+    sessionStorage.removeItem('loginRequiredMessage');
+    toast({
+      title: "로그인 필요",
+      description: loginMessage,
+      variant: "destructive",
+    });
+  }
+});
 
 // Vuelidate 규칙 정의
 const rules = {
@@ -97,6 +111,7 @@ const isSubmitting = ref(false);
 
 const authStore = useAuthStore();
 const router = useRouter();
+const { toast } = useToast();
 
 // 로그인 함수
 const login = async () => {
@@ -112,13 +127,36 @@ const login = async () => {
       userPw: password.value,
     });
 
-    const redirect = route.query.redirect;
-    if (typeof redirect === "string" && redirect.startsWith("/")) {
-      await router.replace(redirect); // 로그인 페이지 히스토리 남지 않게
-    } else {
-      await router.replace({ name: "home" });
+    // 리다이렉트 경로 확인 (쿼리 파라미터는 배열일 수도 있음)
+    const redirect = Array.isArray(route.query.redirect) 
+      ? route.query.redirect[0] 
+      : route.query.redirect;
+    
+    // 유효한 리다이렉트 경로인지 확인
+    if (redirect && typeof redirect === "string" && redirect.startsWith("/")) {
+      // 상대 경로가 아닌 절대 경로인지 확인하고, 같은 origin인지 확인
+      try {
+        const redirectUrl = new URL(redirect, window.location.origin);
+        if (redirectUrl.origin === window.location.origin) {
+          await router.replace(redirect); // 로그인 페이지 히스토리 남지 않게
+          toast({
+            title: "로그인 성공",
+            description: "원하시던 페이지로 이동했습니다.",
+          });
+          return;
+        }
+      } catch (e) {
+        // URL 파싱 실패 시 기본 경로로 이동
+        console.warn("Invalid redirect URL:", redirect);
+      }
     }
-    alert("로그인 성공!");
+    
+    // 리다이렉트 경로가 없거나 유효하지 않은 경우 홈으로 이동
+    await router.replace({ name: "home" });
+    toast({
+      title: "로그인 성공",
+      description: "환영합니다!",
+    });
   } catch (err) {
     const msg =
       // 백에서 작성한 error 메시지 나옴 => "자격증명에 실패했습니다"
@@ -126,8 +164,12 @@ const login = async () => {
       "로그인에 실패했습니다. 아이디/비밀번호를 다시 확인해주세요.";
     errorMessage.value = msg;
 
-    // 로그인 실패 시 alert
-    alert(msg);
+    // 로그인 실패 시 toast
+    toast({
+      title: "로그인 실패",
+      description: msg,
+      variant: "destructive",
+    });
   } finally {
     isSubmitting.value = false;
   }

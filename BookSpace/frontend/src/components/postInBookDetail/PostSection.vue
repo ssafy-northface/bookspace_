@@ -45,6 +45,7 @@ import PostCreateModal from "./PostCreateModal.vue";
 import { fetchPosts, createPostApi } from "@/api/postApi";
 import { useAuthStore } from "@/stores/authStore";
 import { useBookStore } from "@/stores/bookStore";
+import { useToast } from "@/composables/useToast";
 
 const emit = defineEmits(["post-updated"]);
 
@@ -56,6 +57,7 @@ const props = defineProps({
 const bookStore = useBookStore();
 const authStore = useAuthStore();
 const queryClient = useQueryClient();
+const { toast } = useToast();
 
 const isModalOpen = ref(false);
 const sort = ref("latest");
@@ -89,7 +91,11 @@ const refetch = async () => {
 
 const openCreateModal = () => {
   if (!authStore.isLoggedIn) {
-    alert("로그인 후 이용 가능한 서비스입니다");
+    toast({
+      title: "로그인 필요",
+      description: "로그인 후 이용 가능한 서비스입니다",
+      variant: "destructive",
+    });
     return;
   }
   isModalOpen.value = true;
@@ -97,7 +103,11 @@ const openCreateModal = () => {
 
 const handleSubmit = async ({ title, content }) => {
   if (!authStore.isLoggedIn) {
-    alert("로그인 후 이용 가능한 서비스입니다");
+    toast({
+      title: "로그인 필요",
+      description: "로그인 후 이용 가능한 서비스입니다",
+      variant: "destructive",
+    });
     return;
   }
 
@@ -109,16 +119,29 @@ const handleSubmit = async ({ title, content }) => {
       postTitle: title,
       postContent: content,
     });
+    
+    toast({
+      title: "등록 완료",
+      description: "게시글이 등록되었습니다.",
+    });
+    isModalOpen.value = false;
   } catch (e) {
     const status = e?.response?.status;
-    if (status === 401) alert("로그인 후 이용 가능한 서비스입니다");
-    else alert(e?.response?.data?.message ?? "게시글 등록에 실패했습니다");
+    if (status === 401) {
+      toast({
+        title: "로그인 필요",
+        description: "로그인 후 이용 가능한 서비스입니다",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "등록 실패",
+        description: e?.response?.data?.message ?? "게시글 등록에 실패했습니다",
+        variant: "destructive",
+      });
+    }
     return;
   }
-
-  
-  alert("게시글이 등록되었습니다.");
-  isModalOpen.value = false;
 
   // 게시글 목록 갱신
   try {

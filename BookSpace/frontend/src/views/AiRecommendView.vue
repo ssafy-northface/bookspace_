@@ -68,6 +68,7 @@
           v-for="(message, index) in messages"
           :key="index"
           :message="message"
+          @book-click="handleBookClick"
         />
 
         <!-- 타이핑 indicator -->
@@ -81,15 +82,6 @@
     <!-- 하단 입력 영역 -->
     <footer ref="footerRef" class="bg-background border-t border-border">
       <div class="max-w-2xl mx-auto">
-        <!-- 추천 질문 -->
-        <div class="px-4 pt-3">
-          <SuggestedQuestions
-            :visible="showSuggestions"
-            :questions="suggestedQuestions"
-            @select="handleSuggestedQuestion"
-          />
-        </div>
-
         <!-- Chat Input -->
         <ChatInput
           ref="chatInputRef"
@@ -100,22 +92,31 @@
         />
       </div>
     </footer>
+
+    <!-- 도서 상세 모달 -->
+    <BaseModal
+      :visible="!!selectedBookIsbn"
+      maxWidth="max-w-5xl"
+      @close="closeBookModal"
+    >
+      <BookDetailView v-if="selectedBookIsbn" :isbn="selectedBookIsbn" />
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, onUpdated, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { ref, nextTick, onMounted, onUpdated } from "vue";
+import { useRoute } from "vue-router";
 import ChatMessage from "@/components/ai-recommend/ChatMessage.vue";
 import ChatInput from "@/components/ai-recommend/ChatInput.vue";
-import SuggestedQuestions from "@/components/ai-recommend/SuggestedQuestions.vue";
 import TypingIndicator from "@/components/ai-recommend/TypingIndicator.vue";
 import BackButton from "@/components/common/BackButton.vue";
 import ChaekBotProfile from "@/components/ai-recommend/ChaekBotProfile.vue";
+import BaseModal from "@/components/common/BaseModal.vue";
+import BookDetailView from "@/views/BookDetailView.vue";
 import { getAiRecommendation } from "@/api/aiRecommendationApi";
 import { useToast } from "@/composables/useToast";
 
-const router = useRouter();
 const route = useRoute();
 const { toast } = useToast();
 const chatInputRef = ref(null);
@@ -123,17 +124,11 @@ const chatInputRef = ref(null);
 // State
 const messages = ref([]);
 const isTyping = ref(false);
-const showSuggestions = ref(true);
 const scrollAnchor = ref(null);
 const isInputActive = ref(false);
 const footerRef = ref(null);
-const footerHeight = ref(120); // 기본 높이 (px)
-
-const suggestedQuestions = [
-  "지금 우울한 기분이야. 우울한 기분을 좀 다루는 책 추천해줘",
-  "힘들 때 읽을 만한 힘이 되는 책 추천해줘",
-  "감동적인 소설 찾아줘",
-];
+const footerHeight = ref(80); // 기본 높이 (px) - SuggestedQuestions 제거로 높이 감소
+const selectedBookIsbn = ref(null);
 
 // Methods
 
@@ -199,9 +194,6 @@ const transformApiResponse = (apiResponse) => {
 const handleSendMessage = async (content) => {
   if (!content.trim()) return;
 
-  // Hide suggestions after first message
-  showSuggestions.value = false;
-
   // Add user message
   messages.value.push({
     type: "user",
@@ -257,8 +249,19 @@ const handleSendMessage = async (content) => {
   }
 };
 
-const handleSuggestedQuestion = (question) => {
-  handleSendMessage(question);
+// 도서 클릭 핸들러
+const handleBookClick = (book) => {
+  if (book.isbn13) {
+    selectedBookIsbn.value = book.isbn13;
+  } else if (book.bookId) {
+    // bookId만 있는 경우는 나중에 처리 가능
+    console.log("Book clicked (no ISBN):", book);
+  }
+};
+
+// 도서 모달 닫기
+const closeBookModal = () => {
+  selectedBookIsbn.value = null;
 };
 
 // Footer 높이 계산 함수
@@ -267,13 +270,6 @@ const updateFooterHeight = () => {
     footerHeight.value = footerRef.value.offsetHeight;
   }
 };
-
-// showSuggestions 변경 시 footer 높이 재계산
-watch(showSuggestions, () => {
-  nextTick(() => {
-    updateFooterHeight();
-  });
-});
 
 // Lifecycle
 onMounted(() => {

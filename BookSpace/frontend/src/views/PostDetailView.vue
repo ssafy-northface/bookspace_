@@ -374,12 +374,30 @@ const deletePostMutation = useMutation({
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
     await queryClient.invalidateQueries({ queryKey: ["my-posts"] });
+    toast({
+      title: "삭제 완료",
+      description: "게시글이 삭제되었습니다.",
+    });
     router.push({ name: "community" });
+  },
+  onError: (error) => {
+    const msg =
+      error?.response?.data?.message ||
+      "게시글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    toast({
+      title: "삭제 실패",
+      description: msg,
+      variant: "destructive",
+    });
   },
 });
 
 const deletePost = async () => {
-  if (!confirm("게시글을 삭제하시겠습니까?")) return;
+  toast({
+    title: "게시글 삭제",
+    description: "게시글을 삭제하고 있습니다...",
+    variant: "destructive",
+  });
   await deletePostMutation.mutateAsync();
 };
 

@@ -161,6 +161,10 @@ const updateCommentMutation = useMutation({
   onSuccess: () => {
     queryClient.invalidateQueries(["comments", props.postId]);
     isEditing.value = false;
+    toast({
+      title: "수정 완료",
+      description: "댓글이 수정되었습니다.",
+    });
     emit("comment-updated", props.comment.commentId);
   },
   onError: (err) => {
@@ -169,6 +173,7 @@ const updateCommentMutation = useMutation({
       description:
         err?.response?.data?.message ||
         "댓글 수정에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      variant: "destructive",
     });
   },
 });
@@ -180,6 +185,10 @@ const deleteCommentMutation = useMutation({
   mutationFn: () => deleteCommentApi(props.comment.commentId),
   onSuccess: () => {
     queryClient.invalidateQueries(["comments", props.postId]);
+    toast({
+      title: "삭제 완료",
+      description: "댓글이 삭제되었습니다.",
+    });
     emit("comment-deleted", props.comment.commentId);
   },
   onError: (err) => {
@@ -188,6 +197,7 @@ const deleteCommentMutation = useMutation({
       description:
         err?.response?.data?.message ||
         "댓글 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.",
+      variant: "destructive",
     });
   },
 });
@@ -222,7 +232,11 @@ const submitEdit = () => {
 };
 
 const handleDelete = () => {
-  if (!confirm("댓글을 삭제하시겠습니까?")) return;
+  toast({
+    title: "댓글 삭제",
+    description: "댓글을 삭제하고 있습니다...",
+    variant: "destructive",
+  });
   deleteCommentMutation.mutateAsync();
 };
 </script>

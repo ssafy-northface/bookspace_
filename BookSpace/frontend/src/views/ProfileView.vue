@@ -176,22 +176,42 @@ const handleUpdateReview = async ({ reviewId, rating, content }) => {
       reviewId,
       data: { reviewRating: rating, reviewContent: content },
     });
-    alert("수정되었습니다.");
+    toast({
+      title: "수정 완료",
+      description: "리뷰가 수정되었습니다.",
+    });
     closeReviewModal();
   } catch (e) {
-    alert(e.response?.data?.message || "수정 실패");
+    toast({
+      title: "수정 실패",
+      description: e.response?.data?.message || "리뷰 수정에 실패했습니다",
+      variant: "destructive",
+    });
   }
 };
 
 const handleDeleteReview = async (review) => {
-  if (!review?.reviewId || !confirm("리뷰를 삭제할까요?")) return;
+  if (!review?.reviewId) return;
+
+  toast({
+    title: "리뷰 삭제",
+    description: "리뷰를 삭제하고 있습니다...",
+    variant: "destructive",
+  });
 
   try {
     await deleteReview(review.reviewId);
-    alert("삭제되었습니다.");
+    toast({
+      title: "삭제 완료",
+      description: "리뷰가 삭제되었습니다.",
+    });
     closeReviewModal();
   } catch (e) {
-    alert(e.response?.data?.message || "삭제 실패");
+    toast({
+      title: "삭제 실패",
+      description: e.response?.data?.message || "리뷰 삭제에 실패했습니다",
+      variant: "destructive",
+    });
   }
 };
 

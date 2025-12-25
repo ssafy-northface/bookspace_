@@ -7,8 +7,14 @@
       <p class="text-base font-normal mb-2">평점</p>
 
       <!-- 접힌 상태에서도 별점 선택 가능 -->
-      <div class="review-interactive" @click="blockIfNotLoggedIn" @mousedown="blockIfNotLoggedIn">
-        <StarRating v-model="rating" :step="0.5" :showValue="true" />
+      <div class="review-interactive">
+        <StarRating 
+          v-model="rating" 
+          :step="0.5" 
+          :showValue="true"
+          :disabled="!isLoggedInComputed"
+          @click="handleStarClick"
+        />
       </div>
     </div>
 
@@ -36,7 +42,7 @@
           type="button"
           class="h-10 shrink-0 rounded-md px-5 text-sm font-semibold text-white disabled:opacity-60"
           :class="canSubmit ? 'bg-primary hover:bg-primary/90' : 'bg-gray-400'"
-          :disabled="reviewStore.submitting"
+          :disabled="reviewStore.submitting || !isLoggedInComputed"
           @click="onSubmitCollapsed"
         >
           등록
@@ -74,7 +80,7 @@
             type="button"
             class="h-10 w-full rounded-md bg-gray-400 text-base font-semibold text-white disabled:opacity-60"
             :class="canSubmit ? 'bg-primary hover:bg-primary/90' : ''"
-            :disabled="reviewStore.submitting"
+            :disabled="reviewStore.submitting || !isLoggedInComputed"
             @click="onSubmitExpanded"
           >
             {{ reviewStore.submitting ? (isEditMode ? "수정 중..." : "등록 중...") : (isEditMode ? "수정하기" : "등록하기") }}
@@ -92,13 +98,20 @@ import { useAuthStore } from "@/stores/authStore";
 import { useBookStore } from "@/stores/bookStore";
 import { useQueryClient } from "@tanstack/vue-query";
 import StarRating from "../ui/StarRating.vue";
+import { useToast } from "@/composables/useToast";
+import { useRequireAuth } from "@/composables/useRequireAuth";
+import { useRoute, useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const reviewStore = useReviewStore();
 const bookStore = useBookStore();
 const queryClient = useQueryClient();
+const { toast } = useToast();
+const route = useRoute();
+const router = useRouter();
+const { requireAuth, isLoggedIn } = useRequireAuth();
 
-const isLoggedIn = computed(()=> authStore.isLoggedIn);
+const isLoggedInComputed = computed(() => authStore.isLoggedIn);
 
 // edit/create 공용으로 쓰기 위해 props 확장
 /**
@@ -125,11 +138,51 @@ const rating = ref(0);
 const content = ref("");
 const isExpanded = ref(false);
 
-const canSubmit = computed(() => rating.value > 0);
+const canSubmit = computed(() => rating.value > 0 && isLoggedInComputed.value);
 
-// 비로그인 상태 : 입력/인터렉션 차단
+// 별 클릭 핸들러 - 비로그인 시 로그인 페이지로 리다이렉트
+const isRedirecting = ref(false);
+const handleStarClick = (e) => {
+  if (!isLoggedInComputed.value) {
+    e.preventDefault();
+    e.stopPropagation();
+    // rating을 0으로 되돌림 (별이 선택되지 않도록)
+    rating.value = 0;
+    // 리다이렉트 플래그 설정
+    isRedirecting.value = true;
+    // 로그인 페이지로 리다이렉트
+    requireAuth(() => {}, {
+      loginMessage: "리뷰 작성을 위해 로그인이 필요합니다",
+      redirect: route.fullPath,
+    })();
+  }
+};
+
+// rating 변경 감지 - 비로그인 유저가 별을 클릭한 경우 체크 (백업)
+watch(rating, (newRating, oldRating) => {
+  // 리다이렉트 중이면 무시
+  if (isRedirecting.value) {
+    isRedirecting.value = false;
+    return;
+  }
+  
+  // 0에서 다른 값으로 변경된 경우 (별을 처음 클릭한 경우)
+  if (oldRating === 0 && newRating > 0 && !isLoggedInComputed.value) {
+    // rating을 원래 값으로 되돌림
+    rating.value = 0;
+    // 리다이렉트 플래그 설정
+    isRedirecting.value = true;
+    // 로그인 페이지로 리다이렉트
+    requireAuth(() => {}, {
+      loginMessage: "리뷰 작성을 위해 로그인이 필요합니다",
+      redirect: route.fullPath,
+    })();
+  }
+});
+
+// 비로그인 상태 : 입력/인터렉션 차단 (textarea 등)
 function blockIfNotLoggedIn(e) {
-  if (isLoggedIn.value) return;
+  if (isLoggedInComputed.value) return;
 
   // 리뷰 작성 인터렉션 영역에서 막기
   const isInInteractive = e?.target?.closest?.(".review-interactive");
@@ -138,8 +191,6 @@ function blockIfNotLoggedIn(e) {
   // 포커스/클릭/드래그 등 입력 자체를 원천 차단
   e.preventDefault?.();
   e.stopPropagation?.();
-
-  alert("로그인 후 이용 가능한 서비스입니다");
 }
 
 const expandedTextarea = ref(null);
@@ -156,16 +207,12 @@ const expand = async () => {
 };
 
 // textarea 클릭 핸들러
-const handleTextareaClick = async (e) => {
-  if (!isLoggedIn.value) {
-    e.preventDefault();
-    e.stopPropagation();
-    alert("로그인 후 이용 가능한 서비스입니다");
-    e.target.blur();
-    return;
-  }
+const handleTextareaClick = requireAuth(async (e) => {
   await expand();
-};
+}, {
+  loginMessage: "리뷰 작성을 위해 로그인이 필요합니다",
+  redirect: route.fullPath,
+});
 
 /**
  * edit 모드 상태:
@@ -195,7 +242,11 @@ async function submitReview(payloadContent) {
 
   // 별점 선택 안했을시
   if (rating.value === 0) {
-    alert("별점을 선택해주세요");
+    toast({
+      title: "별점 선택 필요",
+      description: "별점을 선택해주세요",
+      variant: "destructive",
+    });
     return;
   }
 
@@ -203,7 +254,11 @@ async function submitReview(payloadContent) {
     // 리뷰 수정(PUT) - reviewId 필수
     if (isEditMode.value) {
       if (!props.reviewId) {
-        alert("수정할 리뷰 정보를 찾을 수 없습니다.");
+        toast({
+          title: "오류",
+          description: "수정할 리뷰 정보를 찾을 수 없습니다.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -225,7 +280,10 @@ async function submitReview(payloadContent) {
       // 마이페이지 리뷰 목록 캐시 무효화 (즉시 반영을 위해)
       await queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
 
-      alert("리뷰가 수정되었습니다.");
+      toast({
+        title: "수정 완료",
+        description: "리뷰가 수정되었습니다.",
+      });
 
       // 부모에게 "저장 완료" 알림 (부모가 edit 모드 종료 + 목록 재조회)
       emit("saved");
@@ -261,7 +319,10 @@ async function submitReview(payloadContent) {
 
     await nextTick();
     
-    alert("리뷰가 등록되었습니다.");
+    toast({
+      title: "등록 완료",
+      description: "리뷰가 등록되었습니다.",
+    });
 
   
 
@@ -270,17 +331,33 @@ async function submitReview(payloadContent) {
     const msg = e?.response?.data?.message;
 
     if (status === 401) {
-      alert("로그인 후 이용 가능한 서비스입니다");
+      toast({
+        title: "로그인 필요",
+        description: "로그인 후 이용 가능한 서비스입니다",
+        variant: "destructive",
+      });
     } else if (status === 403) {
-      alert("작성자만 수정/삭제할 수 있습니다");
+      toast({
+        title: "권한 없음",
+        description: "작성자만 수정/삭제할 수 있습니다",
+        variant: "destructive",
+      });
     } else if (status === 400 && msg === "DUPLICATE_REVIEW") {
       // 중복 리뷰인 경우
-      alert("이미 이 도서에 작성한 리뷰가 있습니다. 작성한 리뷰를 확인해주세요.");
+      toast({
+        title: "중복 리뷰",
+        description: "이미 이 도서에 작성한 리뷰가 있습니다. 작성한 리뷰를 확인해주세요.",
+        variant: "destructive",
+      });
       // 마이페이지 리뷰 목록 캐시 무효화 (기존 리뷰 확인을 위해)
       await queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
       emit("saved"); // 목록 갱신 트리거 (부모에서 fetch)
     } else {
-      alert(msg ?? (isEditMode.value ? "리뷰 수정에 실패했습니다" : "리뷰 등록에 실패했습니다"));
+      toast({
+        title: "오류",
+        description: msg ?? (isEditMode.value ? "리뷰 수정에 실패했습니다" : "리뷰 등록에 실패했습니다"),
+        variant: "destructive",
+      });
     }
 
   }

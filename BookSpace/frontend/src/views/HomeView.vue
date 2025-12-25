@@ -286,20 +286,22 @@ const titleOptions = [
 const randomTitle = ref(titleOptions[Math.floor(Math.random() * titleOptions.length)])
 
 // 로그인 필요 기능 체크
-const { requireAuth, isLoggedIn, redirectToLogin } = useRequireAuth()
-const { toast } = useToast()
+const { requireAuth } = useRequireAuth({
+  loginMessage: '로그인 후 이용가능한 서비스입니다'
+})
 
 // Input focus 시 로그인 체크
-const handleInputFocus = (event) => {
-  if (!isLoggedIn.value) {
-    event.target.blur()
-    toast({
-      title: '로그인 후 이용가능한 서비스입니다',
-      description: '로그인 후 이용해주세요.'
-    })
-    redirectToLogin()
+const handleInputFocus = requireAuth((event) => {
+  // 로그인된 경우에만 포커스 유지
+}, {
+  loginMessage: '로그인 후 이용가능한 서비스입니다',
+  onBlocked: (event) => {
+    // 비로그인 시 input blur 처리
+    if (event && event.target) {
+      event.target.blur()
+    }
   }
-}
+})
 
 // Emotion tags for quick selection
 const emotionTags = [

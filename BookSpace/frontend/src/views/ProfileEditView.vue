@@ -99,10 +99,12 @@ import Input from "@/components/ui/Input.vue";
 import Button from "@/components/ui/Button.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useToast } from "@/composables/useToast";
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const { toast } = useToast();
 
 const loginId = ref("");
 const name = ref("");
@@ -179,11 +181,19 @@ const goBack = () => {
 const onSubmit = async () => {
   const valid = await v$.value.$validate();
   if (!valid) {
-    alert("입력한 정보를 다시 확인해주세요.");
+    toast({
+      title: "유효성 검사 실패",
+      description: "입력한 정보를 다시 확인해주세요.",
+      variant: "destructive",
+    });
     return;
   }
   if (!userId.value) {
-    alert("유저 정보를 불러오지 못했습니다.");
+    toast({
+      title: "오류",
+      description: "유저 정보를 불러오지 못했습니다.",
+      variant: "destructive",
+    });
     return;
   }
   const payload = {
@@ -197,13 +207,20 @@ const onSubmit = async () => {
     isSubmitting.value = true;
     await userStore.updateUser(userId.value, payload);
     await userStore.fetchMyInfo();
-    alert("계정 정보가 수정되었습니다.");
+    toast({
+      title: "수정 완료",
+      description: "계정 정보가 수정되었습니다.",
+    });
     router.push({ name: "profile" });
   } catch (err) {
     const msg =
       err?.response?.data?.message ??
       "정보 수정에 실패했습니다. 잠시 후 다시 시도해주세요.";
-    alert(msg);
+    toast({
+      title: "수정 실패",
+      description: msg,
+      variant: "destructive",
+    });
   } finally {
     isSubmitting.value = false;
   }
@@ -211,18 +228,30 @@ const onSubmit = async () => {
 
 const handleDeleteAccount = async () => {
   if (!userId.value) return;
-  const ok = confirm("정말로 회원 탈퇴하시겠습니까?");
-  if (!ok) return;
+  
+  toast({
+    title: "회원 탈퇴",
+    description: "회원 탈퇴를 진행하고 있습니다...",
+    variant: "destructive",
+  });
+  
   try {
     await userStore.softDeleteUser(userId.value);
     authStore.logout();
-    alert("회원 탈퇴가 완료되었습니다.");
+    toast({
+      title: "회원 탈퇴 완료",
+      description: "회원 탈퇴가 완료되었습니다.",
+    });
     router.push("/");
   } catch (err) {
     const msg =
       err?.response?.data?.message ??
       "회원 탈퇴에 실패했습니다. 잠시 후 다시 시도해주세요.";
-    alert(msg);
+    toast({
+      title: "회원 탈퇴 실패",
+      description: msg,
+      variant: "destructive",
+    });
   }
 };
 </script>

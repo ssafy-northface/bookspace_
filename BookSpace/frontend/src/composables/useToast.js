@@ -78,3 +78,6 @@ export function useToast() {
     dismissAll,
   };
 }
+
+// 라우터 가드 등에서 직접 사용할 수 있도록 toast 함수 export
+export { toast, dismiss, dismissAll };
