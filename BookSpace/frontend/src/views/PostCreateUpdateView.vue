@@ -122,10 +122,12 @@ import PostBookSelector from "@/components/community/PostBookSelector.vue";
 import PostBookInfo from "@/components/community/PostBookInfo.vue";
 import { createPostApi, fetchPostDetail, updatePostApi } from "@/api/postApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
+import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const route = useRoute();
 const queryClient = useQueryClient();
+const { toast } = useToast();
 
 const isEditMode = computed(() => route.query.mode === "edit");
 const postId = computed(() => route.query.postId);
@@ -242,7 +244,21 @@ const createPostMutation = useMutation({
   onSuccess: async () => {
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
+    toast({
+      title: "등록 완료",
+      description: "게시글이 등록되었습니다.",
+    });
     router.push({ name: "community" });
+  },
+  onError: (error) => {
+    const msg =
+      error?.response?.data?.message ||
+      "게시글 등록에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    toast({
+      title: "등록 실패",
+      description: msg,
+      variant: "destructive",
+    });
   },
 });
 
@@ -255,7 +271,21 @@ const updatePostMutation = useMutation({
     await queryClient.invalidateQueries({ queryKey: ["posts"] });
     await queryClient.invalidateQueries({ queryKey: ["posts", "latest"] });
     await queryClient.invalidateQueries({ queryKey: ["post", postId.value] });
+    toast({
+      title: "수정 완료",
+      description: "게시글이 수정되었습니다.",
+    });
     router.push({ name: "postDetail", params: { postId: postId.value } });
+  },
+  onError: (error) => {
+    const msg =
+      error?.response?.data?.message ||
+      "게시글 수정에 실패했습니다. 잠시 후 다시 시도해주세요.";
+    toast({
+      title: "수정 실패",
+      description: msg,
+      variant: "destructive",
+    });
   },
 });
 

@@ -9,6 +9,7 @@ import {
   helpers,
 } from "@vuelidate/validators";
 import { useUserStore } from "@/stores/userStore";
+import { useToast } from "@/composables/useToast";
 
 /**
  * 회원가입 폼 로직을 관리하는 composable
@@ -16,6 +17,7 @@ import { useUserStore } from "@/stores/userStore";
 export function useSignupForm() {
   const userStore = useUserStore();
   const router = useRouter();
+  const { toast } = useToast();
 
   // 상태
   const loginId = ref("");
@@ -132,14 +134,22 @@ export function useSignupForm() {
 
     // 이메일 인증 확인
     if (!isEmailVerified.value) {
-      alert("이메일 인증을 완료해주세요.");
+      toast({
+        title: "인증 필요",
+        description: "이메일 인증을 완료해주세요.",
+        variant: "destructive",
+      });
       return;
     }
 
     // 유효성 검사
     const valid = await v$.value.$validate();
     if (!valid) {
-      alert("입력한 정보를 다시 확인해주세요.");
+      toast({
+        title: "입력 오류",
+        description: "입력한 정보를 다시 확인해주세요.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -160,13 +170,20 @@ export function useSignupForm() {
       // 회원가입 API 호출
       await userStore.signup(payload);
 
-      alert("회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.");
+      toast({
+        title: "회원가입 완료",
+        description: "로그인 페이지로 이동합니다.",
+      });
       await router.push("/signin");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         "회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.";
-      alert(msg);
+      toast({
+        title: "회원가입 실패",
+        description: msg,
+        variant: "destructive",
+      });
     } finally {
       isSubmitting.value = false;
     }

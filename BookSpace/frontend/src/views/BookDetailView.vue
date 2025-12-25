@@ -93,6 +93,8 @@ import { useRoute } from "vue-router";
 import { useBookStore } from "@/stores/bookStore";
 import { useWishStore } from "@/stores/wishStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useToast } from "@/composables/useToast";
+import { useRequireAuth } from "@/composables/useRequireAuth";
 
 import BookDetailInfo from "../components/bookDetail/BookDetailInfo.vue";
 import BookSideCard from "@/components/bookDetail/BookSideCard.vue";
@@ -107,6 +109,8 @@ const route = useRoute();
 const bookStore = useBookStore();
 const wishStore = useWishStore();
 const authStore = useAuthStore();
+const { toast } = useToast();
+const { requireAuth } = useRequireAuth();
 
 const book = computed(() => bookStore.bookDetail);
 
@@ -166,8 +170,8 @@ onMounted(() => {
 });
 
 // 찜 버튼 클릭 핸들러
-// 비로그인 유저는 차단 후 안내 메시지
-async function toggleWish() {
+// 비로그인 유저는 토스트 알림 후 로그인 페이지로 리다이렉트
+const toggleWish = requireAuth(async () => {
   console.log("[toggleWish] clicked");
   console.log(
     "[toggleWish] isbn/bookId =",
@@ -176,13 +180,6 @@ async function toggleWish() {
   );
 
   if (!book.value) return;
-
-  // 1) 비로그인 처리
-  if (!authStore.isLoggedIn) {
-    alert("로그인 후 이용 가능한 서비스입니다");
-    // toast("로그인 후 이용 가능한 서비스입니다");
-    return;
-  }
 
   const isbn = book.value.isbn;
   // 현재 찜 상태 저장
@@ -207,8 +204,14 @@ async function toggleWish() {
     console.error(e);
     //  실패하면 원래 상태로 복구
     wishStore.setIsWished(isbn, wasWished);
-    alert("찜 처리 중 오류가 발생했습니다");
-    // toast("찜 처리 중 오류가 발생했습니다");
+    toast({
+      title: "오류",
+      description: "찜 처리 중 오류가 발생했습니다",
+      variant: "destructive",
+    });
   }
-}
+}, {
+  loginMessage: "찜하기는 로그인 후 이용 가능한 서비스입니다",
+  redirect: route.fullPath, // 현재 책 상세 페이지로 리다이렉트
+});
 </script>

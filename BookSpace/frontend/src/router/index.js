@@ -1,6 +1,7 @@
 // vue router 세팅 파일
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
+import { toast } from "@/composables/useToast";
 
 // layout
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
@@ -99,6 +100,13 @@ router.beforeEach((to) => {
   // 인증이 필요한데 비로그인 유저면 signin으로 보내고
   // 원래 가려던 경로 (to.fullPath)를 redirect로 들고감
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
+    // 토스트 알림 표시
+    toast({
+      title: "로그인 필요",
+      description: "로그인 후 이용 가능한 서비스입니다",
+      variant: "destructive",
+    });
+    
     return {
       name: "signin",
       query: { redirect: to.fullPath },

@@ -51,6 +51,7 @@
 <script setup>
 import { computed } from "vue";
 import { useReviewStore } from "@/stores/reviewStore";
+import { useToast } from "@/composables/useToast";
 
 const props = defineProps({
   review: {
@@ -62,6 +63,7 @@ const props = defineProps({
 const emit = defineEmits(["edit", "deleted"]);
 
 const reviewStore = useReviewStore();
+const { toast } = useToast();
 
 const formattedDate = computed(() => {
   if (!props.review.reviewDate) return "";
@@ -73,22 +75,40 @@ async function onDelete() {
   const reviewId = props.review?.reviewId;
   if (!reviewId) return;
 
-  const ok = confirm("리뷰를 삭제할까요?");
-  if (!ok) return;
+  toast({
+    title: "리뷰 삭제",
+    description: "리뷰를 삭제하고 있습니다...",
+    variant: "destructive",
+  });
 
   try {
     await reviewStore.deleteReview(reviewId);
-    alert("리뷰가 삭제되었습니다.");
+    toast({
+      title: "삭제 완료",
+      description: "리뷰가 삭제되었습니다.",
+    });
     emit("deleted");
   } catch (e) {
     const status = e?.response?.status;
 
     if (status === 401) {
-      alert("로그인 후 이용 가능한 서비스입니다");
+      toast({
+        title: "로그인 필요",
+        description: "로그인 후 이용 가능한 서비스입니다",
+        variant: "destructive",
+      });
     } else if (status === 403) {
-      alert("작성자만 수정/삭제할 수 있습니다");
+      toast({
+        title: "권한 없음",
+        description: "작성자만 수정/삭제할 수 있습니다",
+        variant: "destructive",
+      });
     } else {
-      alert(e?.response?.data?.message ?? "리뷰 삭제에 실패했습니다");
+      toast({
+        title: "삭제 실패",
+        description: e?.response?.data?.message ?? "리뷰 삭제에 실패했습니다",
+        variant: "destructive",
+      });
     }
   }
 }
