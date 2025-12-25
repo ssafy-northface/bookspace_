@@ -81,10 +81,6 @@
                     />
                   </svg>
                   <span>{{ book.rating || "4.0" }}</span>
-                  <span class="mx-1">•</span>
-                  <span>{{ book.reviews || "독자(2)" }}</span>
-                  <span class="mx-1">•</span>
-                  <span>{{ book.genre || "문학" }}</span>
                 </div>
               </div>
             </div>
