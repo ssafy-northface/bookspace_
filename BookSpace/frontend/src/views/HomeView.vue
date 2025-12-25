@@ -60,9 +60,10 @@
                 v-for="tag in emotionTags"
                 :key="tag.label"
                 @click="selectEmotionTag(tag)"
-                class="px-6 py-2.5 text-sm rounded-full border border-border bg-card/50 text-muted-foreground hover:border-[#FEE500] hover:text-[#3C1E1E] hover:bg-[#FEE500] transition-all duration-200"
+                class="px-6 py-2.5 text-sm rounded-full border-2 border-border bg-card/50 text-muted-foreground hover:border-transparent hover:text-white transition-all duration-200 relative overflow-hidden group"
               >
-                {{ tag.label }}
+                <span class="relative z-10">{{ tag.label }}</span>
+                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 gradient-animate emotion-gradient"></div>
               </button>
             </div>
           </div>
@@ -121,7 +122,7 @@
     <section class="py-16 container">
       <div class="text-center mb-4">
         <h2 class="text-2xl md:text-3xl font-bold text-foreground mb-4">커뮤니티</h2>
-        <p class="text-muted-foreground">독서에서 얻은 인사이트를 공유하세요</p>
+        <p class="text-muted-foreground">지금 사람들이 가장 많이 이야기하는 주제예요</p>
       </div>
 
       <!-- More Link -->
@@ -151,39 +152,43 @@
             v-for="(post, index) in displayedPosts"
             :key="`${post.postId}-${index}`"
             @click="goToPost(post.postId)"
-            class="flex-shrink-0 group p-5 rounded-xl border border-border bg-card hover:shadow-md hover:border-primary/20 cursor-pointer transition-all duration-200 flex flex-col"
-            :style="{ width: `${postCardWidth}px`, minHeight: '200px' }"
+            class="flex-shrink-0 group rounded-xl border border-border bg-card hover:shadow-md hover:border-primary/20 cursor-pointer transition-all duration-200 flex overflow-hidden"
+            :style="{ width: `${postCardWidth}px`, minHeight: `${postCardHeight}px` }"
           >
-            <div class="flex gap-4 flex-1 min-h-0">
-              <div class="flex-1 min-w-0 flex flex-col">
+            <!-- Book Cover - 전체 높이, 비율 유지 -->
+            <div v-if="post.bookImageUrl" class="flex-shrink-0 h-full">
+              <img
+                :src="post.bookImageUrl"
+                :alt="post.bookTitle"
+                class="h-full w-auto object-cover"
+              />
+            </div>
+            <!-- Content Area -->
+            <div class="flex-1 min-w-0 flex flex-col p-5">
+              <div class="flex-1 min-h-0 flex flex-col">
                 <!-- Title -->
-                <h3 class="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1">
+                <h3 class="font-semibold text-foreground line-clamp-1 mb-2">
                   {{ post.postTitle }}
                 </h3>
                 <!-- Content Preview -->
-                <p class="text-sm text-muted-foreground line-clamp-3 flex-1 mb-3">
+                <p 
+                  v-if="canFitContent(post.postContent)"
+                  class="text-sm text-muted-foreground flex-1 mb-6 whitespace-pre-line overflow-hidden"
+                >
                   {{ post.postContent }}
                 </p>
               </div>
-              <!-- Book Cover -->
-              <div v-if="post.bookImageUrl" class="flex-shrink-0">
-                <img
-                  :src="post.bookImageUrl"
-                  :alt="post.bookTitle"
-                  class="w-16 h-24 object-cover rounded-lg shadow-sm"
-                />
+              <!-- Meta - 하단 고정 -->
+              <div class="flex items-center gap-4 text-xs text-muted-foreground mt-auto pt-2">
+                <span class="flex items-center gap-1">
+                  <Heart class="w-3.5 h-3.5" />
+                  {{ post.likeCount || 0 }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <MessageSquare class="w-3.5 h-3.5" />
+                  {{ post.commentCount || 0 }}
+                </span>
               </div>
-            </div>
-            <!-- Meta - 하단 고정 -->
-            <div class="flex items-center gap-4 text-xs text-muted-foreground mt-auto pt-2">
-              <span class="flex items-center gap-1">
-                <Heart class="w-3.5 h-3.5" />
-                {{ post.likeCount || 0 }}
-              </span>
-              <span class="flex items-center gap-1">
-                <MessageSquare class="w-3.5 h-3.5" />
-                {{ post.commentCount || 0 }}
-              </span>
             </div>
           </div>
         </div>
@@ -207,11 +212,13 @@
             :key="feature.title"
             class="group p-6 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
           >
-            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <component :is="feature.icon" class="w-6 h-6 text-primary" />
+            <div class="flex items-start gap-3 mb-4">
+              <component :is="feature.icon" class="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
+              <div class="flex-1">
+                <h3 class="text-lg font-semibold text-foreground mb-2">{{ feature.title }}</h3>
+                <p class="text-sm text-muted-foreground leading-relaxed">{{ feature.description }}</p>
+              </div>
             </div>
-            <h3 class="text-lg font-semibold text-foreground mb-2">{{ feature.title }}</h3>
-            <p class="text-sm text-muted-foreground leading-relaxed">{{ feature.description }}</p>
           </div>
         </div>
       </div>
@@ -230,10 +237,11 @@
           <RouterLink :to="{ name: 'aiRecommend' }">
             <button 
               @click="goToAiRecommend"
-              class="inline-flex items-center justify-center gap-2 px-8 h-12 rounded-full text-base font-medium text-white bg-gradient-to-r from-[#818cf8] via-[#6366f1] to-[#a78bfa] hover:opacity-90 transition-all duration-200 shadow-lg hover:shadow-xl"
+              class="inline-flex items-center justify-center gap-2 px-8 h-12 rounded-full text-base font-medium border-2 border-transparent text-white transition-all duration-200 relative overflow-hidden"
             >
-              <Sparkles class="w-5 h-5" />
-              AI 도서 추천받기
+              <Sparkles class="w-5 h-5 relative z-10" />
+              <span class="relative z-10">AI 도서 추천받기</span>
+              <div class="absolute inset-0 gradient-animate emotion-gradient"></div>
             </button>
           </RouterLink>
         </div>
@@ -270,7 +278,8 @@ import {
   BookOpen,
   Send,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Bookmark
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -313,24 +322,24 @@ const emotionTags = [
 // Features data
 const features = [
   {
-    icon: Brain,
-    title: 'AI 감성 분석',
-    description: '당신의 현재 감정과 상황을 분석하여 가장 적합한 책을 추천합니다.'
+    icon: Heart,
+    title: '감정 기반 도서 추천',
+    description: '당신의 현재 감정과 상황을 분석하여 가장 적합한 책을 골라드려요.'
   },
   {
     icon: TrendingUp,
-    title: '실시간 랭킹',
-    description: '실시간 독자들의 평가와 반응을 바탕으로 인기 도서를 선별합니다.'
+    title: '지금 뜨는 책 & 이야기',
+    description: '사람들이 많이 보는 책과 대화가 활발한 글을 바로 만나보세요.'
   },
   {
     icon: Users,
     title: '활발한 커뮤니티',
-    description: '같은 책을 읽은 독자들과 생각을 나누고 토론할 수 있습니다.'
+    description: '책에서 느낀 감정을 나누고, 서로의 관점으로 이야기를 확장해요.'
   },
   {
-    icon: BookOpen,
-    title: '맞춤형 큐레이션',
-    description: '당신의 독서 취향과 이력을 분석하여 개인화된 추천을 제공합니다.'
+    icon: Bookmark,
+    title: '나의 독서 기록 보관함',
+    description: '내 독서 취향과 기록을 깔끔하게 정리해요.'
   }
 ]
 
@@ -429,6 +438,7 @@ const recentPosts = ref([])
 const postCarouselRef = ref(null)
 const postCurrentIndex = ref(0)
 const postCardWidth = ref(500) // 기본 카드 너비
+const postCardHeight = ref(200) // 기본 카드 높이
 let postAutoSlideInterval = null
 
 // 무한 루프를 위한 게시글 목록 (앞뒤로 복제)
@@ -438,41 +448,63 @@ const displayedPosts = computed(() => {
   return [...posts, ...posts, ...posts]
 })
 
-// 화면 크기에 따른 게시글 카드 너비 계산
+// 화면 크기에 따른 게시글 카드 너비 및 높이 계산
 const calculatePostCardWidth = () => {
   if (!postCarouselRef.value) {
     postCardWidth.value = 500
+    postCardHeight.value = 200
     return
   }
   
   const container = postCarouselRef.value.parentElement
   if (!container) {
     postCardWidth.value = 500
+    postCardHeight.value = 200
     return
   }
   
   const containerWidth = container.offsetWidth || window.innerWidth
   const gap = 16 // gap-4 = 16px
   
-  // 반응형: 모바일 1개, md 2개
+  // 반응형: 1030px 이하 1개, 1030px 초과 2개
   let cardsPerView = 1
-  if (window.innerWidth >= 768) cardsPerView = 2
+  if (window.innerWidth > 1030) cardsPerView = 2
   
   const calculatedWidth = (containerWidth - (gap * (cardsPerView - 1))) / cardsPerView
   postCardWidth.value = calculatedWidth > 0 ? calculatedWidth : 500
+  
+  // 화면 크기에 따라 높이도 반응형으로 조정
+  if (window.innerWidth < 640) {
+    postCardHeight.value = 160 // 모바일: 작은 높이
+  } else if (window.innerWidth < 768) {
+    postCardHeight.value = 180 // 작은 태블릿
+  } else if (window.innerWidth < 1024) {
+    postCardHeight.value = 190 // 중간 화면
+  } else {
+    postCardHeight.value = 200 // 큰 화면
+  }
 }
 
 // 커뮤니티 자동 슬라이딩 시작
 const startPostAutoSlide = () => {
   if (!recentPosts.value || recentPosts.value.length === 0) return
   
+  // 기존 interval 정리
+  if (postAutoSlideInterval) {
+    clearInterval(postAutoSlideInterval)
+    postAutoSlideInterval = null
+  }
+  
   postAutoSlideInterval = setInterval(() => {
     postCurrentIndex.value++
-    if (postCurrentIndex.value >= recentPosts.value.length) {
+    // 두 번째 복제본의 끝에 도달하면 (recentPosts.length * 2)
+    // transition 없이 두 번째 복제본의 시작으로 이동 (recentPosts.length)
+    // 이렇게 하면 무한 루프처럼 보임
+    if (postCurrentIndex.value >= recentPosts.value.length * 2) {
       const carousel = postCarouselRef.value
       if (carousel) {
         carousel.style.transition = 'none'
-        postCurrentIndex.value = 0
+        postCurrentIndex.value = recentPosts.value.length
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             if (carousel) {
@@ -567,6 +599,15 @@ const selectEmotionTag = requireAuth((tag) => {
 const goToPost = (postId) => {
   router.push({ name: 'postDetail', params: { postId } })
 }
+
+// 게시글 내용이 공간에 맞는지 확인 (간단한 휴리스틱: 내용이 너무 길면 숨김)
+const canFitContent = (content) => {
+  if (!content) return false
+  // 대략적인 계산: 한 줄에 약 50자, 9줄이면 약 450자
+  // 실제로는 더 복잡한 계산이 필요하지만, 간단한 휴리스틱 사용
+  const maxChars = 400 // 대략 8-9줄 정도
+  return content.length <= maxChars
+}
 </script>
 
 <style scoped>
@@ -593,5 +634,28 @@ const goToPost = (postId) => {
 
 .send-icon-gradient:hover :deep(svg) {
   stroke: #6366f1;
+}
+
+/* 감정 태그 버튼 그라데이션 애니메이션 */
+.gradient-animate {
+  background-size: 300% 300%;
+  animation: gradient-shift 1.5s ease-in-out infinite;
+}
+
+/* 대각선 그라데이션 (홈화면 보라색 톤 - 연한색에서 진한색으로) */
+.emotion-gradient {
+  background: linear-gradient(to bottom right, #7189fc, #5457db);
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
 }
 </style>
