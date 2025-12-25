@@ -1,5 +1,5 @@
 <template>
-  <main class="max-w-6xl px-4 py-6 mx-auto">
+  <main class="max-w-6xl px-4 py-6 mx-auto" :key="resolvedIsbn">
     <div
       v-if="loadingDetail && !book"
       class="py-10 text-sm text-muted-foreground"
@@ -88,7 +88,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useBookStore } from "@/stores/bookStore";
 import { useWishStore } from "@/stores/wishStore";
@@ -144,14 +144,26 @@ const resolvedIsbn = computed(() => props.isbn ?? route.params.isbn);
 
 const load = async (isbn) => {
   if (!isbn) return;
+  // 라우트가 변경될 때 이전 데이터를 즉시 초기화하여 이전 페이지 내용이 보이지 않도록 함
+  bookStore.clearBookDetail();
   await bookStore.loadBookDetail(isbn);
 };
 
 watch(
   () => resolvedIsbn.value,
-  (isbn) => load(isbn),
+  (isbn, oldIsbn) => {
+    // ISBN이 변경될 때만 로드
+    if (isbn && isbn !== oldIsbn) {
+      load(isbn);
+    }
+  },
   { immediate: true }
 );
+
+// 페이지 마운트 시 스크롤을 맨 위로 즉시 이동
+onMounted(() => {
+  window.scrollTo(0, 0);
+});
 
 // 찜 버튼 클릭 핸들러
 // 비로그인 유저는 차단 후 안내 메시지
