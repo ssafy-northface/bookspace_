@@ -426,10 +426,10 @@ const stopBookAutoSlide = () => {
   }
 }
 
-// Fetch recent posts (더 많은 게시글 가져오기)
+// Fetch recent posts (댓글이 가장 많은 게시글 10개)
 const { data: postsData, isLoading: isLoadingPosts } = useQuery({
-  queryKey: ['posts', 'home'],
-  queryFn: () => fetchPosts({ pageParam: 0, size: 12 }), // 12개로 증가
+  queryKey: ['posts', 'home', 'comments'],
+  queryFn: () => fetchPosts({ pageParam: 0, size: 10, sort: 'comments' }), // 댓글순 정렬, 10개
   select: (data) => data?.posts || [],
   staleTime: 1000 * 60 * 2 // 2 minutes
 })
