@@ -1,8 +1,21 @@
 <template>
   <div class="space-y-4">
     <!-- 책표지 -->
-    <div class="overflow-hidden border border-input bg-muted">
-      <img :src="book?.cover || fallbackCover" :alt="book?.title || 'cover'" class="aspect-[2/3] w-full object-cover" loading="lazy" />
+    <div class="overflow-hidden border border-input bg-muted relative aspect-[2/3]">
+      <img 
+        v-if="imageLoaded"
+        :key="book?.isbn || book?.isbn13"
+        :src="displayImageSrc" 
+        :alt="book?.title || 'cover'" 
+        class="w-full h-full object-cover"
+      />
+      <!-- 로딩 중 플레이스홀더 -->
+      <div 
+        v-if="!imageLoaded"
+        class="absolute inset-0 bg-muted flex items-center justify-center"
+      >
+        <div class="text-muted-foreground text-sm">로딩 중...</div>
+      </div>
     </div>
 
     <!-- 찜 버튼 -->
@@ -53,7 +66,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 
 const props = defineProps({
   book: {
@@ -100,4 +113,33 @@ const averageRatingText = computed(() => {
   const r = Number(props.averageRating || 0);
   return `${r.toFixed(1)}`;
 });
+
+// 이미지 로드 상태 관리
+const imageLoaded = ref(false);
+const displayImageSrc = ref('');
+
+// 이미지 미리 로드 함수
+const preloadImage = (imageSrc) => {
+  imageLoaded.value = false;
+  const img = new Image();
+  img.onload = () => {
+    // 이미지 로드 완료 후에만 src 변경
+    displayImageSrc.value = imageSrc;
+    imageLoaded.value = true;
+  };
+  img.onerror = () => {
+    // 에러가 나도 fallback 이미지로 표시
+    displayImageSrc.value = fallbackCover;
+    imageLoaded.value = true;
+  };
+  img.src = imageSrc;
+};
+
+// book이 변경될 때 이미지를 미리 로드하고, 로드 완료 후에만 표시
+watch(() => props.book?.isbn || props.book?.isbn13, (newIsbn) => {
+  if (newIsbn) {
+    const newImageSrc = props.book?.cover || fallbackCover;
+    preloadImage(newImageSrc);
+  }
+}, { immediate: true });
 </script>

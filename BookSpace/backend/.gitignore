@@ -4,6 +4,10 @@
 
 DS_Store
 
+# IntelliJ / IDEA
+.idea/
+*.iml
+
 # Created by https://www.toptal.com/developers/gitignore/api/maven,java,gradle,visualstudiocode,eclipse,windows,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=maven,java,gradle,visualstudiocode,eclipse,windows,macos
 

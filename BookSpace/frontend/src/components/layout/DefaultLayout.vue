@@ -11,7 +11,7 @@ const route = useRoute();
 <template>
   <AppHeader />
   <main class="container flex-1 py-8">
-    <RouterView />
+    <RouterView :key="route.fullPath" />
   </main>
   <AppFooter v-if="!$route.meta.noFooter" />
 
